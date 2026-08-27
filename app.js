@@ -44,17 +44,56 @@ function exam(){
  <section class=notice><b>${y}年度 実際の筆記問題</b><br><span class=muted>問題冊子PDFではなく、問題冊子から抽出した実際の本文・設問をそのまま表示しています。大問1・2（リスニング）は別アプリ対象です。</span></section>
  <div class=examgrid><section>${pages.map((p,i)=>`<article class=paper-page><div class=page-label>${y}年度・筆記ページ ${i+1}</div><pre>${h(p.text)}</pre></article>`).join("")}</section>
  <aside class="card answerpanel"><div class="row space"><h3>解答欄</h3><span>筆記80点</span></div>
+ <div class=answer-help><b>入力方法</b><span>記号はボタンをタップ。複数回答は選んだ順が表示されます。英語は回答欄へ直接入力してください。</span></div>
  ${rows.map(q=>answerRow(y,q)).join("")}
  <button class=primary onclick="grade(${y})">採点して弱点分析</button></aside></div>`;
 }
 function answerRow(y,q){
  const key=k(y,q.id), val=S.answers[key]??"", wr=S.weak[key], cls=wr?.last==="wrong"?"bad":wr?.last==="correct"?"good":q.type==="manual"?"manual":"";
  let input="";
- if(q.type==="choice")input=`<select id="a-${q.id}"><option value="">選択</option>${kana.map(x=>`<option ${val===x?"selected":""}>${x}</option>`).join("")}</select>`;
- else if(q.type==="pair"||q.type==="multi")input=`<input id="a-${q.id}" value="${h(val)}" placeholder="例：ア,ウ">`;
- else if(q.type==="text")input=`<input id="a-${q.id}" value="${h(val)}" placeholder="英語で入力">`;
- else input=`<input id="m-${q.id}" type=number min=0 max=${q.points} value="${S.manual[key]?.score??""}" placeholder="公式解答例と比較して 0〜${q.points}点">`;
- return `<div class="q ${cls}"><div class="row space"><b>${h(q.label)}</b><span>${q.points}点 ${badge(q.priority)}</span></div><div class="tiny muted">${h(q.category)}</div>${input}${wr?.last==="wrong"?`<div class=tiny>前回：${h(wr.user||"")} → 正解 ${h(q.answer||"記述自己採点")}</div>`:""}</div>`;
+ if(q.type==="choice"){
+   input=`<div class=input-guide>問題文の選択肢と同じ記号を1つタップ</div><input id="a-${q.id}" type=hidden value="${h(val)}"><div class="answer-options single" role=group aria-label="${h(q.label)}の回答">${kana.map(x=>`<button type=button class="answer-kana ${val===x?"selected":""}" aria-pressed="${val===x}" onclick="pickAnswer(${y},'${q.id}','${x}',this)">${x}</button>`).join("")}</div>`;
+ }else if(q.type==="pair"||q.type==="multi"){
+   const max=String(q.answer||"").split(",").filter(Boolean).length||2;
+   const selected=norm(val).split(",").filter(Boolean);
+   const note=q.type==="pair"?`<b>${max}つ</b>を、解答する順にタップ`:`<b>${max}つ</b>をタップ（順不同）`;
+   input=`<div class=input-guide>${note}</div><input id="a-${q.id}" type=hidden value="${h(val)}"><div class=selection-summary id="summary-${q.id}">${selectionText(selected,q.type,max)}</div><div class="answer-options multi" role=group aria-label="${h(q.label)}の回答">${kana.map(x=>`<button type=button data-kana="${x}" class="answer-kana ${selected.includes(x)?"selected":""}" aria-pressed="${selected.includes(x)}" onclick="toggleKanaAnswer(${y},'${q.id}','${x}',${max},'${q.type}')">${x}</button>`).join("")}</div><button type=button class=answer-clear onclick="clearKanaAnswer(${y},'${q.id}',${max},'${q.type}')">選択をやり直す</button>`;
+ }else if(q.type==="text"){
+   const placeholder=q.skill==="extract"?"本文から英語1語を入力（例：wish）":"半角英語で入力（例：hungry）";
+   input=`<label class=input-guide for="a-${q.id}">${q.skill==="extract"?"本文から指定された語を抜き出して入力":"英語の答えを入力"}</label><input id="a-${q.id}" value="${h(val)}" placeholder="${placeholder}" autocomplete=off autocapitalize=none spellcheck=false oninput="rememberAnswer(${y},'${q.id}',this.value)">`;
+ }else{
+   const score=S.manual[key]?.score??"";
+   input=`<div class=input-guide><b>記述問題</b>：紙に書いた答案を公式解答と比べ、自己採点した点数を入力</div><div class=score-input><button type=button aria-label="1点減らす" onclick="adjustScore(${y},'${q.id}',-1,${q.points})">−</button><input id="m-${q.id}" type=number inputmode=numeric min=0 max=${q.points} value="${score}" placeholder="0" oninput="rememberScore(${y},'${q.id}',this.value,${q.points})"><span>/ ${q.points}点</span><button type=button aria-label="1点増やす" onclick="adjustScore(${y},'${q.id}',1,${q.points})">＋</button></div>`;
+ }
+ return `<div class="q ${cls}"><div class="row space"><b>${h(q.label)}</b><span>${q.points}点 ${badge(q.priority)}</span></div><div class="tiny muted">${h(q.category)}</div>${input}${wr?.last==="wrong"?`<div class="tiny previous-answer">前回：${h(wr.user||"未入力")} → 正解 ${h(q.answer||"記述自己採点")}</div>`:""}</div>`;
+}
+function selectionText(arr,type,max){
+ if(!arr.length)return `未選択（${max}つ選んでください）`;
+ const joined=arr.join(type==="pair"?" → ":"・");
+ return `<b>選択中：</b>${joined}<span>${arr.length}/${max}</span>`;
+}
+function rememberAnswer(y,id,value){S.answers[k(y,id)]=value;save()}
+function pickAnswer(y,id,value,button){
+ const input=document.getElementById("a-"+id);input.value=value;rememberAnswer(y,id,value);
+ button.parentElement.querySelectorAll(".answer-kana").forEach(b=>{const on=b===button;b.classList.toggle("selected",on);b.setAttribute("aria-pressed",on)});
+}
+function toggleKanaAnswer(y,id,value,max,type){
+ const input=document.getElementById("a-"+id);let arr=norm(input.value).split(",").filter(Boolean),i=arr.indexOf(value);
+ if(i>=0)arr.splice(i,1);else if(arr.length<max)arr.push(value);else return alert(`${max}つまで選べます。別の記号に変える場合は、選択済みの記号をもう一度タップしてください。`);
+ input.value=arr.join(",");rememberAnswer(y,id,input.value);
+ const group=input.parentElement.querySelector(".answer-options");group.querySelectorAll(".answer-kana").forEach(b=>{const on=arr.includes(b.dataset.kana);b.classList.toggle("selected",on);b.setAttribute("aria-pressed",on)});
+ document.getElementById("summary-"+id).innerHTML=selectionText(arr,type,max);
+}
+function clearKanaAnswer(y,id,max,type){
+ const input=document.getElementById("a-"+id);input.value="";rememberAnswer(y,id,"");
+ input.parentElement.querySelectorAll(".answer-kana").forEach(b=>{b.classList.remove("selected");b.setAttribute("aria-pressed","false")});
+ document.getElementById("summary-"+id).innerHTML=selectionText([],type,max);
+}
+function rememberScore(y,id,value,max){
+ const n=value===""?"":Math.max(0,Math.min(max,Number(value)||0));S.manual[k(y,id)]={score:n};save();
+}
+function adjustScore(y,id,delta,max){
+ const input=document.getElementById("m-"+id),current=input.value===""?0:Number(input.value);input.value=Math.max(0,Math.min(max,current+delta));rememberScore(y,id,input.value,max);
 }
 function matches(q,a){
  const x=norm(a), z=norm(q.answer);
@@ -203,7 +242,8 @@ function startFirstSkill(s){let x=activeWeak().find(([_,w])=>w.skill===s);if(x)s
 function guide(){
  return `<section class=card><h2>この版の使い方</h2><ol>
  <li><b>実際の過去問</b>：PDFではなく、2019〜2026の実際の筆記本文・設問を画面内で読む。</li>
- <li>答案を入力して採点。A/B別の失点を記録。</li>
+ <li>解答欄では、選択問題は記号ボタンをタップ。複数回答は選んだ順を確認し、英語は入力欄へ直接入力する。</li>
+ <li>記述問題は紙に書いた答案を公式解答と比べ、自己採点した点数を入力する。</li>
  <li>誤答は自動で<b>間違い対策</b>へ入る。</li>
  <li>失点原因を選ぶ。</li>
  <li><b>克服ドリル</b>：同じ技能の似た問題を3問連続正解するまで繰り返す。間違えると連続数は0に戻る。</li>
