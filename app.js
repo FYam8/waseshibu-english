@@ -2,7 +2,7 @@
 const D=window.EXAM_DATA, P=window.PAPERS, BANK=window.DRILLS, FALLBACK=window.FALLBACK;
 const KEY="waseshibu.adaptive.v3", LEGACY_KEY="waseshibu.adaptive.v2", SCHEMA_VERSION=3;
 const ROUTE=[2024,2023,2022,2021,2020,2019,2025,2026];
-const INIT={schemaVersion:SCHEMA_VERSION,year:2024,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentAttempt:null,lastResultId:null,exposure:{},theme:"light",answerSheetOpen:true};
+const INIT={schemaVersion:SCHEMA_VERSION,year:2024,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentAttempt:null,lastResultId:null,exposure:{},theme:"light",answerSheetOpen:true,answerSheetExpanded:false};
 function loadState(){
  let raw=null;try{raw=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||"null")}catch(e){}
  const next={...INIT,...(raw||{})};
@@ -190,7 +190,7 @@ function exam(){
  <section class="attempt-bar"><div><b>${y}年度 ${routeRole(y)}</b><span>${exposureLabel(attempt.exposure)}／${attempt.mode==="timed"?"本番時間":attempt.mode==="targeted"?"弱点問題":"時間無制限"}</span></div>${timerMarkup(attempt)}<button onclick="interruptAttempt()">中断を記録</button></section>
  <section class=notice><b>${y}年度 実際の筆記問題</b><br><span class=muted>問題冊子PDFではなく、問題冊子から抽出した実際の本文・設問をそのまま表示しています。大問1・2（リスニング）は別アプリ対象です。</span></section>
  <div class=examgrid><section class=problem-column>${renderPaperPages(y,pages)}</section>
- <aside id=answerPanel class="card answerpanel ${S.answerSheetOpen?"sheet-open":"sheet-collapsed"}"><div class=answer-sheet-head><div><h3>解答欄</h3><span>筆記80点</span></div><button type=button class=sheet-toggle onclick="toggleAnswerSheet()">${S.answerSheetOpen?"小さくする":"解答欄を開く"}</button></div>
+ <aside id=answerPanel class="card answerpanel ${S.answerSheetOpen?"sheet-open":"sheet-collapsed"} ${S.answerSheetExpanded?"sheet-expanded":""}"><div class=answer-sheet-head><div><h3>解答欄</h3><span>筆記80点</span></div><div class=sheet-actions>${S.answerSheetOpen?`<button type=button class="sheet-toggle size-toggle" onclick="toggleAnswerSize()">${S.answerSheetExpanded?"標準":"広げる"}</button>`:""}<button type=button class=sheet-toggle onclick="toggleAnswerSheet()">${S.answerSheetOpen?"閉じる":"解答欄を開く"}</button></div></div>
  <div class=answer-sheet-body><div class=answer-help><b>スマホでは問題を上側、解答欄を下側に同時表示</b><span>「問題へ」を押すと、該当箇所へすぐ移動します。</span></div>
  <div class=answer-jumps>${answerMajors(rows).map(m=>`<button type=button onclick="jumpAnswerMajor(${y},'${m}')">大問${m}</button>`).join("")}</div>
  ${rows.map(q=>answerRow(y,q)).join("")}
@@ -223,10 +223,9 @@ function answerRow(y,q){
  return `<div id="answer-${y}-${q.id}" data-major="${(q.label.match(/大問(\d+)/)||[])[1]||""}" class="q ${cls}"><div class="row space"><b>${h(q.label)}</b><span>${q.points}点 ${badge(priority)}</span></div><div class=q-meta><span class="tiny muted">${h(q.category)} ／ 学習上の${priority}分類</span><button type=button onclick="jumpToProblem(${y},'${q.id}')">問題へ ↑</button></div>${input}${wr?.last==="wrong"?`<div class="tiny previous-answer">前回：${h(wr.user||"未入力")} → 正解 ${h(q.answer||"記述自己採点")}</div>`:""}</div>`;
 }
 function toggleAnswerSheet(){
- S.answerSheetOpen=!S.answerSheetOpen;save();
- const panel=document.getElementById("answerPanel"),button=panel?.querySelector(".sheet-toggle");if(!panel)return;
- panel.classList.toggle("sheet-open",S.answerSheetOpen);panel.classList.toggle("sheet-collapsed",!S.answerSheetOpen);if(button)button.textContent=S.answerSheetOpen?"小さくする":"解答欄を開く";
+ S.answerSheetOpen=!S.answerSheetOpen;save();render();
 }
+function toggleAnswerSize(){S.answerSheetExpanded=!S.answerSheetExpanded;save();render()}
 function jumpAnswerMajor(y,major){
  const panel=document.querySelector(".answer-sheet-body");
  const actual=[...document.querySelectorAll(`#answerPanel .q[data-major="${major}"]`)][0];if(!panel||!actual)return;
