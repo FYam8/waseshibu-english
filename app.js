@@ -5,6 +5,7 @@ const INIT={year:2026,answers:{},manual:{},history:[],weak:{},cause:{},drillLog:
 let S;try{S={...INIT,...JSON.parse(localStorage.getItem(KEY)||"{}")}}catch(e){S={...INIT}}
 let view="home", drillState=null;
 const app=document.getElementById("app"), kana=["ア","イ","ウ","エ","オ","カ","キ","ク"];
+const fullwidthDigits="０１２３４５６７８９";
 const skillNames={pronunciation:"発音",stress:"アクセント",reorder:"語句整序",vocab_definition:"英文定義",writing_completion:"短文完成",summary:"要約",rebuttal:"要約＋反論",paraphrase:"言い換え",context:"文脈",emotion:"心情",reason:"理由",extract:"本文抜出",content_match:"内容一致",sentence_completion:"英語完成",reference:"指示語",connector:"接続語",insertion:"文挿入",detail:"内容把握",example:"具体例"};
 function save(){localStorage.setItem(KEY,JSON.stringify(S))}
 function h(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
@@ -38,26 +39,73 @@ function home(){
  ${last?`<section class=card><h3>直近の過去問</h3><p>${last.year}年度　筆記 ${last.score}/80　／　A問題失点 ${last.aLost}点　／　B問題失点 ${last.bLost}点</p></section>`:""}`;
 }
 function openYear(y){S.year=y;save();goto("exam")}
+function fwNumber(n){return [...String(n)].map(x=>fullwidthDigits[Number(x)]).join("")}
+function cutSection(text,startRe,nextRe){
+ const start=startRe.exec(text);if(!start)return null;
+ const rest=text.slice(start.index),next=nextRe.exec(rest.slice(start[0].length));
+ return next?rest.slice(0,start[0].length+next.index):rest;
+}
+function questionSource(y,q){
+ const all=(P[y]||[]).map(p=>p.text).join("\n"),big=(q.label.match(/大問(\d+)/)||[])[1];
+ let section=big?cutSection(all,new RegExp(`^${fwNumber(big)}[ \\t　]+`,"m"),/^[３４５６７８][ \t　]+/m):null;
+ section=section||all;
+ const part=q.label.match(/\s問(\d+)(?:\((\d+)\))?/);if(!part)return section;
+ section=cutSection(section,new RegExp(`^問${fwNumber(part[1])}[ \\t　]+`,"m"),/^問[１２３４５６７８９][ \t　]+/m)||section;
+ if(part[2]){
+   const next=String(Number(part[2])+1);
+   section=cutSection(section,new RegExp(`^[（(]${fwNumber(part[2])}[）)]`,"m"),new RegExp(`^[（(]${fwNumber(next)}[）)]`,"m"))||section;
+ }
+ return section;
+}
+function availableKana(y,q){
+ const source=questionSource(y,q),range=source.match(/[（(]?ア[）)]?\s*[～〜]\s*[（(]?([イ-ク])[）)]?/);
+ if(range)return kana.slice(0,kana.indexOf(range[1])+1);
+ const found=new Set([...source.matchAll(/[ア-ク](?=[ \t　A-Za-z])/g)].map(m=>m[0])),result=[];
+ for(const mark of kana){if(found.has(mark))result.push(mark);else break}
+ return result.length?result:kana;
+}
+function majorNumbers(text){return [...text.matchAll(/^([３４５６７８])[ \t　]+/gm)].map(m=>fullwidthDigits.indexOf(m[1]))}
+function formatPaperText(text){
+ return text.split("\n").map(line=>{
+   const major=line.match(/^([３４５６７８])[ \t　]+(.*)$/);
+   if(major)return `<div class=major-heading><span>大問${fullwidthDigits.indexOf(major[1])}</span><strong>${h(major[2])}</strong></div>`;
+   if(/^問[１２３４５６７８９]/.test(line))return `<div class=subquestion-heading>${h(line)}</div>`;
+   return `<div class=paper-line>${line?h(line):"&nbsp;"}</div>`;
+ }).join("");
+}
+function renderPaperPages(y,pages){
+ let current=null;
+ return pages.map((p,i)=>{
+   const majors=majorNumbers(p.text);if(majors.length)current=majors.at(-1);
+   const label=majors.length?`大問 ${majors.join("・")}`:current?`大問 ${current}（続き）`:`筆記ページ ${i+1}`;
+   return `<article class=paper-page><div class=page-label><b>${y}年度</b><span>${label}</span></div><div class=paper-text>${formatPaperText(p.text)}</div></article>`;
+ }).join("");
+}
 function exam(){
  const y=Number(S.year), rows=D[y], pages=P[y];
  return `<div class=tabs>${Object.keys(D).map(Number).sort().map(n=>`<button class="year ${n===y?"selected":""}" onclick="openYear(${n})">${n}</button>`).join("")}</div>
  <section class=notice><b>${y}年度 実際の筆記問題</b><br><span class=muted>問題冊子PDFではなく、問題冊子から抽出した実際の本文・設問をそのまま表示しています。大問1・2（リスニング）は別アプリ対象です。</span></section>
- <div class=examgrid><section>${pages.map((p,i)=>`<article class=paper-page><div class=page-label>${y}年度・筆記ページ ${i+1}</div><pre>${h(p.text)}</pre></article>`).join("")}</section>
+ <div class=examgrid><section>${renderPaperPages(y,pages)}</section>
  <aside class="card answerpanel"><div class="row space"><h3>解答欄</h3><span>筆記80点</span></div>
  <div class=answer-help><b>入力方法</b><span>記号はボタンをタップ。複数回答は選んだ順が表示されます。英語は回答欄へ直接入力してください。</span></div>
  ${rows.map(q=>answerRow(y,q)).join("")}
  <button class=primary onclick="grade(${y})">採点して弱点分析</button></aside></div>`;
 }
 function answerRow(y,q){
- const key=k(y,q.id), val=S.answers[key]??"", wr=S.weak[key], cls=wr?.last==="wrong"?"bad":wr?.last==="correct"?"good":q.type==="manual"?"manual":"";
+ const key=k(y,q.id), rawVal=S.answers[key]??"", wr=S.weak[key], cls=wr?.last==="wrong"?"bad":wr?.last==="correct"?"good":q.type==="manual"?"manual":"";
+ const validKana=["choice","pair","multi"].includes(q.type)?availableKana(y,q):kana;
+ let val=rawVal;
+ if(q.type==="choice"&&!validKana.includes(val))val="";
+ if(q.type==="pair"||q.type==="multi")val=norm(val).split(",").filter(x=>validKana.includes(x)).join(",");
+ if(val!==rawVal){S.answers[key]=val;save()}
  let input="";
  if(q.type==="choice"){
-   input=`<div class=input-guide>問題文の選択肢と同じ記号を1つタップ</div><input id="a-${q.id}" type=hidden value="${h(val)}"><div class="answer-options single" role=group aria-label="${h(q.label)}の回答">${kana.map(x=>`<button type=button class="answer-kana ${val===x?"selected":""}" aria-pressed="${val===x}" onclick="pickAnswer(${y},'${q.id}','${x}',this)">${x}</button>`).join("")}</div>`;
+   input=`<div class=input-guide>実際の選択肢から記号を1つタップ</div><input id="a-${q.id}" type=hidden value="${h(val)}"><div class="answer-options single" role=group aria-label="${h(q.label)}の回答">${validKana.map(x=>`<button type=button class="answer-kana ${val===x?"selected":""}" aria-pressed="${val===x}" onclick="pickAnswer(${y},'${q.id}','${x}',this)">${x}</button>`).join("")}</div>`;
  }else if(q.type==="pair"||q.type==="multi"){
    const max=String(q.answer||"").split(",").filter(Boolean).length||2;
    const selected=norm(val).split(",").filter(Boolean);
    const note=q.type==="pair"?`<b>${max}つ</b>を、解答する順にタップ`:`<b>${max}つ</b>をタップ（順不同）`;
-   input=`<div class=input-guide>${note}</div><input id="a-${q.id}" type=hidden value="${h(val)}"><div class=selection-summary id="summary-${q.id}">${selectionText(selected,q.type,max)}</div><div class="answer-options multi" role=group aria-label="${h(q.label)}の回答">${kana.map(x=>`<button type=button data-kana="${x}" class="answer-kana ${selected.includes(x)?"selected":""}" aria-pressed="${selected.includes(x)}" onclick="toggleKanaAnswer(${y},'${q.id}','${x}',${max},'${q.type}')">${x}</button>`).join("")}</div><button type=button class=answer-clear onclick="clearKanaAnswer(${y},'${q.id}',${max},'${q.type}')">選択をやり直す</button>`;
+   input=`<div class=input-guide>${note}</div><input id="a-${q.id}" type=hidden value="${h(val)}"><div class=selection-summary id="summary-${q.id}">${selectionText(selected,q.type,max)}</div><div class="answer-options multi" role=group aria-label="${h(q.label)}の回答">${validKana.map(x=>`<button type=button data-kana="${x}" class="answer-kana ${selected.includes(x)?"selected":""}" aria-pressed="${selected.includes(x)}" onclick="toggleKanaAnswer(${y},'${q.id}','${x}',${max},'${q.type}')">${x}</button>`).join("")}</div><button type=button class=answer-clear onclick="clearKanaAnswer(${y},'${q.id}',${max},'${q.type}')">選択をやり直す</button>`;
  }else if(q.type==="text"){
    const placeholder=q.skill==="extract"?"本文から英語1語を入力（例：wish）":"半角英語で入力（例：hungry）";
    input=`<label class=input-guide for="a-${q.id}">${q.skill==="extract"?"本文から指定された語を抜き出して入力":"英語の答えを入力"}</label><input id="a-${q.id}" value="${h(val)}" placeholder="${placeholder}" autocomplete=off autocapitalize=none spellcheck=false oninput="rememberAnswer(${y},'${q.id}',this.value)">`;
