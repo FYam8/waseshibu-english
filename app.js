@@ -2,7 +2,7 @@
 const D=window.EXAM_DATA, P=window.PAPERS, BANK=window.DRILLS, FALLBACK=window.FALLBACK;
 const KEY="waseshibu.adaptive.v3", LEGACY_KEY="waseshibu.adaptive.v2", SCHEMA_VERSION=3;
 const ROUTE=[2024,2023,2022,2021,2020,2019,2025,2026];
-const INIT={schemaVersion:SCHEMA_VERSION,year:2024,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentAttempt:null,lastResultId:null,exposure:{},theme:"light",answerSheetOpen:true,answerSheetExpanded:false};
+const INIT={schemaVersion:SCHEMA_VERSION,year:2024,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentAttempt:null,lastResultId:null,exposure:{},theme:"light",answerSheetOpen:true,answerSheetExpanded:false,examInfoCompact:false};
 function loadState(){
  let raw=null;try{raw=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||"null")}catch(e){}
  const next={...INIT,...(raw||{})};
@@ -187,7 +187,7 @@ function exam(){
  const y=Number(S.year), rows=D[y], pages=P[y];
  const attempt=S.currentAttempt;if(!attempt||attempt.year!==y||attempt.status!=="active")return `<div class=tabs>${ROUTE.map(n=>`<button class="year ${n===y?"selected":""}" onclick="openYear(${n})">${n}</button>`).join("")}</div>${examGate(y)}`;
  return `<div class=tabs>${ROUTE.map(n=>`<button class="year ${n===y?"selected":""}" onclick="openYear(${n})">${n}</button>`).join("")}</div>
- <section class="attempt-bar"><div><b>${y}年度 ${routeRole(y)}</b><span>${exposureLabel(attempt.exposure)}／${attempt.mode==="timed"?"本番時間":attempt.mode==="targeted"?"弱点問題":"時間無制限"}</span></div>${timerMarkup(attempt)}<button onclick="interruptAttempt()">中断を記録</button></section>
+ <section class="attempt-bar ${S.examInfoCompact?"attempt-compact":""}"><div class=attempt-summary><b>${y}年度 <span class=attempt-role>${routeRole(y)}</span></b><span class=attempt-detail>${exposureLabel(attempt.exposure)}／${attempt.mode==="timed"?"本番時間":attempt.mode==="targeted"?"弱点問題":"時間無制限"}</span></div>${timerMarkup(attempt)}<div class=attempt-actions><button class=interrupt-button onclick="interruptAttempt()">中断を記録</button><button class=attempt-toggle onclick="toggleExamInfo()">${S.examInfoCompact?"開く":"小さくする"}</button></div></section>
  <section class=notice><b>${y}年度 実際の筆記問題</b><br><span class=muted>問題冊子PDFではなく、問題冊子から抽出した実際の本文・設問をそのまま表示しています。大問1・2（リスニング）は別アプリ対象です。</span></section>
  <div class=examgrid><section class=problem-column>${renderPaperPages(y,pages)}</section>
  <aside id=answerPanel class="card answerpanel ${S.answerSheetOpen?"sheet-open":"sheet-collapsed"} ${S.answerSheetExpanded?"sheet-expanded":""}"><div class=answer-sheet-head><div><h3>解答欄</h3><span>筆記80点</span></div><div class=sheet-actions>${S.answerSheetOpen?`<button type=button class="sheet-toggle size-toggle" onclick="toggleAnswerSize()">${S.answerSheetExpanded?"標準":"広げる"}</button>`:""}<button type=button class=sheet-toggle onclick="toggleAnswerSheet()">${S.answerSheetOpen?"閉じる":"解答欄を開く"}</button></div></div>
@@ -226,6 +226,7 @@ function toggleAnswerSheet(){
  S.answerSheetOpen=!S.answerSheetOpen;save();render();
 }
 function toggleAnswerSize(){S.answerSheetExpanded=!S.answerSheetExpanded;save();render()}
+function toggleExamInfo(){S.examInfoCompact=!S.examInfoCompact;save();render()}
 function jumpAnswerMajor(y,major){
  const panel=document.querySelector(".answer-sheet-body");
  const actual=[...document.querySelectorAll(`#answerPanel .q[data-major="${major}"]`)][0];if(!panel||!actual)return;
