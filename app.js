@@ -1,7 +1,7 @@
 
 const D=window.EXAM_DATA, P=window.PAPERS, BANK=window.DRILLS, FALLBACK=window.FALLBACK;
 const KEY="waseshibu.adaptive.v2";
-const INIT={year:2026,answers:{},manual:{},history:[],weak:{},cause:{},drillLog:[],currentSkill:null,theme:"light"};
+const INIT={year:2026,answers:{},manual:{},history:[],weak:{},cause:{},drillLog:[],currentSkill:null,theme:"light",answerSheetOpen:true};
 let S;try{S={...INIT,...JSON.parse(localStorage.getItem(KEY)||"{}")}}catch(e){S={...INIT}}
 let view="home", drillState=null;
 const app=document.getElementById("app"), kana=["ア","イ","ウ","エ","オ","カ","キ","ク"];
@@ -50,10 +50,10 @@ function questionSource(y,q){
  let section=big?cutSection(all,new RegExp(`^${fwNumber(big)}[ \\t　]+`,"m"),/^[３４５６７８][ \t　]+/m):null;
  section=section||all;
  const part=q.label.match(/\s問(\d+)(?:\((\d+)\))?/);if(!part)return section;
- section=cutSection(section,new RegExp(`^問${fwNumber(part[1])}[ \\t　]+`,"m"),/^問[１２３４５６７８９][ \t　]+/m)||section;
+ section=cutSection(section,new RegExp(`^問[${part[1]}${fwNumber(part[1])}][ \\t　]+`,"m"),/^問[1-9１２３４５６７８９][ \t　]+/m)||section;
  if(part[2]){
    const next=String(Number(part[2])+1);
-   section=cutSection(section,new RegExp(`^[（(]${fwNumber(part[2])}[）)]`,"m"),new RegExp(`^[（(]${fwNumber(next)}[）)]`,"m"))||section;
+   section=cutSection(section,new RegExp(`^[（(][${part[2]}${fwNumber(part[2])}][）)]`,"m"),new RegExp(`^[（(][${next}${fwNumber(next)}][）)]`,"m"))||section;
  }
  return section;
 }
@@ -65,31 +65,60 @@ function availableKana(y,q){
  return result.length?result:kana;
 }
 function majorNumbers(text){return [...text.matchAll(/^([３４５６７８])[ \t　]+/gm)].map(m=>fullwidthDigits.indexOf(m[1]))}
-function formatPaperText(text){
- return text.split("\n").map(line=>{
-   const major=line.match(/^([３４５６７８])[ \t　]+(.*)$/);
-   if(major)return `<div class=major-heading><span>大問${fullwidthDigits.indexOf(major[1])}</span><strong>${h(major[2])}</strong></div>`;
-   if(/^問[１２３４５６７８９]/.test(line))return `<div class=subquestion-heading>${h(line)}</div>`;
-   return `<div class=paper-line>${line?h(line):"&nbsp;"}</div>`;
- }).join("");
+function joinWrappedLines(lines){
+ return lines.reduce((out,line)=>{
+   const next=line.trim();if(!out)return next;
+   const gap=/[A-Za-z0-9,.;:]$/.test(out)&&/^[A-Za-z0-9]/.test(next)?" ":"";
+   return out+gap+next;
+ },"");
+}
+function needsContinuation(text){return !/[。.!?]$/.test(String(text).trim())}
+function formatPaperText(text,y,startMajor){
+ const lines=text.split("\n"),html=[];let currentMajor=startMajor,currentQuestion=null;
+ for(let i=0;i<lines.length;i++){
+   const line=lines[i],major=line.match(/^([３４５６７８])[ \t　]+(.*)$/);
+   if(major){
+     currentMajor=fullwidthDigits.indexOf(major[1]);currentQuestion=null;
+     const title=[major[2]];
+     while(title.length<5&&needsContinuation(joinWrappedLines(title))&&i+1<lines.length&&lines[i+1].trim()&&!/^[ \t　]*(?:[３４５６７８][ \t　]+|問[1-9１２３４５６７８９])/.test(lines[i+1]))title.push(lines[++i]);
+     html.push(`<div id="problem-${y}-${currentMajor}" class=major-heading><span>大問${currentMajor}</span><strong>${h(joinWrappedLines(title))}</strong></div>`);continue;
+   }
+   const question=line.match(/^[ \t　]*問([1-9１２３４５６７８９])[ \t　]*/);
+   if(question){
+     currentQuestion=/[1-9]/.test(question[1])?Number(question[1]):fullwidthDigits.indexOf(question[1]);
+     const title=[line];
+     while(title.length<4&&needsContinuation(joinWrappedLines(title))&&i+1<lines.length&&lines[i+1].trim()&&!/^[ \t　]*(?:[３４５６７８][ \t　]+|問[1-9１２３４５６７８９]|[（(][1-9１２３４５６７８９][）)])/.test(lines[i+1]))title.push(lines[++i]);
+     html.push(`<div id="problem-${y}-${currentMajor}-${currentQuestion}" class=subquestion-heading>${h(joinWrappedLines(title))}</div>`);continue;
+   }
+   const sub=line.match(/^[ \t　]*[（(]([1-9１２３４５６７８９])[）)]/);
+   if(sub&&currentMajor&&currentQuestion){
+     const subNumber=/[1-9]/.test(sub[1])?Number(sub[1]):fullwidthDigits.indexOf(sub[1]);
+     html.push(`<div id="problem-${y}-${currentMajor}-${currentQuestion}-${subNumber}" class="paper-line subpart-line">${h(line)}</div>`);continue;
+   }
+   const pattern=(line.match(/\([^)]*\)/g)||[]).length>=3||/\[[ア-ク].*[ア-ク].*\]/.test(line);
+   html.push(`<div class="paper-line ${pattern?"answer-pattern-line":""}">${line?h(line):"&nbsp;"}</div>`);
+ }
+ return {html:html.join(""),lastMajor:currentMajor};
 }
 function renderPaperPages(y,pages){
  let current=null;
  return pages.map((p,i)=>{
-   const majors=majorNumbers(p.text);if(majors.length)current=majors.at(-1);
+   const majors=majorNumbers(p.text),formatted=formatPaperText(p.text,y,current);current=formatted.lastMajor;
    const label=majors.length?`大問 ${majors.join("・")}`:current?`大問 ${current}（続き）`:`筆記ページ ${i+1}`;
-   return `<article class=paper-page><div class=page-label><b>${y}年度</b><span>${label}</span></div><div class=paper-text>${formatPaperText(p.text)}</div></article>`;
+   return `<article class=paper-page><div class=page-label><b>${y}年度</b><span>${label}</span></div><div class=paper-text>${formatted.html}</div></article>`;
  }).join("");
 }
+function answerMajors(rows){return [...new Set(rows.map(q=>(q.label.match(/大問(\d+)/)||[])[1]).filter(Boolean))]}
 function exam(){
  const y=Number(S.year), rows=D[y], pages=P[y];
  return `<div class=tabs>${Object.keys(D).map(Number).sort().map(n=>`<button class="year ${n===y?"selected":""}" onclick="openYear(${n})">${n}</button>`).join("")}</div>
  <section class=notice><b>${y}年度 実際の筆記問題</b><br><span class=muted>問題冊子PDFではなく、問題冊子から抽出した実際の本文・設問をそのまま表示しています。大問1・2（リスニング）は別アプリ対象です。</span></section>
- <div class=examgrid><section>${renderPaperPages(y,pages)}</section>
- <aside class="card answerpanel"><div class="row space"><h3>解答欄</h3><span>筆記80点</span></div>
- <div class=answer-help><b>入力方法</b><span>記号はボタンをタップ。複数回答は選んだ順が表示されます。英語は回答欄へ直接入力してください。</span></div>
+ <div class=examgrid><section class=problem-column>${renderPaperPages(y,pages)}</section>
+ <aside id=answerPanel class="card answerpanel ${S.answerSheetOpen?"sheet-open":"sheet-collapsed"}"><div class=answer-sheet-head><div><h3>解答欄</h3><span>筆記80点</span></div><button type=button class=sheet-toggle onclick="toggleAnswerSheet()">${S.answerSheetOpen?"小さくする":"解答欄を開く"}</button></div>
+ <div class=answer-sheet-body><div class=answer-help><b>スマホでは問題を上側、解答欄を下側に同時表示</b><span>「問題へ」を押すと、該当箇所へすぐ移動します。</span></div>
+ <div class=answer-jumps>${answerMajors(rows).map(m=>`<button type=button onclick="jumpAnswerMajor(${y},'${m}')">大問${m}</button>`).join("")}</div>
  ${rows.map(q=>answerRow(y,q)).join("")}
- <button class=primary onclick="grade(${y})">採点して弱点分析</button></aside></div>`;
+ <button class="primary grade-button" onclick="grade(${y})">採点して弱点分析</button></div></aside></div>`;
 }
 function answerRow(y,q){
  const key=k(y,q.id), rawVal=S.answers[key]??"", wr=S.weak[key], cls=wr?.last==="wrong"?"bad":wr?.last==="correct"?"good":q.type==="manual"?"manual":"";
@@ -113,7 +142,23 @@ function answerRow(y,q){
    const score=S.manual[key]?.score??"";
    input=`<div class=input-guide><b>記述問題</b>：紙に書いた答案を公式解答と比べ、自己採点した点数を入力</div><div class=score-input><button type=button aria-label="1点減らす" onclick="adjustScore(${y},'${q.id}',-1,${q.points})">−</button><input id="m-${q.id}" type=number inputmode=numeric min=0 max=${q.points} value="${score}" placeholder="0" oninput="rememberScore(${y},'${q.id}',this.value,${q.points})"><span>/ ${q.points}点</span><button type=button aria-label="1点増やす" onclick="adjustScore(${y},'${q.id}',1,${q.points})">＋</button></div>`;
  }
- return `<div class="q ${cls}"><div class="row space"><b>${h(q.label)}</b><span>${q.points}点 ${badge(q.priority)}</span></div><div class="tiny muted">${h(q.category)}</div>${input}${wr?.last==="wrong"?`<div class="tiny previous-answer">前回：${h(wr.user||"未入力")} → 正解 ${h(q.answer||"記述自己採点")}</div>`:""}</div>`;
+ return `<div id="answer-${y}-${q.id}" data-major="${(q.label.match(/大問(\d+)/)||[])[1]||""}" class="q ${cls}"><div class="row space"><b>${h(q.label)}</b><span>${q.points}点 ${badge(q.priority)}</span></div><div class=q-meta><span class="tiny muted">${h(q.category)}</span><button type=button onclick="jumpToProblem(${y},'${q.id}')">問題へ ↑</button></div>${input}${wr?.last==="wrong"?`<div class="tiny previous-answer">前回：${h(wr.user||"未入力")} → 正解 ${h(q.answer||"記述自己採点")}</div>`:""}</div>`;
+}
+function toggleAnswerSheet(){
+ S.answerSheetOpen=!S.answerSheetOpen;save();
+ const panel=document.getElementById("answerPanel"),button=panel?.querySelector(".sheet-toggle");if(!panel)return;
+ panel.classList.toggle("sheet-open",S.answerSheetOpen);panel.classList.toggle("sheet-collapsed",!S.answerSheetOpen);if(button)button.textContent=S.answerSheetOpen?"小さくする":"解答欄を開く";
+}
+function jumpAnswerMajor(y,major){
+ const panel=document.querySelector(".answer-sheet-body");
+ const actual=[...document.querySelectorAll(`#answerPanel .q[data-major="${major}"]`)][0];if(!panel||!actual)return;
+ panel.scrollTo({top:Math.max(0,actual.offsetTop-95),behavior:"smooth"});actual.classList.add("focus-flash");setTimeout(()=>actual.classList.remove("focus-flash"),1200);
+}
+function jumpToProblem(y,id){
+ const parts=String(id).split("-");let target=null;
+ while(parts.length&&!target){target=document.getElementById(`problem-${y}-${parts.join("-")}`);if(!target)parts.pop()}
+ if(!target)return alert("問題の位置を特定できませんでした。");
+ target.scrollIntoView({behavior:"smooth",block:"start"});target.classList.add("focus-flash");setTimeout(()=>target.classList.remove("focus-flash"),1400);
 }
 function selectionText(arr,type,max){
  if(!arr.length)return `未選択（${max}つ選んでください）`;
