@@ -3,7 +3,7 @@ const D=window.EXAM_DATA, P=window.PAPERS, BANK=window.DRILLS, FALLBACK=window.F
 // STORAGE_KEY is permanent. Future releases migrate schemaVersion in place and must not rename this key.
 const STORAGE_KEY="waseshibu.adaptive.v3", LEGACY_KEYS=["waseshibu.adaptive.v2"], RECOVERY_KEY="waseshibu.adaptive.pre-migration", SCHEMA_VERSION=4;
 const ROUTE=[2024,2023,2022,2021,2020,2019,2025,2026];
-const INIT={schemaVersion:SCHEMA_VERSION,year:2024,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentAttempt:null,lastResultId:null,exposure:{},theme:"light",answerSheetOpen:true,answerSheetExpanded:false,examInfoCompact:false};
+const INIT={schemaVersion:SCHEMA_VERSION,year:2024,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentAttempt:null,lastResultId:null,lastStartedWeakKey:null,exposure:{},theme:"light",answerSheetOpen:true,answerSheetExpanded:false,examInfoCompact:false};
 function loadState(){
  let raw=null,rawText=null,sourceKey=null;
  for(const key of [STORAGE_KEY,...LEGACY_KEYS]){try{const text=localStorage.getItem(key);if(!text)continue;const parsed=JSON.parse(text);if(parsed&&typeof parsed==="object"){raw=parsed;rawText=text;sourceKey=key;break}}catch(e){}}
@@ -339,9 +339,10 @@ function review(){
 }
 function setCause(key,v){S.cause[key]=v;save()}
 function startDue(){
- const due=activeWeak().filter(([_,w])=>!w.next||w.next<=today()).sort((a,b)=>a[1].priority>b[1].priority?1:-1);
+ const due=activeWeak().filter(([_,w])=>!w.next||w.next<=today()).sort((a,b)=>a[1].priority.localeCompare(b[1].priority)||(a[1].next||"").localeCompare(b[1].next||"")||a[0].localeCompare(b[0]));
  if(!due.length)return alert("今日が期限の復習はありません。");
- startSkill(due[0][0]);
+ const highest=due[0][1].priority,tier=due.filter(([_,w])=>w.priority===highest),last=tier.findIndex(([key])=>key===S.lastStartedWeakKey),chosen=tier[(last+1)%tier.length];
+ startSkill(chosen[0]);
 }
 function poolFor(skill){
  return BANK.filter(x=>x.skill===skill);
@@ -353,7 +354,7 @@ function startSkill(key){
    if(!confirm(`定着チェック予定日は ${w.next} です。今日先にやりますか？`))return;
  }
  if(!Array.isArray(w.reservedConfirm)||w.reservedConfirm.length<2){const unseen=pool.filter(x=>!(w.seenDrills||[]).includes(x.id)).sort(()=>Math.random()-.5);w.reservedConfirm=unseen.slice(0,2).map(x=>x.id)}
- S.currentSkill=key;save();
+ S.currentSkill=key;S.lastStartedWeakKey=key;save();
  drillState={key,skill:w.skill,mode:w.status==="pending"?"confirm":"train",used:[],q:null,answered:false,selected:null,order:[],textInputs:[]};
  nextDrill();goto("drill");
 }
@@ -368,8 +369,10 @@ function nextDrill(){
    const max=(w.streak||0)>=2?3:2;
    const leveled=candidates.filter(x=>x.level<=max);if(leveled.length)candidates=leveled;
  }
+ const unseen=candidates.filter(x=>!(w.seenDrills||[]).includes(x.id));if(unseen.length)candidates=unseen;
+ if(candidates.length>1&&w.lastDrillId)candidates=candidates.filter(x=>x.id!==w.lastDrillId);
  const q=candidates[Math.floor(Math.random()*candidates.length)];
- drillState.q=q;drillState.used.push(q.id);w.seenDrills=[...new Set([...(w.seenDrills||[]),q.id])];save();drillState.answered=false;drillState.selected=null;drillState.order=[];drillState.textInputs=[];
+ drillState.q=q;drillState.used.push(q.id);w.lastDrillId=q.id;w.seenDrills=[...new Set([...(w.seenDrills||[]),q.id])];save();drillState.answered=false;drillState.selected=null;drillState.order=[];drillState.textInputs=[];
 }
 function drill(){
  if(!drillState){
