@@ -1,26 +1,33 @@
 
 const D=window.EXAM_DATA, P=window.PAPERS, BANK=window.DRILLS, FALLBACK=window.FALLBACK;
-const KEY="waseshibu.adaptive.v3", LEGACY_KEY="waseshibu.adaptive.v2", SCHEMA_VERSION=3;
+// STORAGE_KEY is permanent. Future releases migrate schemaVersion in place and must not rename this key.
+const STORAGE_KEY="waseshibu.adaptive.v3", LEGACY_KEYS=["waseshibu.adaptive.v2"], RECOVERY_KEY="waseshibu.adaptive.pre-migration", SCHEMA_VERSION=4;
 const ROUTE=[2024,2023,2022,2021,2020,2019,2025,2026];
 const INIT={schemaVersion:SCHEMA_VERSION,year:2024,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentAttempt:null,lastResultId:null,exposure:{},theme:"light",answerSheetOpen:true,answerSheetExpanded:false,examInfoCompact:false};
 function loadState(){
- let raw=null;try{raw=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(LEGACY_KEY)||"null")}catch(e){}
+ let raw=null,rawText=null,sourceKey=null;
+ for(const key of [STORAGE_KEY,...LEGACY_KEYS]){try{const text=localStorage.getItem(key);if(!text)continue;const parsed=JSON.parse(text);if(parsed&&typeof parsed==="object"){raw=parsed;rawText=text;sourceKey=key;break}}catch(e){}}
  const next={...INIT,...(raw||{})};
  next.answers=next.answers||{};next.manual=next.manual||{};next.weak=next.weak||{};next.cause=next.cause||{};next.exposure=next.exposure||{};next.history=Array.isArray(next.history)?next.history:[];next.attempts=Array.isArray(next.attempts)?next.attempts:[];next.drillLog=Array.isArray(next.drillLog)?next.drillLog:[];
- if((raw?.schemaVersion||2)<3){
+ const fromVersion=Number(raw?.schemaVersion)||2;
+ if(fromVersion<3){
    next.history.forEach((x,i)=>{const id=`legacy-${x.year}-${i}-${x.at||"unknown"}`;if(!next.attempts.some(a=>a.id===id))next.attempts.push({id,year:Number(x.year),writtenScore:Number(x.score)||0,status:"graded",mode:"unknown",exposure:"unknown",comparable:false,gradedAt:x.at||null,aLost:x.aLost||0,bLost:x.bLost||0,cLost:0,legacy:true})});
    Object.keys(next.answers).forEach(key=>{const y=Number(key.split(":")[0]);if(y)next.exposure[y]=next.exposure[y]||"unknown"});
-   next.schemaVersion=SCHEMA_VERSION;
  }
  Object.values(next.weak).forEach(w=>{const q=(D[w.year]||[]).find(x=>x.id===w.id);if(q)w.priority=strategyPriority(q)});
+ if(fromVersion<=SCHEMA_VERSION){
+   next.schemaVersion=SCHEMA_VERSION;
+   try{if(rawText&&fromVersion<SCHEMA_VERSION&&!localStorage.getItem(RECOVERY_KEY))localStorage.setItem(RECOVERY_KEY,rawText);localStorage.setItem(STORAGE_KEY,JSON.stringify(next))}catch(e){}
+ }
  return next;
 }
 let S=loadState();
 let view="home", drillState=null, timerHandle=null;
+let storageWarningShown=false;
 const app=document.getElementById("app"), kana=["ア","イ","ウ","エ","オ","カ","キ","ク"];
 const fullwidthDigits="０１２３４５６７８９";
 const skillNames={pronunciation:"発音",stress:"アクセント",reorder:"語句整序",vocab_definition:"英文定義",writing_completion:"短文完成",summary:"要約",rebuttal:"要約＋反論",paraphrase:"言い換え",context:"文脈",emotion:"心情",reason:"理由",extract:"本文抜出",content_match:"内容一致",sentence_completion:"英語完成",reference:"指示語",connector:"接続語",insertion:"文挿入",detail:"内容把握",example:"具体例"};
-function save(){S.schemaVersion=SCHEMA_VERSION;localStorage.setItem(KEY,JSON.stringify(S))}
+function save(){if(Number(S.schemaVersion)>SCHEMA_VERSION)return false;S.schemaVersion=SCHEMA_VERSION;try{localStorage.setItem(STORAGE_KEY,JSON.stringify(S));return true}catch(e){if(!storageWarningShown){storageWarningShown=true;alert("学習履歴を端末に保存できませんでした。ブラウザの空き容量またはプライベートブラウズ設定を確認してください。")}return false}}
 function h(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function norm(s){return String(s||"").trim().replace(/\s+/g,"").replace(/，/g,",").toLowerCase()}
 function k(y,id){return `${y}:${id}`}
@@ -437,7 +444,7 @@ function stats(){
 function startFirstSkill(s){let x=activeWeak().find(([_,w])=>w.skill===s);if(x)startSkill(x[0])}
 function exportData(){const payload={appId:"waseshibu-english-adaptive",schemaVersion:SCHEMA_VERSION,exportedAt:new Date().toISOString(),state:S};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`waseshibu-english-backup-${today()}.json`;a.hidden=true;document.body?.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}
 function normalizeImportedState(x){return {...x,answers:x.answers||{},manual:x.manual||{},weak:x.weak||{},cause:x.cause||{},exposure:x.exposure||{},attempts:Array.isArray(x.attempts)?x.attempts:[],history:Array.isArray(x.history)?x.history:[],drillLog:Array.isArray(x.drillLog)?x.drillLog:[]}}
-function validateImport(payload){if(!payload||payload.appId!=="waseshibu-english-adaptive"||!payload.state)throw new Error("このアプリのバックアップではありません。");if(!Number.isFinite(Number(payload.schemaVersion))||Number(payload.schemaVersion)>SCHEMA_VERSION)throw new Error("対応していないバックアップ形式です。");const x=normalizeImportedState(payload.state);if(typeof x.answers!=="object"||Array.isArray(x.answers)||typeof x.weak!=="object"||Array.isArray(x.weak))throw new Error("必要な学習データがありません。");for(const a of x.attempts){const writtenMissing=a.writtenScore===null||a.writtenScore===undefined||a.writtenScore==="",written=Number(a.writtenScore),listening=a.listeningScore;const listeningInvalid=listening!==null&&listening!==undefined&&(listening===""||!Number.isFinite(Number(listening))||Number(listening)<0||Number(listening)>20);if(!a.id||!ROUTE.includes(Number(a.year))||writtenMissing||!Number.isFinite(written)||written<0||written>80||listeningInvalid)throw new Error("受験記録の年度または点数が不正です。")}return x}
+function validateImport(payload){if(!payload||payload.appId!=="waseshibu-english-adaptive"||!payload.state)throw new Error("このアプリのバックアップではありません。");if(!Number.isFinite(Number(payload.schemaVersion))||Number(payload.schemaVersion)>SCHEMA_VERSION)throw new Error("対応していないバックアップ形式です。");const x=normalizeImportedState(payload.state);if(typeof x.answers!=="object"||Array.isArray(x.answers)||typeof x.weak!=="object"||Array.isArray(x.weak))throw new Error("必要な学習データがありません。");for(const a of x.attempts){const writtenMissing=a.writtenScore===null||a.writtenScore===undefined||a.writtenScore==="",written=Number(a.writtenScore),writtenInvalid=(!writtenMissing&&(!Number.isFinite(written)||written<0||written>80))||(a.status==="graded"&&writtenMissing),listening=a.listeningScore;const listeningInvalid=listening!==null&&listening!==undefined&&(listening===""||!Number.isFinite(Number(listening))||Number(listening)<0||Number(listening)>20);if(!a.id||!ROUTE.includes(Number(a.year))||writtenInvalid||listeningInvalid)throw new Error("受験記録の年度または点数が不正です。")}if(x.currentAttempt&&(!x.currentAttempt.id||!ROUTE.includes(Number(x.currentAttempt.year))))throw new Error("解答途中の記録が不正です。");return x}
 function mergeWeak(a={},b={}){if(a.status==="mastered"&&b.status!=="mastered")return a;if(b.status==="mastered"&&a.status!=="mastered")return b;const ap=(a.confirmStreak||0)*10+(a.streak||0),bp=(b.confirmStreak||0)*10+(b.streak||0);return bp>=ap?{...a,...b}:{...b,...a}}
 function dedupeBy(arr,keyFn){const m=new Map();arr.forEach(x=>m.set(keyFn(x),x));return [...m.values()]}
 function mergeExposure(a={},b={}){const rank={first:0,unknown:1,partial:2,done:3},out={...a};Object.entries(b).forEach(([y,v])=>{if(out[y]===undefined||rank[v]>=rank[out[y]])out[y]=v});return out}
@@ -456,7 +463,7 @@ function guide(){
  <div class=notice><b>英単語・リスニング</b><p>通常の英単語学習とリスニングは別アプリ想定です。過去問中の英文定義問題は本番演習として残しますが、単語そのものの大量反復はこのアプリの中心にはしていません。</p></div>
  <div class=bluebox><b>類題について</b><p>${BANK.length}問のオリジナル類題を収録しています。即時練習3問とは別に、未出2問を翌日確認用として確保します。</p></div>
  <div class=warnbox><b>A・B・Cについて</b><p>学校公式の分類ではなく、60～75点を目指すための学習上の分類です。Aを先に、Bで上積みし、Cは後回し候補とします。</p></div>
- <section class=backup-box><h3>学習データのバックアップ</h3><p>GitHub Pagesは端末内に保存します。機種変更や別端末への移動にはバックアップを使ってください。</p><div class=row><button onclick="exportData()">バックアップを書き出す</button><label>復元方法 <select id=importMode><option value=merge>現在データへ統合</option><option value=replace>現在データと置換</option></select></label><label class=file-button>バックアップを選ぶ<input type=file accept="application/json,.json" onchange="importData(this)"></label></div></section></section>`;
+ <section class=backup-box><h3>学習データのバックアップ</h3><p>この端末では、アプリを更新しても学習履歴を自動で引き継ぎます。機種変更、ブラウザ変更、端末故障への備えにはバックアップを使ってください。</p><div class=row><button onclick="exportData()">バックアップを書き出す</button><label>復元方法 <select id=importMode><option value=merge>現在データへ統合</option><option value=replace>現在データと置換</option></select></label><label class=file-button>バックアップを選ぶ<input type=file accept="application/json,.json" onchange="importData(this)"></label></div></section></section>`;
 }
 function render(){if(timerHandle){clearInterval(timerHandle);timerHandle=null}app.innerHTML=({home,route,exam,result,review,drill,stats,guide})[view]();if(view==="exam"&&S.currentAttempt?.status==="active"&&S.currentAttempt.mode==="timed")timerHandle=setInterval(updateTimer,1000)}
 render();
