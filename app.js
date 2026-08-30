@@ -1,14 +1,14 @@
 
 const D=window.EXAM_DATA, P=window.PAPERS, BANK=window.DRILLS, FALLBACK=window.FALLBACK;
 // STORAGE_KEY is permanent. Future releases migrate schemaVersion in place and must not rename this key.
-const STORAGE_KEY="waseshibu.adaptive.v3", LEGACY_KEYS=["waseshibu.adaptive.v2"], RECOVERY_KEY="waseshibu.adaptive.pre-migration", SCHEMA_VERSION=4;
+const STORAGE_KEY="waseshibu.adaptive.v3", LEGACY_KEYS=["waseshibu.adaptive.v2"], RECOVERY_PREFIX="waseshibu.adaptive.pre-migration", SCHEMA_VERSION=5, DAILY_WEAK_LIMIT=3;
 const ROUTE=[2024,2023,2022,2021,2020,2019,2025,2026];
-const INIT={schemaVersion:SCHEMA_VERSION,year:2024,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentAttempt:null,lastResultId:null,lastStartedWeakKey:null,exposure:{},theme:"light",answerSheetOpen:true,answerSheetExpanded:false,examInfoCompact:false};
+const INIT={schemaVersion:SCHEMA_VERSION,year:2024,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentAttempt:null,lastResultId:null,lastStartedWeakKey:null,dailyPlan:null,exposure:{},theme:"light",answerSheetOpen:true,answerSheetExpanded:false,examInfoCompact:false};
 function loadState(){
  let raw=null,rawText=null,sourceKey=null;
  for(const key of [STORAGE_KEY,...LEGACY_KEYS]){try{const text=localStorage.getItem(key);if(!text)continue;const parsed=JSON.parse(text);if(parsed&&typeof parsed==="object"){raw=parsed;rawText=text;sourceKey=key;break}}catch(e){}}
  const next={...INIT,...(raw||{})};
- next.answers=next.answers||{};next.manual=next.manual||{};next.weak=next.weak||{};next.cause=next.cause||{};next.exposure=next.exposure||{};next.history=Array.isArray(next.history)?next.history:[];next.attempts=Array.isArray(next.attempts)?next.attempts:[];next.drillLog=Array.isArray(next.drillLog)?next.drillLog:[];
+ next.answers=next.answers||{};next.manual=next.manual||{};next.weak=next.weak||{};next.cause=next.cause||{};next.exposure=next.exposure||{};next.history=Array.isArray(next.history)?next.history:[];next.attempts=Array.isArray(next.attempts)?next.attempts:[];next.drillLog=Array.isArray(next.drillLog)?next.drillLog:[];next.dailyPlan=next.dailyPlan&&typeof next.dailyPlan==="object"?next.dailyPlan:null;
  const fromVersion=Number(raw?.schemaVersion)||2;
  if(fromVersion<3){
    next.history.forEach((x,i)=>{const id=`legacy-${x.year}-${i}-${x.at||"unknown"}`;if(!next.attempts.some(a=>a.id===id))next.attempts.push({id,year:Number(x.year),writtenScore:Number(x.score)||0,status:"graded",mode:"unknown",exposure:"unknown",comparable:false,gradedAt:x.at||null,aLost:x.aLost||0,bLost:x.bLost||0,cLost:0,legacy:true})});
@@ -17,12 +17,12 @@ function loadState(){
  Object.values(next.weak).forEach(w=>{const q=(D[w.year]||[]).find(x=>x.id===w.id);if(q)w.priority=strategyPriority(q)});
  if(fromVersion<=SCHEMA_VERSION){
    next.schemaVersion=SCHEMA_VERSION;
-   try{if(rawText&&fromVersion<SCHEMA_VERSION&&!localStorage.getItem(RECOVERY_KEY))localStorage.setItem(RECOVERY_KEY,rawText);localStorage.setItem(STORAGE_KEY,JSON.stringify(next))}catch(e){}
+   try{if(rawText&&fromVersion<SCHEMA_VERSION){const recoveryKey=`${RECOVERY_PREFIX}.v${fromVersion}`;if(!localStorage.getItem(recoveryKey))localStorage.setItem(recoveryKey,rawText)}localStorage.setItem(STORAGE_KEY,JSON.stringify(next))}catch(e){}
  }
  return next;
 }
 let S=loadState();
-let view="home", drillState=null, timerHandle=null;
+let view="home", drillState=null, timerHandle=null, dayRefreshHandle=null, renderedDate=today();
 let storageWarningShown=false;
 const app=document.getElementById("app"), kana=["ア","イ","ウ","エ","オ","カ","キ","ク"];
 const fullwidthDigits="０１２３４５６７８９";
@@ -55,22 +55,64 @@ if(S.theme==="dark")document.documentElement.classList.add("dark");
 function activeWeak(){return Object.entries(S.weak).filter(([_,w])=>w.status!=="mastered")}
 function mastered(){return Object.values(S.weak).filter(w=>w.status==="mastered").length}
 function latestAttempt(y){return [...S.attempts].reverse().find(a=>a.status==="graded"&&(!y||a.year===Number(y)))}
-function nextRouteYear(){return ROUTE.find(y=>!S.attempts.some(a=>a.year===y&&a.status==="graded"))||2026}
+function nextRouteYear(){return ROUTE.find(y=>!S.attempts.some(a=>a.year===y&&a.status==="graded"))||null}
+function priorityOrder(w){return ({A:0,B:1,C:2})[w.priority]??3}
+function eligibleToday([_,w]){return w.status==="active"||(w.status==="pending"&&(!w.next||w.next<=today()))}
+function sortWeakEntries(a,b){
+ const priority=priorityOrder(a[1])-priorityOrder(b[1]);if(priority)return priority;
+ const aDue=a[1].status==="pending"?0:1,bDue=b[1].status==="pending"?0:1;if(aDue!==bDue)return aDue-bDue;
+ const next=(a[1].next||"").localeCompare(b[1].next||"");if(next)return next;
+ const assigned=(a[1].lastAssignedDate||"").localeCompare(b[1].lastAssignedDate||"");if(assigned)return assigned;
+ return a[0].localeCompare(b[0]);
+}
+function dailyPlanValid(){return S.dailyPlan&&S.dailyPlan.date===today()}
+function invalidateDailyPlan(){S.dailyPlan=null;save()}
+function ensureDailyPlan(){
+ if(dailyPlanValid())return S.dailyPlan;
+ const candidates=activeWeak().filter(eligibleToday).sort(sortWeakEntries),all=activeWeak(),routeYear=nextRouteYear();
+ if(candidates.length){
+   const weakKeys=candidates.slice(0,DAILY_WEAK_LIMIT).map(([key,w])=>{w.lastAssignedDate=today();return key});
+   S.dailyPlan={date:today(),kind:"weak",weakKeys,createdAt:new Date().toISOString()};
+ }else if(all.length){
+   S.dailyPlan={date:today(),kind:"waiting",weakKeys:[],createdAt:new Date().toISOString()};
+ }else if(routeYear){
+   S.dailyPlan={date:today(),kind:"route",weakKeys:[],routeYear,createdAt:new Date().toISOString()};
+ }else{
+   S.dailyPlan={date:today(),kind:"complete",weakKeys:[],createdAt:new Date().toISOString()};
+ }
+ save();return S.dailyPlan;
+}
+function planRemaining(plan=ensureDailyPlan()){
+ if(plan.kind!=="weak")return [];
+ return (plan.weakKeys||[]).filter(key=>{const w=S.weak[key];return w&&eligibleToday([key,w])});
+}
+function planBacklog(plan=ensureDailyPlan()){
+ const assigned=new Set(plan.weakKeys||[]);return activeWeak().filter(x=>eligibleToday(x)&&!assigned.has(x[0])).length;
+}
+function nextPendingDate(){return activeWeak().map(([_,w])=>w.status==="pending"&&w.next>today()?w.next:null).filter(Boolean).sort()[0]||null}
+function completeTodayNote(plan){
+ const backlog=planBacklog(plan),next=nextPendingDate();
+ if(backlog)return `今日の割当は完了しました。残り${backlog}件は次回以降に回します。`;
+ if(next)return `今日の必須課題は完了しました。次の定着チェックは ${next} です。`;
+ if(nextRouteYear())return "今日の必須課題は完了しました。次の年度は明日以降に進めます。";
+ return "今日の必須課題はすべて完了しました。";
+}
 function todayAction(){
  if(S.currentAttempt?.status==="active")return {label:`${S.currentAttempt.year}年度の続きを解く`,action:`openYear(${S.currentAttempt.year})`,note:"解答途中の過去問があります。"};
- const due=activeWeak().filter(([_,w])=>w.status==="pending"&&w.next<=today());if(due.length)return {label:"今日の定着チェック",action:"startDue()",note:`期限が来た復習が${due.length}件あります。`};
- const active=activeWeak().filter(([_,w])=>w.status==="active");if(active.length)return {label:"誤答の克服ドリル",action:"startDue()",note:`未克服の弱点が${active.length}件あります。`};
- const y=nextRouteYear();return {label:`${y}年度 ${routeRole(y)}を始める`,action:`openYear(${y})`,note:"推奨ルート上の次の課題です。"};
+ const plan=ensureDailyPlan(),remaining=planRemaining(plan);
+ if(remaining.length){const due=remaining.filter(key=>S.weak[key]?.status==="pending").length;return {label:due?"今日の定着チェック":"誤答の克服ドリル",action:"startTodayTasks()",note:`今日の割当は残り${remaining.length}件です（1日最大${DAILY_WEAK_LIMIT}弱点）。`};}
+ if(plan.kind==="route"&&plan.routeYear)return {label:`${plan.routeYear}年度 ${routeRole(plan.routeYear)}を始める`,action:`openYear(${plan.routeYear})`,note:"推奨ルート上の今日の課題です。"};
+ return {complete:true,label:"今日の割当は完了",note:completeTodayNote(plan)};
 }
 function home(){
- const active=activeWeak(), due=active.filter(([_,w])=>!w.next||w.next<=today()).length;
+ const active=activeWeak();
  const last=S.history.at(-1);
  const action=todayAction();
- return `<section class="card hero today-card"><div class=eyebrow>TODAY'S NEXT ACTION</div>
+ return `<section class="card hero today-card ${action.complete?"today-complete":""}"><div class=eyebrow>${action.complete?"TODAY'S PLAN COMPLETE":"TODAY'S NEXT ACTION"}</div>
  <h2>今日やること</h2><p>${h(action.note)}</p>
- <div class=row><button class=primary onclick="${action.action}">${h(action.label)}</button><button onclick="goto('route')">学習ルートを見る</button></div></section>
+ <div class=row>${action.complete?`<span class=completion-mark>✓ ${h(action.label)}</span>`:`<button class=primary onclick="${action.action}">${h(action.label)}</button>`}<button onclick="goto('route')">学習ルートを見る</button></div></section>
  <section class="grid three"><div class=card><div class=metric>${active.length}</div><div class=muted>未克服の弱点</div></div>
- <div class=card><div class=metric>${due}</div><div class=muted>今日やる復習</div></div>
+ <div class=card><div class=metric>${planRemaining().length}</div><div class=muted>今日の残り</div></div>
  <div class=card><div class=metric>${mastered()}</div><div class=muted>克服済み</div></div></section>
  <section class=card><h3>推奨する過去問ルート</h3><p class=route-inline>${ROUTE.map(y=>`<span class="${S.attempts.some(a=>a.year===y&&a.status==="graded")?"done":""}">${y}</span>`).join("<b>→</b>")}</p><p class=muted>2024で診断し、2023～2019で補強。2025で実戦確認し、2026を最終判定に残します。</p></section>
  <section class=card><h3>克服ルール</h3><div class="grid three">
@@ -83,7 +125,7 @@ function route(){
  return `<section class="card hero"><div class=eyebrow>DIAGNOSE → REMEDIATE → VERIFY</div><h2>過去問学習ルート</h2><p>年度ごとの目的を変え、2025・2026の初見性を守ります。</p></section>
  <section class=route-list>${ROUTE.map((y,i)=>{const attempts=S.attempts.filter(a=>a.year===y),last=[...attempts].reverse().find(a=>a.status==="graded"),exp=S.exposure[y],status=last?"採点済み":S.currentAttempt?.year===y&&S.currentAttempt.status==="active"?"解答中":exp?"一部既出":"未着手",protectedYear=y>=2025&&!attempts.length&&!exp,recs=routeRecommendations(y);return `<article class="card route-step ${protectedYear?"protected":""}"><div class=route-number>${i+1}</div><div class=route-main><div class="row space"><div><h3>${y}年度</h3><b>${routeRole(y)}</b></div><span class="status-pill">${protectedYear?"初見温存中":status}</span></div><p>${y===2024?"現在地を測り、全問を弱点分析します。":y<2024?"2024で見つかった弱点に対応する実際の過去問を使います。":y===2025?"補強が直近型に通用するか確認します。":"本番前の最後の完全初見判定です。"}</p>${recs.length?`<div class=route-recs><b>現在の弱点に対応</b><p>${recs.map(q=>`${h(q.label)}（${skillName(q.skill)}・${strategyPriority(q)}）`).join(" ／ ")}</p></div>`:""}${last?`<p class=tiny>最新：筆記 ${last.writtenScore}/80　${exposureLabel(last.exposure)}　${last.comparable?"比較対象":"練習記録"}</p>`:""}<button class="${y===nextRouteYear()?"primary":""}" onclick="openYear(${y})">${S.currentAttempt?.year===y&&S.currentAttempt.status==="active"?"続きを解く":"年度を開く"}</button></div></article>`}).join("")}</section>`;
 }
-function openYear(y){S.year=y;save();goto("exam")}
+function openYear(y){y=Number(y);if(!ROUTE.includes(y))return goto("home");S.year=y;save();goto("exam")}
 function clearYearWork(y){yearKeys(S.answers,y).forEach(x=>delete S.answers[x]);yearKeys(S.manual,y).forEach(x=>delete S.manual[x])}
 function beginAttempt(y){
  const exposure=document.querySelector('input[name="exposure"]:checked')?.value,mode=document.querySelector('input[name="examMode"]:checked')?.value;
@@ -304,7 +346,13 @@ function grade(y){
    }
  });
  attempt.status="graded";attempt.gradedAt=new Date().toISOString();attempt.writtenScore=score;attempt.aLost=aLost;attempt.bLost=bLost;attempt.cLost=cLost;attempt.wrongCount=wrongCount;attempt.comparable=attemptComparable(attempt);attempt.answers=Object.fromEntries(yearKeys(S.answers,y).map(x=>[x,S.answers[x]]));attempt.manual=Object.fromEntries(yearKeys(S.manual,y).map(x=>[x,S.manual[x]]));
- S.attempts.push({...attempt});S.history.push({year:y,score,aLost,bLost,cLost,wrongCount,at:attempt.gradedAt,attemptId:attempt.id});S.lastResultId=attempt.id;S.currentAttempt=null;save();goto("result");
+ S.attempts.push({...attempt});S.history.push({year:y,score,aLost,bLost,cLost,wrongCount,at:attempt.gradedAt,attemptId:attempt.id});S.lastResultId=attempt.id;S.currentAttempt=null;
+ const existingPlan=dailyPlanValid()?S.dailyPlan:null,unfinished=existingPlan?.kind==="weak"&&planRemaining(existingPlan).length;
+ if(!unfinished){
+   if(wrongCount)S.dailyPlan=null;
+   else S.dailyPlan={date:today(),kind:"done",weakKeys:[],completedRouteYear:Number(y),completedAt:new Date().toISOString()};
+ }
+ save();goto("result");
  }
 function createWeak(y,q,user,component="main"){
  const key=`${k(y,q.id)}:${component}`, old=S.weak[key]||{};
@@ -316,7 +364,7 @@ function markActualCorrect(y,q,user){
 function setListeningScore(id,value){const a=S.attempts.find(x=>x.id===id);if(!a)return;const score=value===""?null:Math.max(0,Math.min(20,Number(value)||0));a.listeningScore=score;a.totalScore=score===null?null:a.writtenScore+score;save();render()}
 function goalStatus(a,target){if(a.listeningScore!==null&&a.listeningScore!==undefined){const total=a.writtenScore+a.listeningScore;return total>=target?`到達（${total}/100）`:`あと${target-total}点`};const need=target-a.writtenScore;if(need<=0)return `筆記だけで${target}点以上`;if(need<=20)return `リスニング${need}/20以上が必要`;return `現在の筆記点では到達不可`}
 function result(){
- const a=S.attempts.find(x=>x.id===S.lastResultId)||latestAttempt();if(!a)return `<section class="card hero"><h2>採点結果はまだありません。</h2><button onclick="openYear(${nextRouteYear()})">過去問を始める</button></section>`;
+ const a=S.attempts.find(x=>x.id===S.lastResultId)||latestAttempt();if(!a){const y=nextRouteYear();return `<section class="card hero"><h2>採点結果はまだありません。</h2>${y?`<button onclick="openYear(${y})">過去問を始める</button>`:`<button onclick="goto('home')">今日やることへ</button>`}</section>`;}
  const total=a.listeningScore===null||a.listeningScore===undefined?null:a.writtenScore+a.listeningScore;
  const unresolved=activeWeak().map(([_,w])=>w).filter(w=>w.year===a.year).sort((x,y)=>x.priority.localeCompare(y.priority)).slice(0,6);
  return `<section class="card hero result-hero"><div class=eyebrow>${a.year} RESULT</div><h2>筆記 ${a.writtenScore}/80</h2><p>${exposureLabel(a.exposure)}／${a.mode==="timed"?"本番時間":a.mode==="targeted"?"弱点問題":"時間無制限"}／${a.comparable?"到達度比較に使用":"練習記録"}</p><div class="score-total">${total===null?"総合点はリスニング入力後に表示":`総合 ${total}/100`}</div></section>
@@ -327,41 +375,43 @@ function result(){
  <section class=card><h3>次にやること</h3><p>A問題の誤答を先に直し、その後、目標点までに必要なB問題を補強します。C問題は後回し候補です。</p><div class=row><button class=primary onclick="goto('review')">誤答の克服を始める</button><button onclick="goto('route')">学習ルートへ</button><button onclick="openYear(${a.year})">${a.year}年度メニューへ</button></div></section>`;
 }
 function review(){
- const arr=activeWeak().map(([key,w])=>({key,w})).sort((a,b)=>(a.w.priority>b.w.priority?1:-1)||(a.w.next||"").localeCompare(b.w.next||""));
+ const arr=activeWeak().sort(sortWeakEntries).map(([key,w])=>({key,w}));
  if(!arr.length)return `<section class="card hero"><h2>現在、未克服の誤答はありません。</h2><p>A問題を維持しながらB問題の上積みに進めます。</p></section>`;
- return `<section class=card><div class="row space"><div><div class=eyebrow>ERROR → DRILL → RETEST</div><h2>間違い対策 ${arr.length}件</h2></div><button class=primary onclick="startDue()">今日の復習を開始</button></div>
- <p>A問題を先に処理。同じ技能の類題を3連続正解→翌日2連続正解で克服です。</p></section>
- ${arr.map(({key,w})=>`<section class="card wrong"><div class="row space"><div><b>${w.year} ${h(w.label)}</b><div class="tiny"><span class=skill>${skillName(w.skill)}</span> ／ ${h(w.category)} ／ ${w.component&&w.component!=="main"?`元設問 ${w.points}点`:`${w.points}点`}</div></div>${badge(w.priority)}</div>
+ const plan=ensureDailyPlan(),remaining=planRemaining(plan),assigned=new Set(plan.weakKeys||[]),backlog=planBacklog(plan);
+ return `<section class=card><div class="row space"><div><div class=eyebrow>ERROR → DRILL → RETEST</div><h2>間違い対策 ${arr.length}件</h2></div>${remaining.length?`<button class=primary onclick="startTodayTasks()">今日の残り ${remaining.length}件を進める</button>`:`<span class=completion-mark>✓ 今日の割当完了</span>`}</div>
+ <p>A問題を先に、1日最大${DAILY_WEAK_LIMIT}弱点。同じ技能の類題を3連続正解→翌日2連続正解で克服です。${backlog?` 枠外の${backlog}件は次回以降に回します。`:""}</p></section>
+ ${arr.map(({key,w})=>{const isAssigned=assigned.has(key),future=w.status==="pending"&&w.next>today(),buttonLabel=future?`${w.next} まで待つ`:isAssigned?(w.status==="pending"?"今日の定着チェック":"今日の克服ドリル"):(w.status==="pending"?"定着チェック":"追加練習");return `<section class="card wrong ${isAssigned?"today-assigned":""}"><div class="row space"><div><b>${w.year} ${h(w.label)}</b><div class="tiny"><span class=skill>${skillName(w.skill)}</span> ／ ${h(w.category)} ／ ${w.component&&w.component!=="main"?`元設問 ${w.points}点`:`${w.points}点`}</div></div>${badge(w.priority)}</div>
  <p>誤答：<b>${h(w.user||"未入力")}</b>　${w.status==="pending"?`<span class=badge>翌日確認待ち</span>`:""}</p>
  <p class=muted>${w.status==="pending"?`次の定着チェック：${w.next}`:`類題連続正解：${w.streak||0}/3`}</p>
  <label>失点原因 <select onchange="setCause('${key}',this.value)"><option value="">選択</option>${["ケアレスミス","知識不足","語順・構文","本文根拠の見落とし","選択肢の読み違い","推論しすぎ","時間不足","記述条件漏れ"].map(c=>`<option ${S.cause[key]===c?"selected":""}>${c}</option>`).join("")}</select></label>
- <div class=row style="margin-top:10px"><button class=primary onclick="startSkill('${key}')">${w.status==="pending"?"定着チェック":"克服ドリル"}</button><button onclick="openYear(${w.year})">過去問本文を確認</button></div></section>`).join("")}`;
+ <div class=row style="margin-top:10px"><button ${future?"disabled":""} class="${isAssigned&&!future?"primary":""}" onclick="startSkill('${key}')">${buttonLabel}</button><button onclick="openYear(${w.year})">過去問本文を確認</button></div></section>`}).join("")}`;
 }
 function setCause(key,v){S.cause[key]=v;save()}
-function startDue(){
- const due=activeWeak().filter(([_,w])=>!w.next||w.next<=today()).sort((a,b)=>a[1].priority.localeCompare(b[1].priority)||(a[1].next||"").localeCompare(b[1].next||"")||a[0].localeCompare(b[0]));
- if(!due.length)return alert("今日が期限の復習はありません。");
- const highest=due[0][1].priority,tier=due.filter(([_,w])=>w.priority===highest),last=tier.findIndex(([key])=>key===S.lastStartedWeakKey),chosen=tier[(last+1)%tier.length];
- startSkill(chosen[0]);
-}
+function startTodayTasks(){const remaining=planRemaining();if(!remaining.length)return alert("今日の割当は完了しています。");if(S.currentSkill&&remaining.includes(S.currentSkill))return startSkill(S.currentSkill);const entries=remaining.map(key=>[key,S.weak[key]]).sort(sortWeakEntries),last=entries.findIndex(([key])=>key===S.lastStartedWeakKey),chosen=entries[(last+1)%entries.length];startSkill(chosen[0])}
+function startDue(){startTodayTasks()}
 function poolFor(skill){
  return BANK.filter(x=>x.skill===skill);
+}
+function lastDrillUse(key,id){for(let i=S.drillLog.length-1;i>=0;i--){const x=S.drillLog[i];if(x.key===key&&x.q===id)return i}return -1}
+function leastRecentlyUsed(key,items,lastId){return [...items].sort((a,b)=>{if(a.id===lastId&&b.id!==lastId)return 1;if(b.id===lastId&&a.id!==lastId)return -1;return lastDrillUse(key,a.id)-lastDrillUse(key,b.id)||a.id.localeCompare(b.id)})}
+function ensureConfirmationReserve(key,w,pool){
+ const valid=new Set(pool.map(x=>x.id)),reserved=[...new Set(Array.isArray(w.reservedConfirm)?w.reservedConfirm:[])].filter(id=>valid.has(id)).slice(0,2);
+ if(reserved.length<2){const choices=leastRecentlyUsed(key,pool.filter(x=>!reserved.includes(x.id)),w.lastDrillId);while(reserved.length<2&&choices.length)reserved.push(choices.shift().id)}
+ w.reservedConfirm=reserved;return reserved;
 }
 function startSkill(key){
  const w=S.weak[key];if(!w)return;
  const pool=poolFor(w.skill);if(pool.length<5)return alert(`${skillName(w.skill)}の同一論点類題は現在${pool.length}問です。即時3問＋未出の翌日2問を確保できないため、克服判定は開始できません。関連技能で代用せず、問題追加が必要です。`);
- if(w.status==="pending" && w.next>today()) {
-   if(!confirm(`定着チェック予定日は ${w.next} です。今日先にやりますか？`))return;
- }
- if(!Array.isArray(w.reservedConfirm)||w.reservedConfirm.length<2){const unseen=pool.filter(x=>!(w.seenDrills||[]).includes(x.id)).sort(()=>Math.random()-.5);w.reservedConfirm=unseen.slice(0,2).map(x=>x.id)}
+ if(w.status==="pending"&&w.next>today())return alert(`定着チェック予定日は ${w.next} です。翌日確認の効果を守るため、予定日までは開始できません。`);
+ ensureConfirmationReserve(key,w,pool);
  S.currentSkill=key;S.lastStartedWeakKey=key;save();
- drillState={key,skill:w.skill,mode:w.status==="pending"?"confirm":"train",used:[],q:null,answered:false,selected:null,order:[],textInputs:[]};
+ drillState={key,skill:w.skill,mode:w.status==="pending"?"confirm":"train",used:[],q:null,error:null,answered:false,selected:null,order:[],textInputs:[]};
  nextDrill();goto("drill");
 }
 function nextDrill(){
  if(!drillState)return;
  const pool=poolFor(drillState.skill);
- const w=S.weak[drillState.key],reserved=w.reservedConfirm||[];
+ const w=S.weak[drillState.key],reserved=ensureConfirmationReserve(drillState.key,w,pool);
  let candidates=drillState.mode==="confirm"?pool.filter(x=>reserved.includes(x.id)&&!drillState.used.includes(x.id)):pool.filter(x=>!reserved.includes(x.id)&&!drillState.used.includes(x.id));
  if(!candidates.length){drillState.used=[];candidates=drillState.mode==="confirm"?pool.filter(x=>reserved.includes(x.id)):pool.filter(x=>!reserved.includes(x.id))}
  // During training, introduce level 1/2 first; confirmation may use any level.
@@ -369,9 +419,10 @@ function nextDrill(){
    const max=(w.streak||0)>=2?3:2;
    const leveled=candidates.filter(x=>x.level<=max);if(leveled.length)candidates=leveled;
  }
- const unseen=candidates.filter(x=>!(w.seenDrills||[]).includes(x.id));if(unseen.length)candidates=unseen;
- if(candidates.length>1&&w.lastDrillId)candidates=candidates.filter(x=>x.id!==w.lastDrillId);
- const q=candidates[Math.floor(Math.random()*candidates.length)];
+ candidates=leastRecentlyUsed(drillState.key,candidates,w.lastDrillId);
+ const q=candidates[0];
+ if(!q){drillState.q=null;drillState.error="出題できる類題を確保できませんでした。間違い対策へ戻って、もう一度開始してください。";save();return}
+ drillState.error=null;
  drillState.q=q;drillState.used.push(q.id);w.lastDrillId=q.id;w.seenDrills=[...new Set([...(w.seenDrills||[]),q.id])];save();drillState.answered=false;drillState.selected=null;drillState.order=[];drillState.textInputs=[];
 }
 function drill(){
@@ -380,7 +431,7 @@ function drill(){
    return `<section class="card hero"><h2>克服ドリル</h2><p>${due.length?"「間違い対策」から弱点を選ぶと、その技能の類題を繰り返します。":"現在ドリル対象はありません。"}</p><button onclick="goto('review')">間違い対策へ</button></section>`;
  }
  const w=S.weak[drillState.key], q=drillState.q;
- if(!w||!q)return `<section class=card>ドリル対象がありません。</section>`;
+ if(!w||!q)return `<section class=card><h2>ドリルを開始できませんでした</h2><p>${h(drillState.error||"ドリル対象がありません。")}</p><button onclick="finishSession()">間違い対策へ戻る</button></section>`;
  const target=drillState.mode==="confirm"?2:3, streak=drillState.mode==="confirm"?(w.confirmStreak||0):(w.streak||0);
  return `<section class="card drill-card"><div class="row space"><div><div class=eyebrow>${drillState.mode==="confirm"?"SPACED RETEST":"REPEATED SIMILAR PRACTICE"}</div><h2>${skillName(drillState.skill)} 克服ドリル</h2></div><span>${streak}/${target} 連続正解</span></div>
  <div class=progress><span style="width:${Math.min(100,streak/target*100)}%"></span></div>
@@ -412,23 +463,24 @@ function finishDrill(ok){
    if(ok)w.streak=(w.streak||0)+1;else w.streak=0;
    if(w.streak>=3){w.status="pending";w.next=plusDays(1);w.confirmStreak=0}
  }else{
-   if(ok)w.confirmStreak=(w.confirmStreak||0)+1;else{w.confirmStreak=0;w.status="active";w.streak=0;w.next=today();w.reservedConfirm=[]}
+   if(ok)w.confirmStreak=(w.confirmStreak||0)+1;else{w.confirmStreak=0;w.status="active";w.streak=0;w.next=today();w.reservedConfirm=[];drillState.mode="train";drillState.used=[];drillState.failedConfirmation=true;ensureConfirmationReserve(drillState.key,w,poolFor(w.skill))}
    if(w.confirmStreak>=2){w.status="mastered";w.masteredAt=new Date().toISOString();w.last="correct"}
  }
  S.drillLog.push({key:drillState.key,skill:drillState.skill,q:drillState.q.id,ok,at:new Date().toISOString()});save();render()
 }
 function drillFeedback(q){
  const w=S.weak[drillState.key];
- let msg=drillState.correct?"正解":"不正解";
+ let msg=drillState.correct?"正解":drillState.failedConfirmation?"定着チェック不正解":"不正解";
  let nextLabel="似た問題をもう1問";
  if(w.status==="pending"&&drillState.mode==="train")nextLabel="今日は終了（翌日確認へ）";
  if(w.status==="mastered")nextLabel="克服完了";
  return `<div class="${drillState.correct?"okbox":"notice"}" style="margin-top:14px"><b>${msg}</b><p>${h(q.explanation||"")}</p>
+ ${drillState.failedConfirmation?"<p>定着しきっていません。ここから3問連続正解の練習へ戻ります。</p>":""}
  ${w.status==="pending"&&drillState.mode==="train"?`<p>3問連続正解。<b>${w.next}</b> に2問の定着チェックを行います。</p>`:""}
  ${w.status==="mastered"?`<p>翌日の定着チェックも2問連続正解。克服済みにしました。</p>`:""}
  <button class=primary onclick="${w.status==="mastered"|| (w.status==="pending"&&drillState.mode==="train")?"finishSession()":"continueDrill()"}">${nextLabel}</button></div>`;
 }
-function continueDrill(){drillState.selfcheck=false;drillState.shuffled=null;nextDrill();render()}
+function continueDrill(){drillState.selfcheck=false;drillState.shuffled=null;drillState.failedConfirmation=false;nextDrill();render()}
 function finishSession(){drillState=null;S.currentSkill=null;save();goto("review")}
 
 function stats(){
@@ -446,12 +498,12 @@ function stats(){
 }
 function startFirstSkill(s){let x=activeWeak().find(([_,w])=>w.skill===s);if(x)startSkill(x[0])}
 function exportData(){const payload={appId:"waseshibu-english-adaptive",schemaVersion:SCHEMA_VERSION,exportedAt:new Date().toISOString(),state:S};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`waseshibu-english-backup-${today()}.json`;a.hidden=true;document.body?.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}
-function normalizeImportedState(x){return {...x,answers:x.answers||{},manual:x.manual||{},weak:x.weak||{},cause:x.cause||{},exposure:x.exposure||{},attempts:Array.isArray(x.attempts)?x.attempts:[],history:Array.isArray(x.history)?x.history:[],drillLog:Array.isArray(x.drillLog)?x.drillLog:[]}}
+function normalizeImportedState(x){return {...x,answers:x.answers||{},manual:x.manual||{},weak:x.weak||{},cause:x.cause||{},exposure:x.exposure||{},attempts:Array.isArray(x.attempts)?x.attempts:[],history:Array.isArray(x.history)?x.history:[],drillLog:Array.isArray(x.drillLog)?x.drillLog:[],dailyPlan:x.dailyPlan&&typeof x.dailyPlan==="object"?x.dailyPlan:null}}
 function validateImport(payload){if(!payload||payload.appId!=="waseshibu-english-adaptive"||!payload.state)throw new Error("このアプリのバックアップではありません。");if(!Number.isFinite(Number(payload.schemaVersion))||Number(payload.schemaVersion)>SCHEMA_VERSION)throw new Error("対応していないバックアップ形式です。");const x=normalizeImportedState(payload.state);if(typeof x.answers!=="object"||Array.isArray(x.answers)||typeof x.weak!=="object"||Array.isArray(x.weak))throw new Error("必要な学習データがありません。");for(const a of x.attempts){const writtenMissing=a.writtenScore===null||a.writtenScore===undefined||a.writtenScore==="",written=Number(a.writtenScore),writtenInvalid=(!writtenMissing&&(!Number.isFinite(written)||written<0||written>80))||(a.status==="graded"&&writtenMissing),listening=a.listeningScore;const listeningInvalid=listening!==null&&listening!==undefined&&(listening===""||!Number.isFinite(Number(listening))||Number(listening)<0||Number(listening)>20);if(!a.id||!ROUTE.includes(Number(a.year))||writtenInvalid||listeningInvalid)throw new Error("受験記録の年度または点数が不正です。")}if(x.currentAttempt&&(!x.currentAttempt.id||!ROUTE.includes(Number(x.currentAttempt.year))))throw new Error("解答途中の記録が不正です。");return x}
 function mergeWeak(a={},b={}){if(a.status==="mastered"&&b.status!=="mastered")return a;if(b.status==="mastered"&&a.status!=="mastered")return b;const ap=(a.confirmStreak||0)*10+(a.streak||0),bp=(b.confirmStreak||0)*10+(b.streak||0);return bp>=ap?{...a,...b}:{...b,...a}}
 function dedupeBy(arr,keyFn){const m=new Map();arr.forEach(x=>m.set(keyFn(x),x));return [...m.values()]}
 function mergeExposure(a={},b={}){const rank={first:0,unknown:1,partial:2,done:3},out={...a};Object.entries(b).forEach(([y,v])=>{if(out[y]===undefined||rank[v]>=rank[out[y]])out[y]=v});return out}
-async function importData(input){const file=input.files?.[0];if(!file)return;if(file.size>10*1024*1024)return alert("バックアップファイルが大きすぎます。");try{const incoming=validateImport(JSON.parse(await file.text())),mode=document.getElementById("importMode")?.value||"merge";if(!confirm(`バックアップを${mode==="replace"?"現在データと置き換え":"現在データへ統合"}ます。よろしいですか？`))return;if(mode==="replace"){exportData();S={...INIT,...incoming,schemaVersion:SCHEMA_VERSION}}else{const attemptMap=new Map([...S.attempts,...(incoming.attempts||[])].map(x=>[x.id,x])),weak={...S.weak};Object.entries(incoming.weak||{}).forEach(([key,w])=>weak[key]=mergeWeak(weak[key],w));S={...S,answers:{...S.answers,...incoming.answers},manual:{...S.manual,...incoming.manual},weak,cause:{...S.cause,...incoming.cause},exposure:mergeExposure(S.exposure,incoming.exposure),attempts:[...attemptMap.values()],history:dedupeBy([...S.history,...(incoming.history||[])],x=>x.attemptId||`${x.year}:${x.at}:${x.score}`),drillLog:dedupeBy([...S.drillLog,...(incoming.drillLog||[])],x=>`${x.key}:${x.q}:${x.at}:${x.ok}`)}}save();alert("学習データを復元しました。");goto("home")}catch(e){alert(`復元できませんでした：${e.message}`)}finally{input.value=""}}
+async function importData(input){const file=input.files?.[0];if(!file)return;if(file.size>10*1024*1024)return alert("バックアップファイルが大きすぎます。");try{const incoming=validateImport(JSON.parse(await file.text())),mode=document.getElementById("importMode")?.value||"merge";if(!confirm(`バックアップを${mode==="replace"?"現在データと置き換え":"現在データへ統合"}ます。よろしいですか？`))return;if(mode==="replace"){exportData();S={...INIT,...incoming,schemaVersion:SCHEMA_VERSION}}else{const attemptMap=new Map([...S.attempts,...(incoming.attempts||[])].map(x=>[x.id,x])),weak={...S.weak};Object.entries(incoming.weak||{}).forEach(([key,w])=>weak[key]=mergeWeak(weak[key],w));S={...S,answers:{...S.answers,...incoming.answers},manual:{...S.manual,...incoming.manual},weak,cause:{...S.cause,...incoming.cause},exposure:mergeExposure(S.exposure,incoming.exposure),attempts:[...attemptMap.values()],history:dedupeBy([...S.history,...(incoming.history||[])],x=>x.attemptId||`${x.year}:${x.at}:${x.score}`),drillLog:dedupeBy([...S.drillLog,...(incoming.drillLog||[])],x=>`${x.key}:${x.q}:${x.at}:${x.ok}`)}}S.dailyPlan=null;renderedDate=today();save();alert("学習データを復元しました。");goto("home")}catch(e){alert(`復元できませんでした：${e.message}`)}finally{input.value=""}}
 function guide(){
  return `<section class=card><h2>この版の使い方</h2><ol>
  <li><b>学習ルート</b>：2024→2023→2022→2021→2020→2019→2025→2026の順で進める。</li>
@@ -460,13 +512,17 @@ function guide(){
  <li>記述問題は紙に書いた答案を公式解答と比べ、自己採点した点数を入力する。</li>
  <li>誤答は自動で<b>間違い対策</b>へ入る。</li>
  <li>失点原因を選ぶ。</li>
+ <li><b>今日の割当</b>：A問題を優先して1日最大3弱点。終えても同じ日に必須課題を自動追加しません。</li>
  <li><b>克服ドリル</b>：同じ技能の似た問題を3問連続正解するまで繰り返す。間違えると連続数は0に戻る。</li>
  <li>3連続正解しても消さず、翌日に2問の定着チェック。</li>
  <li>翌日も2連続正解して初めて克服済み。</li></ol>
  <div class=notice><b>英単語・リスニング</b><p>通常の英単語学習とリスニングは別アプリ想定です。過去問中の英文定義問題は本番演習として残しますが、単語そのものの大量反復はこのアプリの中心にはしていません。</p></div>
- <div class=bluebox><b>類題について</b><p>${BANK.length}問のオリジナル類題を収録しています。即時練習3問とは別に、未出2問を翌日確認用として確保します。</p></div>
+ <div class=bluebox><b>類題について</b><p>${BANK.length}問のオリジナル類題を収録しています。即時練習3問とは別に2問を翌日確認用として確保し、出題履歴から同じ問題の連続を避けます。</p></div>
  <div class=warnbox><b>A・B・Cについて</b><p>学校公式の分類ではなく、60～75点を目指すための学習上の分類です。Aを先に、Bで上積みし、Cは後回し候補とします。</p></div>
  <section class=backup-box><h3>学習データのバックアップ</h3><p>この端末では、アプリを更新しても学習履歴を自動で引き継ぎます。機種変更、ブラウザ変更、端末故障への備えにはバックアップを使ってください。</p><div class=row><button onclick="exportData()">バックアップを書き出す</button><label>復元方法 <select id=importMode><option value=merge>現在データへ統合</option><option value=replace>現在データと置換</option></select></label><label class=file-button>バックアップを選ぶ<input type=file accept="application/json,.json" onchange="importData(this)"></label></div></section></section>`;
 }
-function render(){if(timerHandle){clearInterval(timerHandle);timerHandle=null}app.innerHTML=({home,route,exam,result,review,drill,stats,guide})[view]();if(view==="exam"&&S.currentAttempt?.status==="active"&&S.currentAttempt.mode==="timed")timerHandle=setInterval(updateTimer,1000)}
+function scheduleDayRefresh(){if(dayRefreshHandle)clearTimeout(dayRefreshHandle);const next=new Date();next.setHours(24,0,1,0);dayRefreshHandle=setTimeout(()=>{checkDayChange();scheduleDayRefresh()},Math.max(1000,next-Date.now()))}
+function checkDayChange(){if(renderedDate===today())return;renderedDate=today();S.dailyPlan=null;save();render()}
+window.addEventListener("focus",checkDayChange);document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkDayChange()});
+function render(){if(timerHandle){clearInterval(timerHandle);timerHandle=null}app.innerHTML=({home,route,exam,result,review,drill,stats,guide})[view]();if(view==="exam"&&S.currentAttempt?.status==="active"&&S.currentAttempt.mode==="timed")timerHandle=setInterval(updateTimer,1000);scheduleDayRefresh()}
 render();
