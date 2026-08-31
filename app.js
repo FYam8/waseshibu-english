@@ -1,9 +1,9 @@
 
 const D=window.EXAM_DATA, P=window.PAPERS, BANK=window.DRILLS, FALLBACK=window.FALLBACK;
 // STORAGE_KEY is permanent. Future releases migrate schemaVersion in place and must not rename this key.
-const STORAGE_KEY="waseshibu.adaptive.v3", LEGACY_KEYS=["waseshibu.adaptive.v2"], RECOVERY_PREFIX="waseshibu.adaptive.pre-migration", SCHEMA_VERSION=5, DAILY_WEAK_LIMIT=3;
+const STORAGE_KEY="waseshibu.adaptive.v3", LEGACY_KEYS=["waseshibu.adaptive.v2"], RECOVERY_PREFIX="waseshibu.adaptive.pre-migration", SCHEMA_VERSION=6, DAILY_TASK_LIMIT=10;
 const ROUTE=[2024,2023,2022,2021,2020,2019,2025,2026];
-const INIT={schemaVersion:SCHEMA_VERSION,year:2024,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentAttempt:null,lastResultId:null,lastStartedWeakKey:null,dailyPlan:null,exposure:{},theme:"light",answerSheetOpen:true,answerSheetExpanded:false,examInfoCompact:false};
+const INIT={schemaVersion:SCHEMA_VERSION,goal:60,year:2024,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentDrill:null,currentAttempt:null,lastResultId:null,lastStartedWeakKey:null,dailyPlan:null,exposure:{},theme:"light",answerSheetOpen:true,answerSheetExpanded:false,examInfoCompact:false};
 function loadState(){
  let raw=null,rawText=null,sourceKey=null;
  for(const key of [STORAGE_KEY,...LEGACY_KEYS]){try{const text=localStorage.getItem(key);if(!text)continue;const parsed=JSON.parse(text);if(parsed&&typeof parsed==="object"){raw=parsed;rawText=text;sourceKey=key;break}}catch(e){}}
@@ -15,6 +15,7 @@ function loadState(){
    Object.keys(next.answers).forEach(key=>{const y=Number(key.split(":")[0]);if(y)next.exposure[y]=next.exposure[y]||"unknown"});
  }
  Object.values(next.weak).forEach(w=>{const q=(D[w.year]||[]).find(x=>x.id===w.id);if(q)w.priority=strategyPriority(q)});
+ if(window.ENGLISH_MODEL)window.ENGLISH_MODEL.migrateState(next);
  if(fromVersion<=SCHEMA_VERSION){
    next.schemaVersion=SCHEMA_VERSION;
    try{if(rawText&&fromVersion<SCHEMA_VERSION){const recoveryKey=`${RECOVERY_PREFIX}.v${fromVersion}`;if(!localStorage.getItem(recoveryKey))localStorage.setItem(recoveryKey,rawText)}localStorage.setItem(STORAGE_KEY,JSON.stringify(next))}catch(e){}
@@ -22,7 +23,8 @@ function loadState(){
  return next;
 }
 let S=loadState();
-let view="home", drillState=null, timerHandle=null, dayRefreshHandle=null, renderedDate=today();
+let view="home", drillState=S.currentDrill||null, timerHandle=null, dayRefreshHandle=null, renderedDate=today();
+if(drillState?.q?.retired||!S.weak[drillState?.key]||S.weak[drillState?.key]?.status==="mastered"){drillState=null;S.currentDrill=null;S.currentSkill=null}
 let storageWarningShown=false;
 const app=document.getElementById("app"), kana=["ア","イ","ウ","エ","オ","カ","キ","ク"];
 const fullwidthDigits="０１２３４５６７８９";
@@ -39,11 +41,15 @@ function attemptId(){return `a-${Date.now()}-${Math.random().toString(36).slice(
 function yearKeys(obj,y){return Object.keys(obj||{}).filter(x=>x.startsWith(`${y}:`))}
 function hasSavedAnswers(y){return yearKeys(S.answers,y).some(x=>S.answers[x]!=="")||yearKeys(S.manual,y).some(x=>S.manual[x]?.score!==""&&S.manual[x]?.score!==undefined)}
 function strategyPriority(q){if(q.priority==="A")return "A";if(q.skill==="insertion")return "C";return "B"}
+function gradeInGoal(grade,goal=S.goal){return grade==="A"||(grade==="B"&&goal>=70)||(grade==="C"&&goal>=75)}
+function goalLabel(goal=S.goal){return goal===60?"A 60点":goal===70?"B 70点":"C 75点"}
+function goalAdvice(goal=S.goal){return goal===60?"A問題を最優先にして60点を守ります。":goal===70?"Aを固め、B問題まで直して70点を狙います。":"A・Bを確実にした後、取れるC問題を選んで75点を狙います。"}
+function setGoal(goal){goal=Number(goal);if(![60,70,75].includes(goal))return;S.goal=goal;S.dailyPlan=null;save();render()}
 function routeRole(y){return y===2024?"初見診断":y===2025?"実戦確認":y===2026?"最終判定":"弱点補強"}
 function routeRecommendations(y){
  if(y>=2025)return [];
- const skills=new Set(activeWeak().map(([_,w])=>w.skill));
- return (D[y]||[]).filter(q=>skills.has(q.skill)).sort((a,b)=>strategyPriority(a).localeCompare(strategyPriority(b))).slice(0,3);
+ const targets=new Set(activeWeak().filter(([_,w])=>gradeInGoal(w.priority)).map(([_,w])=>w.targetId));
+ return (D[y]||[]).filter(q=>targets.has(q.targetId)&&gradeInGoal(strategyPriority(q))).sort((a,b)=>strategyPriority(a).localeCompare(strategyPriority(b))).slice(0,3);
 }
 function exposureLabel(x){return ({first:"完全初見",partial:"一部見た",done:"解答済み",unknown:"判定不明"})[x]||"未設定"}
 function skillName(s){return skillNames[s]||s}
@@ -59,26 +65,26 @@ function nextRouteYear(){return ROUTE.find(y=>!S.attempts.some(a=>a.year===y&&a.
 function priorityOrder(w){return ({A:0,B:1,C:2})[w.priority]??3}
 function eligibleToday([_,w]){return w.status==="active"||(w.status==="pending"&&(!w.next||w.next<=today()))}
 function sortWeakEntries(a,b){
- const priority=priorityOrder(a[1])-priorityOrder(b[1]);if(priority)return priority;
  const aDue=a[1].status==="pending"?0:1,bDue=b[1].status==="pending"?0:1;if(aDue!==bDue)return aDue-bDue;
+ const priority=priorityOrder(a[1])-priorityOrder(b[1]);if(priority)return priority;
  const next=(a[1].next||"").localeCompare(b[1].next||"");if(next)return next;
  const assigned=(a[1].lastAssignedDate||"").localeCompare(b[1].lastAssignedDate||"");if(assigned)return assigned;
  return a[0].localeCompare(b[0]);
 }
-function dailyPlanValid(){return S.dailyPlan&&S.dailyPlan.date===today()}
+function dailyPlanValid(){return S.dailyPlan&&S.dailyPlan.date===today()&&Number(S.dailyPlan.goal)===Number(S.goal)}
 function invalidateDailyPlan(){S.dailyPlan=null;save()}
 function ensureDailyPlan(){
  if(dailyPlanValid())return S.dailyPlan;
- const candidates=activeWeak().filter(eligibleToday).sort(sortWeakEntries),all=activeWeak(),routeYear=nextRouteYear();
+ const candidates=activeWeak().filter(([_,w])=>gradeInGoal(w.priority)).filter(eligibleToday).sort(sortWeakEntries),all=activeWeak().filter(([_,w])=>gradeInGoal(w.priority)),routeYear=nextRouteYear();
  if(candidates.length){
-   const weakKeys=candidates.slice(0,DAILY_WEAK_LIMIT).map(([key,w])=>{w.lastAssignedDate=today();return key});
-   S.dailyPlan={date:today(),kind:"weak",weakKeys,createdAt:new Date().toISOString()};
+   const weakKeys=candidates.slice(0,DAILY_TASK_LIMIT).map(([key,w])=>{w.lastAssignedDate=today();return key});
+   S.dailyPlan={date:today(),goal:S.goal,kind:"weak",weakKeys,createdAt:new Date().toISOString()};
  }else if(all.length){
-   S.dailyPlan={date:today(),kind:"waiting",weakKeys:[],createdAt:new Date().toISOString()};
+   S.dailyPlan={date:today(),goal:S.goal,kind:"waiting",weakKeys:[],createdAt:new Date().toISOString()};
  }else if(routeYear){
-   S.dailyPlan={date:today(),kind:"route",weakKeys:[],routeYear,createdAt:new Date().toISOString()};
+   S.dailyPlan={date:today(),goal:S.goal,kind:"route",weakKeys:[],routeYear,createdAt:new Date().toISOString()};
  }else{
-   S.dailyPlan={date:today(),kind:"complete",weakKeys:[],createdAt:new Date().toISOString()};
+   S.dailyPlan={date:today(),goal:S.goal,kind:"complete",weakKeys:[],createdAt:new Date().toISOString()};
  }
  save();return S.dailyPlan;
 }
@@ -87,9 +93,9 @@ function planRemaining(plan=ensureDailyPlan()){
  return (plan.weakKeys||[]).filter(key=>{const w=S.weak[key];return w&&eligibleToday([key,w])});
 }
 function planBacklog(plan=ensureDailyPlan()){
- const assigned=new Set(plan.weakKeys||[]);return activeWeak().filter(x=>eligibleToday(x)&&!assigned.has(x[0])).length;
+ const assigned=new Set(plan.weakKeys||[]);return activeWeak().filter(([_,w])=>gradeInGoal(w.priority)).filter(x=>eligibleToday(x)&&!assigned.has(x[0])).length;
 }
-function nextPendingDate(){return activeWeak().map(([_,w])=>w.status==="pending"&&w.next>today()?w.next:null).filter(Boolean).sort()[0]||null}
+function nextPendingDate(){return activeWeak().filter(([_,w])=>gradeInGoal(w.priority)).map(([_,w])=>w.status==="pending"&&w.next>today()?w.next:null).filter(Boolean).sort()[0]||null}
 function completeTodayNote(plan){
  const backlog=planBacklog(plan),next=nextPendingDate();
  if(backlog)return `今日の割当は完了しました。残り${backlog}件は次回以降に回します。`;
@@ -99,24 +105,35 @@ function completeTodayNote(plan){
 }
 function todayAction(){
  if(S.currentAttempt?.status==="active")return {label:`${S.currentAttempt.year}年度の続きを解く`,action:`openYear(${S.currentAttempt.year})`,note:"解答途中の過去問があります。"};
+ if(drillState?.key&&S.weak[drillState.key]&&S.weak[drillState.key].status!=="mastered")return {label:"克服ドリルの続きから",action:"resumeCurrentDrill()",note:`${S.weak[drillState.key].year} ${S.weak[drillState.key].label} の途中から正確に再開します。`};
  const plan=ensureDailyPlan(),remaining=planRemaining(plan);
- if(remaining.length){const due=remaining.filter(key=>S.weak[key]?.status==="pending").length;return {label:due?"今日の定着チェック":"誤答の克服ドリル",action:"startTodayTasks()",note:`今日の割当は残り${remaining.length}件です（1日最大${DAILY_WEAK_LIMIT}弱点）。`};}
+ if(remaining.length){const due=remaining.filter(key=>S.weak[key]?.status==="pending").length;return {label:due?"今日の定着チェック":"誤答の克服ドリル",action:"startTodayTasks()",note:`今日の必須課題は残り${remaining.length}件です（1日最大${DAILY_TASK_LIMIT}課題）。`};}
  if(plan.kind==="route"&&plan.routeYear)return {label:`${plan.routeYear}年度 ${routeRole(plan.routeYear)}を始める`,action:`openYear(${plan.routeYear})`,note:"推奨ルート上の今日の課題です。"};
  return {complete:true,label:"今日の割当は完了",note:completeTodayNote(plan)};
 }
+function optionalNextAction(){
+ const plan=ensureDailyPlan(),assigned=new Set(plan.weakKeys||[]),extra=activeWeak().filter(([key,w])=>gradeInGoal(w.priority)&&eligibleToday([key,w])&&!assigned.has(key)).sort(sortWeakEntries)[0];
+ if(extra)return {label:"時間があれば次の1件へ",action:`startSkill('${extra[0]}')`,note:`${extra[1].year} ${extra[1].label}（${extra[1].priority}）`};
+ const y=nextRouteYear();if(y)return {label:"時間があれば次の過去問へ",action:`openYear(${y})`,note:`${y}年度 ${routeRole(y)}`};
+ const outside=activeWeak().filter(eligibleToday).sort(sortWeakEntries)[0];if(outside)return {label:"時間があれば上の目標へ",action:`setGoal(${outside[1].priority==="B"?70:75})`,note:`${outside[1].priority}問題の未克服があります`};
+ return null;
+}
+function goalEstimate(goal){const count=activeWeak().filter(([_,w])=>gradeInGoal(w.priority,goal)).length,years=ROUTE.filter(y=>!S.attempts.some(a=>a.year===y&&a.status==="graded")).length,tasks=count+years*DAILY_TASK_LIMIT;return {count,days:tasks?Math.max(1,Math.ceil(tasks/DAILY_TASK_LIMIT)):0}}
 function home(){
  const active=activeWeak();
  const last=S.history.at(-1);
- const action=todayAction();
- return `<section class="card hero today-card ${action.complete?"today-complete":""}"><div class=eyebrow>${action.complete?"TODAY'S PLAN COMPLETE":"TODAY'S NEXT ACTION"}</div>
- <h2>今日やること</h2><p>${h(action.note)}</p>
- <div class=row>${action.complete?`<span class=completion-mark>✓ ${h(action.label)}</span>`:`<button class=primary onclick="${action.action}">${h(action.label)}</button>`}<button onclick="goto('route')">学習ルートを見る</button></div></section>
- <section class="grid three"><div class=card><div class=metric>${active.length}</div><div class=muted>未克服の弱点</div></div>
- <div class=card><div class=metric>${planRemaining().length}</div><div class=muted>今日の残り</div></div>
- <div class=card><div class=metric>${mastered()}</div><div class=muted>克服済み</div></div></section>
+ const action=todayAction(),plan=ensureDailyPlan(),remaining=planRemaining(plan),optional=optionalNextAction(),isResume=S.currentAttempt?.status==="active"||(drillState?.key&&S.weak[drillState.key]&&S.weak[drillState.key].status!=="mastered"),etas=[60,70,75].map(t=>[t,goalEstimate(t)]);
+ return `<section class="card hero today-card ${action.complete?"today-complete":""}"><div class=today-head><div><div class=eyebrow>${action.complete?"TODAY'S PLAN COMPLETE":"TODAY · MAX 10 TASKS"}</div><h2>今日やること</h2><p>${h(action.note)}</p></div><div class=goal-block><span>学習目標</span><strong>${goalLabel()}</strong><small>得点・履歴とは別に管理</small></div></div>
+ <div class="target-row goal-selector"><span>目標を変更</span>${[60,70,75].map((t,i)=>`<button class="target-chip ${S.goal===t?"selected":""}" onclick="setGoal(${t})">${String.fromCharCode(65+i)} ${t}点</button>`).join("")}</div>
+ <div class=goal-eta>${etas.map(([t,e])=>`<article class="${S.goal===t?"selected":""}"><div><b>${goalLabel(t)}</b><small>${e.count}弱点を対象</small></div><strong>${e.days?`約${e.days}日`:"達成"}</strong></article>`).join("")}</div><p class=goal-eta-note>現在の未克服数と1日最大10課題から計算した目安です。得点到達を保証する日数ではありません。</p>
+ ${isResume?`<div class=resume-action><button class=primary onclick="${action.action}">${h(action.label)}</button><span>${h(action.note)}</span></div>`:remaining.length?`<div class=today-list>${remaining.map((key,i)=>{const w=S.weak[key];return `<article><span>${i+1}</span><div><b>${h(w.year+" "+w.label)}</b><small>${badge(w.priority)} ${h(w.category)} ／ ${h(w.trap||w.focusTag||skillName(w.skill))}</small></div><button class="${i===0?"primary":""}" onclick="startSkill('${key}')">${i===0?"今これをやる":"開く"}</button></article>`}).join("")}</div>`:`<div class=row>${action.complete?`<span class=completion-mark>✓ ${h(action.label)}</span>${optional?`<button onclick="${optional.action}">${h(optional.label)}</button><small>${h(optional.note)}</small>`:""}`:`<button class=primary onclick="${action.action}">${h(action.label)}</button>`}<button onclick="goto('route')">学習ルートを見る</button></div>`}</section>
+ <section class="grid three"><div class=card><div class=metric>${last?`${last.score}/80`:"--"}</div><div class=muted>${last?`${last.year}年度の筆記得点`:"過去問未実施"}</div></div>
+ <div class=card><div class=metric>${goalLabel()}</div><div class=muted>現在の学習目標</div></div>
+ <div class=card><div class=metric>${active.filter(([_,w])=>w.priority==="A").length}</div><div class=muted>A問題の未克服</div></div></section>
+ <section class=card><div class="row space"><div><div class=eyebrow>CURRENT STATUS</div><h3>現在の到達状況</h3></div><b>未克服 ${active.length} ／ 克服済み ${mastered()}</b></div><p>${goalAdvice()}</p><p class=muted>A＝60点、B＝70点、C＝75点。目標を変えても、これまでの得点・正誤・類題履歴は消しません。</p></section>
  <section class=card><h3>推奨する過去問ルート</h3><p class=route-inline>${ROUTE.map(y=>`<span class="${S.attempts.some(a=>a.year===y&&a.status==="graded")?"done":""}">${y}</span>`).join("<b>→</b>")}</p><p class=muted>2024で診断し、2023～2019で補強。2025で実戦確認し、2026を最終判定に残します。</p></section>
- <section class=card><h3>克服ルール</h3><div class="grid three">
- <div class=bluebox><b>① 即時類題</b><p>過去問を間違えた直後、同じ技能を3問連続正解するまで反復。</p></div>
+ <section class=card><h3>${goalLabel()}の学習方針</h3><p>${goalAdvice()}</p><h3>克服ルール</h3><div class="grid three">
+ <div class=bluebox><b>① ピンポイント類題</b><p>元の誤答と同じ論点を3問連続正解するまで反復。</p></div>
  <div class=warnbox><b>② 翌日チェック</b><p>3連続正解しても消さず、翌日に2問確認。</p></div>
  <div class=okbox><b>③ 克服</b><p>翌日の確認も2連続正解で初めて「克服済み」。</p></div></div></section>
  ${last?`<section class=card><h3>直近の過去問</h3><p>${last.year}年度　筆記 ${last.score}/80　／　A失点 ${last.aLost||0}点　／　B失点 ${last.bLost||0}点　／　C失点 ${last.cLost||0}点</p></section>`:""}`;
@@ -350,13 +367,13 @@ function grade(y){
  const existingPlan=dailyPlanValid()?S.dailyPlan:null,unfinished=existingPlan?.kind==="weak"&&planRemaining(existingPlan).length;
  if(!unfinished){
    if(wrongCount)S.dailyPlan=null;
-   else S.dailyPlan={date:today(),kind:"done",weakKeys:[],completedRouteYear:Number(y),completedAt:new Date().toISOString()};
+   else S.dailyPlan={date:today(),goal:S.goal,kind:"done",weakKeys:[],completedRouteYear:Number(y),completedAt:new Date().toISOString()};
  }
  save();goto("result");
  }
 function createWeak(y,q,user,component="main"){
  const key=`${k(y,q.id)}:${component}`, old=S.weak[key]||{};
- S.weak[key]={...old,year:Number(y),id:q.id,label:q.label,category:component==="main"?q.category:`${q.category}：${component}`,component,skill:q.skill,priority:strategyPriority(q),points:q.points,user,last:"wrong",status:"active",streak:0,confirmStreak:0,next:today(),wrongCount:(old.wrongCount||0)+1,reservedConfirm:[],seenDrills:old.seenDrills||[]};
+ S.weak[key]={...old,year:Number(y),id:q.id,label:q.label,category:component==="main"?q.category:`${q.category}：${component}`,component,skill:q.skill,targetId:q.targetId,focusTag:component==="main"?q.focusTag:`manual:${q.skill}:${component}`,examFormat:q.examFormat,trap:component==="main"?q.trap:component,priority:strategyPriority(q),points:q.points,user,last:"wrong",status:"active",streak:0,confirmStreak:0,next:today(),wrongCount:(old.wrongCount||0)+1,reservedConfirm:[],seenDrills:old.seenDrills||[]};
 }
 function markActualCorrect(y,q,user){
  Object.values(S.weak).filter(w=>w.year===Number(y)&&w.id===q.id).forEach(old=>{old.user=user;old.last="correct";old.actualCorrect=(old.actualCorrect||0)+1});
@@ -370,16 +387,16 @@ function result(){
  return `<section class="card hero result-hero"><div class=eyebrow>${a.year} RESULT</div><h2>筆記 ${a.writtenScore}/80</h2><p>${exposureLabel(a.exposure)}／${a.mode==="timed"?"本番時間":a.mode==="targeted"?"弱点問題":"時間無制限"}／${a.comparable?"到達度比較に使用":"練習記録"}</p><div class="score-total">${total===null?"総合点はリスニング入力後に表示":`総合 ${total}/100`}</div></section>
  <section class="grid three"><div class=card><div class=metric>${a.aLost||0}</div><div class=muted>A問題の失点</div></div><div class=card><div class=metric>${a.bLost||0}</div><div class=muted>B問題の失点</div></div><div class=card><div class=metric>${a.cLost||0}</div><div class=muted>C問題の失点</div></div></section>
  <section class=card><h3>同じ受験回のリスニング</h3><p class=muted>別年度・別の受験回の最高点とは合算しません。</p><label>リスニング得点 <input class=listening-input type=number inputmode=numeric min=0 max=20 value="${a.listeningScore??""}" placeholder="未入力" onchange="setListeningScore('${a.id}',this.value)"> /20</label></section>
- <section class=card><h3>60・65・70・75点への距離</h3><div class=goal-grid>${[60,65,70,75].map(t=>`<div class=goal-card><b>${t}点</b><span>${goalStatus(a,t)}</span></div>`).join("")}</div><p class=tiny>総合点は同じ年度・同じ受験回の筆記とリスニングだけを合算します。</p></section>
+ <section class=card><h3>A・B・C目標への距離</h3><div class=goal-grid>${[60,70,75].map(t=>`<div class="goal-card ${S.goal===t?"selected":""}"><b>${goalLabel(t)}</b><span>${goalStatus(a,t)}</span></div>`).join("")}</div><p class=tiny>総合点は同じ年度・同じ受験回の筆記とリスニングだけを合算します。</p></section>
  ${unresolved.length?`<section class=card><h3>この年度の未克服ポイント</h3>${unresolved.map(w=>`<p><b>${badge(w.priority)} ${h(w.label)}</b>　${skillName(w.skill)}：${h(w.category)}</p>`).join("")}</section>`:""}
- <section class=card><h3>次にやること</h3><p>A問題の誤答を先に直し、その後、目標点までに必要なB問題を補強します。C問題は後回し候補です。</p><div class=row><button class=primary onclick="goto('review')">誤答の克服を始める</button><button onclick="goto('route')">学習ルートへ</button><button onclick="openYear(${a.year})">${a.year}年度メニューへ</button></div></section>`;
+ <section class=card><h3>次にやること</h3><p>${goalAdvice()}</p><div class=row><button class=primary onclick="goto('home')">今日やることへ</button><button onclick="goto('review')">誤答一覧</button><button onclick="goto('route')">学習ルートへ</button></div></section>`;
 }
 function review(){
  const arr=activeWeak().sort(sortWeakEntries).map(([key,w])=>({key,w}));
  if(!arr.length)return `<section class="card hero"><h2>現在、未克服の誤答はありません。</h2><p>A問題を維持しながらB問題の上積みに進めます。</p></section>`;
  const plan=ensureDailyPlan(),remaining=planRemaining(plan),assigned=new Set(plan.weakKeys||[]),backlog=planBacklog(plan);
  return `<section class=card><div class="row space"><div><div class=eyebrow>ERROR → DRILL → RETEST</div><h2>間違い対策 ${arr.length}件</h2></div>${remaining.length?`<button class=primary onclick="startTodayTasks()">今日の残り ${remaining.length}件を進める</button>`:`<span class=completion-mark>✓ 今日の割当完了</span>`}</div>
- <p>A問題を先に、1日最大${DAILY_WEAK_LIMIT}弱点。同じ技能の類題を3連続正解→翌日2連続正解で克服です。${backlog?` 枠外の${backlog}件は次回以降に回します。`:""}</p></section>
+ <p>${goalLabel()}の範囲を優先し、1日最大${DAILY_TASK_LIMIT}課題。同じ論点の類題を3連続正解→翌日2連続正解で克服です。${backlog?` 枠外の${backlog}件は次回以降に回します。`:""}</p></section>
  ${arr.map(({key,w})=>{const isAssigned=assigned.has(key),future=w.status==="pending"&&w.next>today(),buttonLabel=future?`${w.next} まで待つ`:isAssigned?(w.status==="pending"?"今日の定着チェック":"今日の克服ドリル"):(w.status==="pending"?"定着チェック":"追加練習");return `<section class="card wrong ${isAssigned?"today-assigned":""}"><div class="row space"><div><b>${w.year} ${h(w.label)}</b><div class="tiny"><span class=skill>${skillName(w.skill)}</span> ／ ${h(w.category)} ／ ${w.component&&w.component!=="main"?`元設問 ${w.points}点`:`${w.points}点`}</div></div>${badge(w.priority)}</div>
  <p>誤答：<b>${h(w.user||"未入力")}</b>　${w.status==="pending"?`<span class=badge>翌日確認待ち</span>`:""}</p>
  <p class=muted>${w.status==="pending"?`次の定着チェック：${w.next}`:`類題連続正解：${w.streak||0}/3`}</p>
@@ -389,73 +406,87 @@ function review(){
 function setCause(key,v){S.cause[key]=v;save()}
 function startTodayTasks(){const remaining=planRemaining();if(!remaining.length)return alert("今日の割当は完了しています。");if(S.currentSkill&&remaining.includes(S.currentSkill))return startSkill(S.currentSkill);const entries=remaining.map(key=>[key,S.weak[key]]).sort(sortWeakEntries),last=entries.findIndex(([key])=>key===S.lastStartedWeakKey),chosen=entries[(last+1)%entries.length];startSkill(chosen[0])}
 function startDue(){startTodayTasks()}
-function poolFor(skill){
- return BANK.filter(x=>x.skill===skill);
-}
+function poolForWeak(w){return BANK.filter(x=>!x.retired&&x.targetId===w.targetId)}
 function lastDrillUse(key,id){for(let i=S.drillLog.length-1;i>=0;i--){const x=S.drillLog[i];if(x.key===key&&x.q===id)return i}return -1}
-function leastRecentlyUsed(key,items,lastId){return [...items].sort((a,b)=>{if(a.id===lastId&&b.id!==lastId)return 1;if(b.id===lastId&&a.id!==lastId)return -1;return lastDrillUse(key,a.id)-lastDrillUse(key,b.id)||a.id.localeCompare(b.id)})}
+function leastRecentlyUsed(key,items,lastId,w,confirm=false){return [...items].sort((a,b)=>{const rank=q=>(q.focusTag===w.focusTag?-30:0)+(confirm&&q.level===3?-20:0)+(q.examFormat===w.examFormat?-6:0);return rank(a)-rank(b)||(a.id===lastId?1:b.id===lastId?-1:0)||lastDrillUse(key,a.id)-lastDrillUse(key,b.id)||a.id.localeCompare(b.id)})}
 function ensureConfirmationReserve(key,w,pool){
- const valid=new Set(pool.map(x=>x.id)),reserved=[...new Set(Array.isArray(w.reservedConfirm)?w.reservedConfirm:[])].filter(id=>valid.has(id)).slice(0,2);
- if(reserved.length<2){const choices=leastRecentlyUsed(key,pool.filter(x=>!reserved.includes(x.id)),w.lastDrillId);while(reserved.length<2&&choices.length)reserved.push(choices.shift().id)}
+ const byId=new Map(pool.map(x=>[x.id,x])),reserved=[];
+ for(const id of [...new Set(Array.isArray(w.reservedConfirm)?w.reservedConfirm:[])]){const q=byId.get(id);if(q&&!reserved.some(x=>byId.get(x)?.familyId===q.familyId))reserved.push(id);if(reserved.length===2)break}
+ if(reserved.length<2){const families=new Set(reserved.map(id=>byId.get(id)?.familyId)),choices=leastRecentlyUsed(key,pool.filter(x=>!reserved.includes(x.id)&&!families.has(x.familyId)),w.lastDrillId,w,true);while(reserved.length<2&&choices.length){const q=choices.shift();if(families.has(q.familyId))continue;families.add(q.familyId);reserved.push(q.id)}}
  w.reservedConfirm=reserved;return reserved;
 }
+function persistDrill(){S.currentDrill=drillState?JSON.parse(JSON.stringify(drillState)):null;save()}
+function resumeCurrentDrill(){if(!drillState||!S.weak[drillState.key]){S.currentDrill=null;drillState=null;save();return goto("home")}goto("drill")}
 function startSkill(key){
  const w=S.weak[key];if(!w)return;
- const pool=poolFor(w.skill);if(pool.length<5)return alert(`${skillName(w.skill)}の同一論点類題は現在${pool.length}問です。即時3問＋未出の翌日2問を確保できないため、克服判定は開始できません。関連技能で代用せず、問題追加が必要です。`);
+ if(drillState?.key&&S.weak[drillState.key]?.status==="mastered"){drillState=null;S.currentDrill=null;S.currentSkill=null}
+ if(drillState?.key===key&&drillState.q&&!drillState.q.retired)return resumeCurrentDrill();
+ if(drillState?.key&&drillState.key!==key)return alert("別の克服ドリルが途中です。『今日やること』から途中の問題を完了してから次へ進んでください。");
+ const pool=poolForWeak(w),families=new Set(pool.map(x=>x.familyId));if(families.size<5)return alert(`${skillName(w.skill)}の同一論点類題は現在${families.size}系統です。即時3問＋翌日2問を別問題で確保できないため開始できません。`);
  if(w.status==="pending"&&w.next>today())return alert(`定着チェック予定日は ${w.next} です。翌日確認の効果を守るため、予定日までは開始できません。`);
  ensureConfirmationReserve(key,w,pool);
- S.currentSkill=key;S.lastStartedWeakKey=key;save();
- drillState={key,skill:w.skill,mode:w.status==="pending"?"confirm":"train",used:[],q:null,error:null,answered:false,selected:null,order:[],textInputs:[]};
+ S.currentSkill=key;S.lastStartedWeakKey=key;
+ drillState={key,skill:w.skill,targetId:w.targetId,focusTag:w.focusTag,mode:w.status==="pending"?"confirm":"train",used:[],q:null,error:null,answered:false,selected:null,selectedMany:[],order:[],textInputs:[],selfText:"",selfParts:[]};
  nextDrill();goto("drill");
 }
 function nextDrill(){
  if(!drillState)return;
- const pool=poolFor(drillState.skill);
- const w=S.weak[drillState.key],reserved=ensureConfirmationReserve(drillState.key,w,pool);
- let candidates=drillState.mode==="confirm"?pool.filter(x=>reserved.includes(x.id)&&!drillState.used.includes(x.id)):pool.filter(x=>!reserved.includes(x.id)&&!drillState.used.includes(x.id));
+ const w=S.weak[drillState.key],pool=poolForWeak(w);
+ const reserved=ensureConfirmationReserve(drillState.key,w,pool),reservedFamilies=new Set(pool.filter(x=>reserved.includes(x.id)).map(x=>x.familyId));
+ let candidates=drillState.mode==="confirm"?pool.filter(x=>reserved.includes(x.id)&&!drillState.used.includes(x.id)):pool.filter(x=>!reservedFamilies.has(x.familyId)&&!drillState.used.includes(x.id));
  if(!candidates.length){drillState.used=[];candidates=drillState.mode==="confirm"?pool.filter(x=>reserved.includes(x.id)):pool.filter(x=>!reserved.includes(x.id))}
  // During training, introduce level 1/2 first; confirmation may use any level.
  if(drillState.mode==="train"){
    const max=(w.streak||0)>=2?3:2;
    const leveled=candidates.filter(x=>x.level<=max);if(leveled.length)candidates=leveled;
  }
- candidates=leastRecentlyUsed(drillState.key,candidates,w.lastDrillId);
+ candidates=leastRecentlyUsed(drillState.key,candidates,w.lastDrillId,w,drillState.mode==="confirm");
  const q=candidates[0];
- if(!q){drillState.q=null;drillState.error="出題できる類題を確保できませんでした。間違い対策へ戻って、もう一度開始してください。";save();return}
+ if(!q){drillState.q=null;drillState.error="出題できる類題を確保できませんでした。間違い対策へ戻って、もう一度開始してください。";persistDrill();return}
  drillState.error=null;
- drillState.q=q;drillState.used.push(q.id);w.lastDrillId=q.id;w.seenDrills=[...new Set([...(w.seenDrills||[]),q.id])];save();drillState.answered=false;drillState.selected=null;drillState.order=[];drillState.textInputs=[];
+ drillState.q=q;drillState.used.push(q.id);w.lastDrillId=q.id;w.seenDrills=[...new Set([...(w.seenDrills||[]),q.id])];drillState.answered=false;drillState.selected=null;drillState.selectedMany=[];drillState.order=[];drillState.textInputs=[];drillState.selfText="";drillState.selfParts=[];drillState.selfcheck=false;drillState.choiceOrder=q.options?q.options.map((_,i)=>i).sort(()=>Math.random()-.5):[];persistDrill();
 }
 function drill(){
  if(!drillState){
    const due=activeWeak();
-   return `<section class="card hero"><h2>克服ドリル</h2><p>${due.length?"「間違い対策」から弱点を選ぶと、その技能の類題を繰り返します。":"現在ドリル対象はありません。"}</p><button onclick="goto('review')">間違い対策へ</button></section>`;
+   return `<section class="card hero"><h2>克服ドリル</h2><p>${due.length?"「今日やること」から、元の誤答と同じ論点の類題へ進みます。":"現在ドリル対象はありません。"}</p><button onclick="goto('home')">今日やることへ</button></section>`;
  }
  const w=S.weak[drillState.key], q=drillState.q;
  if(!w||!q)return `<section class=card><h2>ドリルを開始できませんでした</h2><p>${h(drillState.error||"ドリル対象がありません。")}</p><button onclick="finishSession()">間違い対策へ戻る</button></section>`;
  const target=drillState.mode==="confirm"?2:3, streak=drillState.mode==="confirm"?(w.confirmStreak||0):(w.streak||0);
  return `<section class="card drill-card"><div class="row space"><div><div class=eyebrow>${drillState.mode==="confirm"?"SPACED RETEST":"REPEATED SIMILAR PRACTICE"}</div><h2>${skillName(drillState.skill)} 克服ドリル</h2></div><span>${streak}/${target} 連続正解</span></div>
  <div class=progress><span style="width:${Math.min(100,streak/target*100)}%"></span></div>
- <p class=muted>元の誤答：${w.year} ${h(w.label)} ／ ${h(w.category)}</p>
- <hr><h3>${h(q.prompt)}</h3>${drillInput(q)}
+ <p class=muted>元の誤答：${w.year} ${h(w.label)} ／ ${h(w.category)} ／ ${h(w.trap||w.focusTag||"")}</p>
+ <hr><h3 class=drill-prompt>${h(q.prompt)}</h3>${drillInput(q)}
  ${drillState.answered?drillFeedback(q):""}
  </section>`;
 }
 function drillInput(q){
- if(q.type==="choice")return `<div class=choices>${q.options.map((o,i)=>`<button ${drillState.answered?"disabled":""} class="choice ${drillState.answered?(i===q.answer?"correct":i===drillState.selected?"wrong":""):""}" onclick="answerDrillChoice(${i})">${kana[i]}　${h(o)}</button>`).join("")}</div>`;
- if(q.type==="text")return `<input id=drillText placeholder="本文から1語"><button class=primary onclick="answerDrillText()">答える</button>`;
+ if(q.type==="choice")return `<div class=choices>${drillState.choiceOrder.map((original,shown)=>`<button ${drillState.answered?"disabled":""} class="choice ${drillState.answered?(original===q.answer?"correct":original===drillState.selected?"wrong":""):""}" onclick="answerDrillChoice(${original})">${kana[shown]}　${h(q.options[original])}</button>`).join("")}</div>`;
+ if(q.type==="multi_choice")return `<div class=selection-summary>${drillState.selectedMany.length?`選択中：${drillState.selectedMany.map(i=>h(q.options[i])).join(" ／ ")}`:`未選択（${q.answer.length}つ）`}</div><div class=choices>${drillState.choiceOrder.map((original,shown)=>`<button ${drillState.answered?"disabled":""} class="choice ${drillState.selectedMany.includes(original)?"selected":""} ${drillState.answered?(q.answer.includes(original)?"correct":drillState.selectedMany.includes(original)?"wrong":""):""}" onclick="toggleDrillMulti(${original})">${kana[shown]}　${h(q.options[original])}</button>`).join("")}</div><button class=primary onclick="answerDrillChoiceMulti()">この2つで答える</button>`;
+ if(q.type==="pair")return `<p><b>${h(q.lead)}</b>　選択肢を並べたときの2番目・5番目を順にタップ</p><div class=selection-summary>${drillState.selectedMany.length?drillState.selectedMany.map(i=>`${kana[i]} ${h(q.tokens[i])}`).join(" → "):`未選択（2つ）`}</div><div class="answer-options multi">${q.tokens.map((t,i)=>`<button class="answer-kana ${drillState.selectedMany.includes(i)?"selected":""}" ${drillState.answered?"disabled":""} onclick="toggleDrillPair(${i})">${kana[i]}<small>${h(t)}</small></button>`).join("")}</div><button class=primary onclick="answerDrillPair()">この順で答える</button>`;
+ if(q.type==="text")return `<input id=drillText placeholder="${q.initial?`${h(q.initial)} から始まる英語1語`:"本文から英語1語"}" value="${h(drillState.textDraft||"")}" oninput="rememberDrillText(this.value)"><button class=primary onclick="answerDrillText()">答える</button>`;
  if(q.type==="text_multi")return `<div class=grid>${q.answers.map((_,i)=>`<input id=mt${i} placeholder="(${i+1})">`).join("")}</div><button class=primary onclick="answerDrillMulti()">答える</button>`;
  if(q.type==="reorder")return `<p><b>${h(q.lead)}</b></p><div class=tokens>${shuffleTokens(q.tokens).map((t,i)=>`<button class=token onclick="addToken('${h(t).replace(/'/g,"&#39;")}')">${h(t)}</button>`).join("")}</div><div id=orderBox class=reorder-answer>${drillState.order.map(h).join(" ")}</div><div class=row><button onclick="clearOrder()">やり直す</button><button class=primary onclick="answerReorder()">答える</button></div>`;
- if(q.type==="selfcheck")return `<textarea id=selfText placeholder="ここに答案を書く"></textarea><button class=primary onclick="showSelfCheck()">セルフチェックへ</button>${drillState.selfcheck?`<div class=warnbox><b>必須チェック</b>${q.check.map((x,i)=>`<label><input type=checkbox id=ck${i}> ${h(x)}</label><br>`).join("")}<p><b>答案例：</b>${h(q.model)}</p><div class=row><button onclick="selfResult(false)">まだ不十分</button><button class=primary onclick="selfResult(true)">条件を満たした</button></div></div>`:""}`;
+ if(q.type==="selfcheck"){const writing=q.partLimits?`<div class=self-parts>${q.partLimits.map((limit,i)=>`<label><b>(${i+1})</b><textarea placeholder="空所(${i+1})" oninput="rememberSelfPart(${i},this.value)">${h(drillState.selfParts?.[i]||"")}</textarea><span id=partCount${i}>${wordCount(drillState.selfParts?.[i]||"")}語 / ${limit}語以内</span></label>`).join("")}</div>`:`<textarea id=selfText placeholder="ここに答案を書く" oninput="rememberSelfText(this.value)">${h(drillState.selfText||"")}</textarea><div class=word-count id=wordCount>${wordCount(drillState.selfText||"")}語${q.maxWords?` / ${q.maxWords}語以内`:q.approxWords?` / 約${q.approxWords}語`:""}</div>`;return `${writing}<button class=primary onclick="showSelfCheck()">セルフチェックへ</button>${drillState.selfcheck?`<div class=warnbox><b>必須チェック</b>${q.check.map((x,i)=>`<label><input type=checkbox id=ck${i}> ${h(x)}</label><br>`).join("")}<p><b>答案例：</b>${h(q.model)}</p><div class=row><button onclick="selfResult(false)">まだ不十分</button><button class=primary onclick="selfResult(true)">条件を満たした</button></div></div>`:""}`}
  return "";
 }
 function shuffleTokens(tokens){if(drillState.shuffled)return drillState.shuffled;drillState.shuffled=[...tokens].sort(()=>Math.random()-.5);return drillState.shuffled}
-function addToken(t){if(drillState.answered)return;drillState.order.push(t.replace(/&#39;/g,"'"));render()}
-function clearOrder(){drillState.order=[];drillState.shuffled=null;render()}
+function addToken(t){if(drillState.answered)return;drillState.order.push(t.replace(/&#39;/g,"'"));persistDrill();render()}
+function clearOrder(){drillState.order=[];drillState.shuffled=null;persistDrill();render()}
 function answerDrillChoice(i){if(drillState.answered)return;drillState.selected=i;finishDrill(i===drillState.q.answer)}
+function toggleDrillMulti(i){if(drillState.answered)return;const a=drillState.selectedMany,j=a.indexOf(i),max=drillState.q.answer.length;if(j>=0)a.splice(j,1);else if(a.length<max)a.push(i);else return alert(`${max}つまで選べます。選択済みをもう一度押すと外せます。`);persistDrill();render()}
+function answerDrillChoiceMulti(){const a=[...drillState.selectedMany].sort((x,y)=>x-y),b=[...drillState.q.answer].sort((x,y)=>x-y);if(a.length!==b.length)return alert(`${b.length}つ選んでください。`);finishDrill(a.every((x,i)=>x===b[i]))}
+function toggleDrillPair(i){if(drillState.answered)return;const a=drillState.selectedMany,j=a.indexOf(i);if(j>=0)a.splice(j,1);else if(a.length<2)a.push(i);else return alert("2つまでです。選び直す記号をもう一度押してください。");persistDrill();render()}
+function answerDrillPair(){if(drillState.selectedMany.length!==2)return alert("2番目・5番目の2つを順に選んでください。");finishDrill(drillState.selectedMany.every((x,i)=>x===drillState.q.answer[i]))}
+function rememberDrillText(v){drillState.textDraft=v;persistDrill()}
 function answerDrillText(){let a=document.getElementById("drillText").value.trim().toLowerCase();finishDrill(a===drillState.q.answerText.toLowerCase())}
 function answerDrillMulti(){let ok=drillState.q.answers.every((x,i)=>norm(document.getElementById("mt"+i).value)===norm(x));finishDrill(ok)}
 function answerReorder(){let ok=drillState.order.join(" ")===drillState.q.answer.join(" ");finishDrill(ok)}
-function showSelfCheck(){drillState.selfcheck=true;render()}
+function wordCount(s){return String(s||"").trim()?String(s).trim().split(/\s+/).length:0}
+function rememberSelfText(v){drillState.selfText=v;const el=document.getElementById("wordCount"),q=drillState.q;if(el)el.textContent=`${wordCount(v)}語${q.maxWords?` / ${q.maxWords}語以内`:q.approxWords?` / 約${q.approxWords}語`:""}`;persistDrill()}
+function rememberSelfPart(i,v){drillState.selfParts=drillState.selfParts||[];drillState.selfParts[i]=v;const el=document.getElementById("partCount"+i),limit=drillState.q.partLimits[i];if(el)el.textContent=`${wordCount(v)}語 / ${limit}語以内`;persistDrill()}
+function showSelfCheck(){const q=drillState.q;if(q.partLimits){for(let i=0;i<q.partLimits.length;i++){const n=wordCount(drillState.selfParts?.[i]);if(!n)return alert(`空所(${i+1})を入力してください。`);if(n>q.partLimits[i])return alert(`空所(${i+1})は${n}語です。${q.partLimits[i]}語以内に直してください。`)}}else{const n=wordCount(drillState.selfText);if(!n)return alert("答案を入力してください。");if(q.maxWords&&n>q.maxWords)return alert(`${n}語です。${q.maxWords}語以内に直してください。`)}drillState.selfcheck=true;persistDrill();render()}
 function selfResult(ok){if(ok && !drillState.q.check.every((_,i)=>document.getElementById("ck"+i)?.checked))return alert("必須チェックをすべて確認してください。");finishDrill(ok)}
 function finishDrill(ok){
  const w=S.weak[drillState.key];drillState.answered=true;drillState.correct=ok;
@@ -463,10 +494,10 @@ function finishDrill(ok){
    if(ok)w.streak=(w.streak||0)+1;else w.streak=0;
    if(w.streak>=3){w.status="pending";w.next=plusDays(1);w.confirmStreak=0}
  }else{
-   if(ok)w.confirmStreak=(w.confirmStreak||0)+1;else{w.confirmStreak=0;w.status="active";w.streak=0;w.next=today();w.reservedConfirm=[];drillState.mode="train";drillState.used=[];drillState.failedConfirmation=true;ensureConfirmationReserve(drillState.key,w,poolFor(w.skill))}
+   if(ok)w.confirmStreak=(w.confirmStreak||0)+1;else{w.confirmStreak=0;w.status="active";w.streak=0;w.next=today();w.reservedConfirm=[];drillState.mode="train";drillState.used=[];drillState.failedConfirmation=true;ensureConfirmationReserve(drillState.key,w,poolForWeak(w))}
    if(w.confirmStreak>=2){w.status="mastered";w.masteredAt=new Date().toISOString();w.last="correct"}
  }
- S.drillLog.push({key:drillState.key,skill:drillState.skill,q:drillState.q.id,ok,at:new Date().toISOString()});save();render()
+ S.drillLog.push({key:drillState.key,skill:drillState.skill,targetId:w.targetId,q:drillState.q.id,ok,at:new Date().toISOString()});persistDrill();render()
 }
 function drillFeedback(q){
  const w=S.weak[drillState.key];
@@ -481,7 +512,7 @@ function drillFeedback(q){
  <button class=primary onclick="${w.status==="mastered"|| (w.status==="pending"&&drillState.mode==="train")?"finishSession()":"continueDrill()"}">${nextLabel}</button></div>`;
 }
 function continueDrill(){drillState.selfcheck=false;drillState.shuffled=null;drillState.failedConfirmation=false;nextDrill();render()}
-function finishSession(){drillState=null;S.currentSkill=null;save();goto("review")}
+function finishSession(){drillState=null;S.currentSkill=null;S.currentDrill=null;save();goto("home")}
 
 function stats(){
  const active=activeWeak(), bySkill={}, byCause={}, a=active.filter(([_,w])=>w.priority==="A"), b=active.filter(([_,w])=>w.priority==="B"), c=active.filter(([_,w])=>w.priority==="C");
@@ -490,7 +521,7 @@ function stats(){
  const comparable=S.attempts.filter(x=>x.status==="graded"&&x.comparable),latest=[...comparable].reverse()[0];
  const statusFor=t=>{const eligible=comparable.filter(x=>x.totalScore!==null&&x.totalScore!==undefined),reached=eligible.at(-1)?.totalScore>=t,stable=eligible.length>=2&&eligible.at(-1).year!==eligible.at(-2).year&&eligible.at(-1).totalScore>=t&&eligible.at(-2).totalScore>=t;return stable?"安定":reached?"到達":"未到達"};
  return `<section class="grid four"><div class=card><div class=metric>${a.length}</div><div class=muted>A未克服</div></div><div class=card><div class=metric>${b.length}</div><div class=muted>B未克服</div></div><div class=card><div class=metric>${c.length}</div><div class=muted>C未克服</div></div><div class=card><div class=metric>${rate}%</div><div class=muted>直近20類題</div></div></section>
- <section class=card><h2>総合点の到達度</h2><div class=goal-grid>${[60,65,70,75].map(t=>`<div class="goal-card ${statusFor(t)==="安定"?"stable":""}"><b>${t}点</b><span>${statusFor(t)}</span></div>`).join("")}</div><p class=muted>「安定」は、異なる年度の完全初見・本番時間・通し演習で2回連続到達した場合のみです。${latest&&!latest.totalScore?" リスニング未入力のため総合判定は保留です。":""}</p></section>
+ <section class=card><h2>総合点の到達度</h2><div class=goal-grid>${[60,70,75].map(t=>`<div class="goal-card ${statusFor(t)==="安定"?"stable":""} ${S.goal===t?"selected":""}"><b>${goalLabel(t)}</b><span>${statusFor(t)}</span></div>`).join("")}</div><p class=muted>「安定」は、異なる年度の完全初見・本番時間・通し演習で2回連続到達した場合のみです。${latest&&!latest.totalScore?" リスニング未入力のため総合判定は保留です。":""}</p></section>
  <section class=card><h2>年度別記録</h2><div class=table><table><tr><th>年度</th><th>役割</th><th>筆記</th><th>総合</th><th>条件</th></tr>${ROUTE.map(y=>{const x=latestAttempt(y);return `<tr><td>${y}</td><td>${routeRole(y)}</td><td>${x?`${x.writtenScore}/80`:"－"}</td><td>${x?.totalScore!==null&&x?.totalScore!==undefined?`${x.totalScore}/100`:"－"}</td><td>${x?(x.comparable?"比較対象":"練習記録"):"未着手"}</td></tr>`}).join("")}</table></div></section>
  <section class=card><h2>弱点分野</h2><div class=table><table><tr><th>分野</th><th>未克服</th><th>対策</th></tr>${Object.entries(bySkill).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`<tr><td>${skillName(s)}</td><td>${n}</td><td><button onclick="startFirstSkill('${s}')">類題を解く</button></td></tr>`).join("")||"<tr><td colspan=3>未克服なし</td></tr>"}</table></div></section>
  <section class=card><h3>失点原因</h3>${Object.entries(byCause).sort((a,b)=>b[1]-a[1]).map(([c,n])=>`<p>${h(c)}：${n}</p>`).join("")||"<p class=muted>間違い対策画面で原因を選ぶと表示されます。</p>"}
@@ -498,12 +529,12 @@ function stats(){
 }
 function startFirstSkill(s){let x=activeWeak().find(([_,w])=>w.skill===s);if(x)startSkill(x[0])}
 function exportData(){const payload={appId:"waseshibu-english-adaptive",schemaVersion:SCHEMA_VERSION,exportedAt:new Date().toISOString(),state:S};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`waseshibu-english-backup-${today()}.json`;a.hidden=true;document.body?.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}
-function normalizeImportedState(x){return {...x,answers:x.answers||{},manual:x.manual||{},weak:x.weak||{},cause:x.cause||{},exposure:x.exposure||{},attempts:Array.isArray(x.attempts)?x.attempts:[],history:Array.isArray(x.history)?x.history:[],drillLog:Array.isArray(x.drillLog)?x.drillLog:[],dailyPlan:x.dailyPlan&&typeof x.dailyPlan==="object"?x.dailyPlan:null}}
+function normalizeImportedState(x){const next={...x,answers:x.answers||{},manual:x.manual||{},weak:x.weak||{},cause:x.cause||{},exposure:x.exposure||{},attempts:Array.isArray(x.attempts)?x.attempts:[],history:Array.isArray(x.history)?x.history:[],drillLog:Array.isArray(x.drillLog)?x.drillLog:[],dailyPlan:x.dailyPlan&&typeof x.dailyPlan==="object"?x.dailyPlan:null};return window.ENGLISH_MODEL?window.ENGLISH_MODEL.migrateState(next):next}
 function validateImport(payload){if(!payload||payload.appId!=="waseshibu-english-adaptive"||!payload.state)throw new Error("このアプリのバックアップではありません。");if(!Number.isFinite(Number(payload.schemaVersion))||Number(payload.schemaVersion)>SCHEMA_VERSION)throw new Error("対応していないバックアップ形式です。");const x=normalizeImportedState(payload.state);if(typeof x.answers!=="object"||Array.isArray(x.answers)||typeof x.weak!=="object"||Array.isArray(x.weak))throw new Error("必要な学習データがありません。");for(const a of x.attempts){const writtenMissing=a.writtenScore===null||a.writtenScore===undefined||a.writtenScore==="",written=Number(a.writtenScore),writtenInvalid=(!writtenMissing&&(!Number.isFinite(written)||written<0||written>80))||(a.status==="graded"&&writtenMissing),listening=a.listeningScore;const listeningInvalid=listening!==null&&listening!==undefined&&(listening===""||!Number.isFinite(Number(listening))||Number(listening)<0||Number(listening)>20);if(!a.id||!ROUTE.includes(Number(a.year))||writtenInvalid||listeningInvalid)throw new Error("受験記録の年度または点数が不正です。")}if(x.currentAttempt&&(!x.currentAttempt.id||!ROUTE.includes(Number(x.currentAttempt.year))))throw new Error("解答途中の記録が不正です。");return x}
 function mergeWeak(a={},b={}){if(a.status==="mastered"&&b.status!=="mastered")return a;if(b.status==="mastered"&&a.status!=="mastered")return b;const ap=(a.confirmStreak||0)*10+(a.streak||0),bp=(b.confirmStreak||0)*10+(b.streak||0);return bp>=ap?{...a,...b}:{...b,...a}}
 function dedupeBy(arr,keyFn){const m=new Map();arr.forEach(x=>m.set(keyFn(x),x));return [...m.values()]}
 function mergeExposure(a={},b={}){const rank={first:0,unknown:1,partial:2,done:3},out={...a};Object.entries(b).forEach(([y,v])=>{if(out[y]===undefined||rank[v]>=rank[out[y]])out[y]=v});return out}
-async function importData(input){const file=input.files?.[0];if(!file)return;if(file.size>10*1024*1024)return alert("バックアップファイルが大きすぎます。");try{const incoming=validateImport(JSON.parse(await file.text())),mode=document.getElementById("importMode")?.value||"merge";if(!confirm(`バックアップを${mode==="replace"?"現在データと置き換え":"現在データへ統合"}ます。よろしいですか？`))return;if(mode==="replace"){exportData();S={...INIT,...incoming,schemaVersion:SCHEMA_VERSION}}else{const attemptMap=new Map([...S.attempts,...(incoming.attempts||[])].map(x=>[x.id,x])),weak={...S.weak};Object.entries(incoming.weak||{}).forEach(([key,w])=>weak[key]=mergeWeak(weak[key],w));S={...S,answers:{...S.answers,...incoming.answers},manual:{...S.manual,...incoming.manual},weak,cause:{...S.cause,...incoming.cause},exposure:mergeExposure(S.exposure,incoming.exposure),attempts:[...attemptMap.values()],history:dedupeBy([...S.history,...(incoming.history||[])],x=>x.attemptId||`${x.year}:${x.at}:${x.score}`),drillLog:dedupeBy([...S.drillLog,...(incoming.drillLog||[])],x=>`${x.key}:${x.q}:${x.at}:${x.ok}`)}}S.dailyPlan=null;renderedDate=today();save();alert("学習データを復元しました。");goto("home")}catch(e){alert(`復元できませんでした：${e.message}`)}finally{input.value=""}}
+async function importData(input){const file=input.files?.[0];if(!file)return;if(file.size>10*1024*1024)return alert("バックアップファイルが大きすぎます。");try{const incoming=validateImport(JSON.parse(await file.text())),mode=document.getElementById("importMode")?.value||"merge";if(!confirm(`バックアップを${mode==="replace"?"現在データと置き換え":"現在データへ統合"}ます。よろしいですか？`))return;if(mode==="replace"){exportData();S={...INIT,...incoming,schemaVersion:SCHEMA_VERSION}}else{const attemptMap=new Map([...S.attempts,...(incoming.attempts||[])].map(x=>[x.id,x])),weak={...S.weak};Object.entries(incoming.weak||{}).forEach(([key,w])=>weak[key]=mergeWeak(weak[key],w));S={...S,answers:{...S.answers,...incoming.answers},manual:{...S.manual,...incoming.manual},weak,cause:{...S.cause,...incoming.cause},exposure:mergeExposure(S.exposure,incoming.exposure),attempts:[...attemptMap.values()],history:dedupeBy([...S.history,...(incoming.history||[])],x=>x.attemptId||`${x.year}:${x.at}:${x.score}`),drillLog:dedupeBy([...S.drillLog,...(incoming.drillLog||[])],x=>`${x.key}:${x.q}:${x.at}:${x.ok}`)}}if(window.ENGLISH_MODEL)window.ENGLISH_MODEL.migrateState(S);S.dailyPlan=null;drillState=S.currentDrill||null;renderedDate=today();save();alert("学習データを復元しました。");goto("home")}catch(e){alert(`復元できませんでした：${e.message}`)}finally{input.value=""}}
 function guide(){
  return `<section class=card><h2>この版の使い方</h2><ol>
  <li><b>学習ルート</b>：2024→2023→2022→2021→2020→2019→2025→2026の順で進める。</li>
@@ -512,13 +543,14 @@ function guide(){
  <li>記述問題は紙に書いた答案を公式解答と比べ、自己採点した点数を入力する。</li>
  <li>誤答は自動で<b>間違い対策</b>へ入る。</li>
  <li>失点原因を選ぶ。</li>
- <li><b>今日の割当</b>：A問題を優先して1日最大3弱点。終えても同じ日に必須課題を自動追加しません。</li>
- <li><b>克服ドリル</b>：同じ技能の似た問題を3問連続正解するまで繰り返す。間違えると連続数は0に戻る。</li>
+ <li><b>学習目標</b>：A 60点、B 70点、C 75点から選ぶ。目標変更は得点・正誤・履歴を変えず、今日の推奨だけを再計算する。</li>
+ <li><b>今日の割当</b>：定着確認と目標範囲の誤答を優先し、1日最大10課題。終えた後は任意の次の1件を表示する。</li>
+ <li><b>克服ドリル</b>：元の誤答と同じ論点の類題を3問連続正解するまで繰り返す。途中で画面を移動しても同じ進行位置から再開する。</li>
  <li>3連続正解しても消さず、翌日に2問の定着チェック。</li>
  <li>翌日も2連続正解して初めて克服済み。</li></ol>
  <div class=notice><b>英単語・リスニング</b><p>通常の英単語学習とリスニングは別アプリ想定です。過去問中の英文定義問題は本番演習として残しますが、単語そのものの大量反復はこのアプリの中心にはしていません。</p></div>
- <div class=bluebox><b>類題について</b><p>${BANK.length}問のオリジナル類題を収録しています。即時練習3問とは別に2問を翌日確認用として確保し、出題履歴から同じ問題の連続を避けます。</p></div>
- <div class=warnbox><b>A・B・Cについて</b><p>学校公式の分類ではなく、60～75点を目指すための学習上の分類です。Aを先に、Bで上積みし、Cは後回し候補とします。</p></div>
+ <div class=bluebox><b>類題について</b><p>${BANK.filter(x=>!x.retired).length}問の有効なオリジナル類題を収録しています。元設問の論点を優先し、翌日確認には異なる問題系統を2問確保します。</p></div>
+ <div class=warnbox><b>A・B・Cについて</b><p>学校公式の分類ではなく、合格戦略上の分類です。A＝60点を守る、B＝70点への上積み、C＝75点で選ぶ高コスト問題です。</p></div>
  <section class=backup-box><h3>学習データのバックアップ</h3><p>この端末では、アプリを更新しても学習履歴を自動で引き継ぎます。機種変更、ブラウザ変更、端末故障への備えにはバックアップを使ってください。</p><div class=row><button onclick="exportData()">バックアップを書き出す</button><label>復元方法 <select id=importMode><option value=merge>現在データへ統合</option><option value=replace>現在データと置換</option></select></label><label class=file-button>バックアップを選ぶ<input type=file accept="application/json,.json" onchange="importData(this)"></label></div></section></section>`;
 }
 function scheduleDayRefresh(){if(dayRefreshHandle)clearTimeout(dayRefreshHandle);const next=new Date();next.setHours(24,0,1,0);dayRefreshHandle=setTimeout(()=>{checkDayChange();scheduleDayRefresh()},Math.max(1000,next-Date.now()))}
