@@ -206,7 +206,26 @@ function joinWrappedLines(lines){
  },"");
 }
 function needsContinuation(text){return !/[。.!?]$/.test(String(text).trim())}
-function formatPaperText(text,y,startMajor){
+function paperLineHtml(line,y,pageNumber){
+ const ranges=[],entries=window.PAPER_UNDERLINES?.[`${y}:${pageNumber}`]||[];
+ for(const entry of entries){
+   let from=0,index;
+   while((index=line.indexOf(entry.text,from))!==-1){
+     const part=entry.part||entry.text,partIndex=entry.text.indexOf(part);
+     if(partIndex!==-1)ranges.push([index+partIndex,index+partIndex+part.length]);
+     from=index+Math.max(1,entry.text.length);
+   }
+ }
+ const blankPattern=/[①②③④⑤⑥⑦⑧⑨⑩➀➁➂➃➄➅]\s*[“"']?\s*(\[[^\]]*\])/g;
+ for(const match of line.matchAll(blankPattern)){
+   const start=match.index+match[0].indexOf(match[1]);ranges.push([start,start+match[1].length]);
+ }
+ ranges.sort((a,b)=>a[0]-b[0]||b[1]-a[1]);
+ const merged=[];for(const range of ranges){const last=merged.at(-1);if(last&&range[0]<=last[1])last[1]=Math.max(last[1],range[1]);else merged.push([...range])}
+ if(!merged.length)return line?h(line):"&nbsp;";
+ let out="",cursor=0;for(const [start,end] of merged){out+=h(line.slice(cursor,start))+`<span class=paper-underline>${h(line.slice(start,end))}</span>`;cursor=end}return out+h(line.slice(cursor));
+}
+function formatPaperText(text,y,startMajor,pageNumber){
  const lines=text.split("\n"),html=[];let currentMajor=startMajor,currentQuestion=null;
  for(let i=0;i<lines.length;i++){
    const line=lines[i],major=line.match(/^([３４５６７８])[ \t　]+(.*)$/);
@@ -214,29 +233,29 @@ function formatPaperText(text,y,startMajor){
      currentMajor=fullwidthDigits.indexOf(major[1]);currentQuestion=null;
      const title=[major[2]];
      while(title.length<5&&needsContinuation(joinWrappedLines(title))&&i+1<lines.length&&lines[i+1].trim()&&!/^[ \t　]*(?:[３４５６７８][ \t　]+|問[1-9１２３４５６７８９])/.test(lines[i+1]))title.push(lines[++i]);
-     html.push(`<div id="problem-${y}-${currentMajor}" class=major-heading><span>大問${currentMajor}</span><strong>${h(joinWrappedLines(title))}</strong></div>`);continue;
+     html.push(`<div id="problem-${y}-${currentMajor}" class=major-heading><span>大問${currentMajor}</span><strong>${paperLineHtml(joinWrappedLines(title),y,pageNumber)}</strong></div>`);continue;
    }
    const question=line.match(/^[ \t　]*問([1-9１２３４５６７８９])[ \t　]*/);
    if(question){
      currentQuestion=/[1-9]/.test(question[1])?Number(question[1]):fullwidthDigits.indexOf(question[1]);
      const title=[line];
      while(title.length<4&&needsContinuation(joinWrappedLines(title))&&i+1<lines.length&&lines[i+1].trim()&&!/^[ \t　]*(?:[３４５６７８][ \t　]+|問[1-9１２３４５６７８９]|[（(][1-9１２３４５６７８９][）)])/.test(lines[i+1]))title.push(lines[++i]);
-     html.push(`<div id="problem-${y}-${currentMajor}-${currentQuestion}" class=subquestion-heading>${h(joinWrappedLines(title))}</div>`);continue;
+     html.push(`<div id="problem-${y}-${currentMajor}-${currentQuestion}" class=subquestion-heading>${paperLineHtml(joinWrappedLines(title),y,pageNumber)}</div>`);continue;
    }
    const sub=line.match(/^[ \t　]*[（(]([1-9１２３４５６７８９])[）)]/);
    if(sub&&currentMajor&&currentQuestion){
      const subNumber=/[1-9]/.test(sub[1])?Number(sub[1]):fullwidthDigits.indexOf(sub[1]);
-     html.push(`<div id="problem-${y}-${currentMajor}-${currentQuestion}-${subNumber}" class="paper-line subpart-line">${h(line)}</div>`);continue;
+     html.push(`<div id="problem-${y}-${currentMajor}-${currentQuestion}-${subNumber}" class="paper-line subpart-line">${paperLineHtml(line,y,pageNumber)}</div>`);continue;
    }
    const pattern=(line.match(/\([^)]*\)/g)||[]).length>=3||/\[[ア-ク].*[ア-ク].*\]/.test(line);
-   html.push(`<div class="paper-line ${pattern?"answer-pattern-line":""}">${line?h(line):"&nbsp;"}</div>`);
+   html.push(`<div class="paper-line ${pattern?"answer-pattern-line":""}">${paperLineHtml(line,y,pageNumber)}</div>`);
  }
  return {html:html.join(""),lastMajor:currentMajor};
 }
 function renderPaperPages(y,pages){
  let current=null;
  return pages.map((p,i)=>{
-   const majors=majorNumbers(p.text),formatted=formatPaperText(p.text,y,current);current=formatted.lastMajor;
+   const majors=majorNumbers(p.text),formatted=formatPaperText(p.text,y,current,p.page);current=formatted.lastMajor;
    const label=majors.length?`大問 ${majors.join("・")}`:current?`大問 ${current}（続き）`:`筆記ページ ${i+1}`;
    return `<article class=paper-page><div class=page-label><b>${y}年度</b><span>${label}</span></div><div class=paper-text>${formatted.html}</div></article>`;
  }).join("");
