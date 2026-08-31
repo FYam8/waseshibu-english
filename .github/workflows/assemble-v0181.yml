@@ -1,0 +1,36 @@
+name: Assemble v0.18.1
+on:
+  push:
+    branches: [release-v0.18.1-stage]
+permissions:
+  contents: write
+jobs:
+  assemble:
+    if: ${{ !contains(github.event.head_commit.message, '[assembled]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Rebuild exact release files
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .v0181/rebuild_chunk*.txt | base64 -d | gzip -d > /tmp/rebuild_v0181.py
+          python /tmp/rebuild_v0181.py
+          test "$(git hash-object app.js)" = "472538fe75cc64b4463aaa9fce2d698aa2ef28d7"
+          test "$(git hash-object data.js)" = "18717ba3132b3a047aaddcb9f3a054ae4a590029"
+          node tests/audit.mjs
+      - name: Commit clean assembled release
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .v0181
+          rm -f .github/workflows/assemble-v0181.yml
+          rmdir .github/workflows 2>/dev/null || true
+          rmdir .github 2>/dev/null || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Release English adaptive learning v0.18.1 [assembled]"
+          git push origin HEAD:${GITHUB_REF_NAME}
