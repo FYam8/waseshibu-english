@@ -1,0 +1,34 @@
+
+global.window = global;
+window.localStorage={getItem(){return null},setItem(){},removeItem(){}};
+window.document={addEventListener(){}, querySelector(){return null}, querySelectorAll(){return []}, getElementById(){return null}, body:{}, createElement(){return {}}};
+window.navigator={};
+require('./data.js');
+require('./paper-underlines.js');
+require('./manual-guides.js');
+require('./extra-drills.js');
+require('./detail-drills-v2.js');
+require('./learning-model.js');
+require('./original-drills-loop3.js');
+require('./original-drills-loop4.js');
+require('./detail20-fix-loop1.js');
+require('./rebuttal16-loop2.js');
+require('./rebuttal16-loop3-afterturn.js');
+require('./summary15-loop2.js');
+require('./summary15-loop4.js');
+require('./reason10-loop2.js');
+require('./reason10-loop3.js');
+require('./emotion10-loop2.js');
+require('./context10-loop2.js');
+require('./connector11-loop2.js');
+require('./reading50-loop2.js');
+require('./reading50-loop3.js');
+require('./vocab-expression45-loop2.js');
+require('./vocab-expression45-loop3.js');
+require('./vocab45-correction-loop4.js');
+require('./grammar-completion77-loop2.js');
+const skills={};
+for(const d of window.DRILLS){if(!d.retired && d.active!==false){skills[d.skill]=(skills[d.skill]||0)+1;}}
+console.log(JSON.stringify(skills,null,2));
+const ids=window.DRILLS.filter(d=>!d.retired && d.active!==false && ['reorder','sentence_completion','writing_completion'].includes(d.skill)).map(d=>({id:d.id,skill:d.skill,type:d.type,examFormat:d.examFormat,answer:d.answer,prompt:(d.prompt||'').slice(0,120),text:(d.text||'').slice(0,120),ex:(d.explanation||'').slice(0,80)}));
+console.log(JSON.stringify(ids,null,2));

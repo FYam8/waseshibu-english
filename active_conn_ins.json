@@ -1,0 +1,477 @@
+[
+  {
+    "id": "lin01",
+    "skill": "insertion",
+    "level": 3,
+    "type": "choice",
+    "targetId": "insertion-cohesion",
+    "focusTag": "insertion-two-clues",
+    "familyId": "loop4-insertion-01",
+    "examFormat": "choice",
+    "prompt": "【オリジナル類題・文挿入】次の英文を入れる最も適切な位置を選びなさい。\n挿入文: “To test this idea, they designed a simple experiment.”\nSome students noticed that plants near the music room seemed to grow faster. [1] They wondered whether sound affected plant growth. [2] One group of plants was kept in a quiet room, and another group was placed near soft music. [3] After four weeks, the students compared the height of the plants. [4]",
+    "options": [
+      "[1]",
+      "[2]",
+      "[3]",
+      "[4]"
+    ],
+    "answer": 1,
+    "explanation": "【正解】イ\n【設問和訳】挿入文を入れる最も自然な位置を選ぶ。\n【根拠英文】They wondered whether sound affected plant growth. / One group of plants was kept...\n【根拠英文和訳】They wondered whether sound affected plant growth. / One group of plants was kept...\n【なぜ正解か】挿入文は『この考えを試す』なので、疑問・仮説の後、実験内容の前に入る。\n【他選択肢が違う理由】[1]はideaがまだ出ていない。[3]は実験内容の途中。[4]は結果比較の直前で遅い。\n【弱点】文挿入は、接続語だけでなく指示語・時系列・因果・前後の内容を2つ以上見る。\n【戦略】B：候補位置の前後1文を必ず両方確認する。"
+  },
+  {
+    "id": "lin02",
+    "skill": "insertion",
+    "level": 3,
+    "type": "choice",
+    "targetId": "insertion-cohesion",
+    "focusTag": "insertion-two-clues",
+    "familyId": "loop4-insertion-02",
+    "examFormat": "choice",
+    "prompt": "【オリジナル類題・文挿入】次の英文を入れる最も適切な位置を選びなさい。\n挿入文: “However, this benefit came with an unexpected problem.”\nThe city opened a new bicycle lane beside the river. [1] More students began cycling to school, and traffic near the station decreased. [2] Some older residents said walkers now had less space on the riverside path. [3] City officers decided to separate the walking area from the bicycle lane. [4]",
+    "options": [
+      "[1]",
+      "[2]",
+      "[3]",
+      "[4]"
+    ],
+    "answer": 1,
+    "explanation": "【正解】イ\n【設問和訳】挿入文を入れる最も自然な位置を選ぶ。\n【根拠英文】traffic near the station decreased / Some older residents said walkers now had less space\n【根拠英文和訳】traffic near the station decreased / Some older residents said walkers now had less space\n【なぜ正解か】benefitは交通減少、problemは歩行者スペース不足。メリットの後、問題の前が自然。\n【他選択肢が違う理由】[1]はbenefit前。[3]は問題の後でHoweverの転換が弱い。[4]は解決策後で遅い。\n【弱点】文挿入は、接続語だけでなく指示語・時系列・因果・前後の内容を2つ以上見る。\n【戦略】B：候補位置の前後1文を必ず両方確認する。"
+  },
+  {
+    "id": "lin03",
+    "skill": "insertion",
+    "level": 3,
+    "type": "choice",
+    "targetId": "insertion-cohesion",
+    "focusTag": "insertion-two-clues",
+    "familyId": "loop4-insertion-03",
+    "examFormat": "choice",
+    "prompt": "【オリジナル類題・文挿入】次の英文を入れる最も適切な位置を選びなさい。\n挿入文: “This difference made the second result more reliable.”\nThe researchers first asked ten people to try the new chair. [1] Later, they asked two hundred people of different ages to try it. [2] Most of the larger group said the chair was comfortable. [3] The company used the second result when improving the design. [4]",
+    "options": [
+      "[1]",
+      "[2]",
+      "[3]",
+      "[4]"
+    ],
+    "answer": 2,
+    "explanation": "【正解】ウ\n【設問和訳】挿入文を入れる最も自然な位置を選ぶ。\n【根拠英文】ten people / two hundred people of different ages / used the second result\n【根拠英文和訳】ten people / two hundred people of different ages / used the second result\n【なぜ正解か】this differenceは人数と年齢幅の違いを受け、次の文のsecond resultにつながる。\n【他選択肢が違う理由】[1]はsecond resultがまだない。[2]は差の説明直後でも可能に見えるが、reliableと言う根拠はlarger groupの結果が出る前なので弱い。[4]はusedの後で説明が遅い。\n【弱点】文挿入は、接続語だけでなく指示語・時系列・因果・前後の内容を2つ以上見る。\n【戦略】B：候補位置の前後1文を必ず両方確認する。"
+  },
+  {
+    "id": "lin04",
+    "skill": "insertion",
+    "level": 2,
+    "type": "choice",
+    "targetId": "insertion-cohesion",
+    "focusTag": "insertion-two-clues",
+    "familyId": "loop4-insertion-04",
+    "examFormat": "choice",
+    "prompt": "【オリジナル類題・文挿入】次の英文を入れる最も適切な位置を選びなさい。\n挿入文: “For this reason, they changed the schedule again.”\nThe outdoor concert was moved from Saturday to Sunday because of rain. [1] On Friday night, the forecast said that Sunday would also be stormy. [2] The organizers decided to hold the concert in the school hall. [3] They emailed the new plan to all performers. [4]",
+    "options": [
+      "[1]",
+      "[2]",
+      "[3]",
+      "[4]"
+    ],
+    "answer": 1,
+    "explanation": "【正解】イ\n【設問和訳】挿入文を入れる最も自然な位置を選ぶ。\n【根拠英文】Sunday would also be stormy / decided to hold the concert in the school hall\n【根拠英文和訳】Sunday would also be stormy / decided to hold the concert in the school hall\n【なぜ正解か】日曜も荒天という理由を受け、次の文で『体育館で行う』という再変更の内容につながる。\n【他選択肢が違う理由】[1]は理由がまだない。[3]は具体的な変更後で遅い。[4]は連絡後で不自然。\n【弱点】文挿入は、接続語だけでなく指示語・時系列・因果・前後の内容を2つ以上見る。\n【戦略】B：候補位置の前後1文を必ず両方確認する。"
+  },
+  {
+    "id": "lin05",
+    "skill": "insertion",
+    "level": 2,
+    "type": "choice",
+    "targetId": "insertion-cohesion",
+    "focusTag": "insertion-two-clues",
+    "familyId": "loop4-insertion-05",
+    "examFormat": "choice",
+    "prompt": "【オリジナル類題・文挿入】次の英文を入れる最も適切な位置を選びなさい。\n挿入文: “This was the question the researchers wanted to answer.”\nSome birds share food with birds that are not their family members. [1] Do they do this because they expect help later, or simply because food is available? [2] The team watched fifty birds for three months. [3] They recorded who shared food and what happened afterward. [4]",
+    "options": [
+      "[1]",
+      "[2]",
+      "[3]",
+      "[4]"
+    ],
+    "answer": 1,
+    "explanation": "【正解】イ\n【設問和訳】挿入文を入れる最も自然な位置を選ぶ。\n【根拠英文】Do they do this because...? / watched fifty birds\n【根拠英文和訳】Do they do this because...? / watched fifty birds\n【なぜ正解か】Thisは直前の疑問文全体を受け、次の観察方法につなぐ。\n【他選択肢が違う理由】[1]はquestionがまだ提示されていない。[3]は研究方法の途中。[4]は記録内容後で遅い。\n【弱点】文挿入は、接続語だけでなく指示語・時系列・因果・前後の内容を2つ以上見る。\n【戦略】B：候補位置の前後1文を必ず両方確認する。"
+  },
+  {
+    "id": "lin06",
+    "skill": "insertion",
+    "level": 2,
+    "type": "choice",
+    "targetId": "insertion-cohesion",
+    "focusTag": "insertion-two-clues",
+    "familyId": "loop4-insertion-06",
+    "examFormat": "choice",
+    "prompt": "【オリジナル類題・文挿入】次の英文を入れる最も適切な位置を選びなさい。\n挿入文: “Before then, no one in the village had used a computer.”\nThe village office received its first computer in 2010. [1] At first, the workers wrote every instruction by hand because they were afraid of making mistakes. [2] A young volunteer taught them how to save files and print letters. [3] Within a year, the office could send documents much faster. [4]",
+    "options": [
+      "[1]",
+      "[2]",
+      "[3]",
+      "[4]"
+    ],
+    "answer": 0,
+    "explanation": "【正解】ア\n【設問和訳】挿入文を入れる最も自然な位置を選ぶ。\n【根拠英文】received its first computer in 2010 / At first, the workers...\n【根拠英文和訳】received its first computer in 2010 / At first, the workers...\n【なぜ正解か】Before thenは2010年以前を指すので、最初のコンピュータ到着の直後が自然。\n【他選択肢が違う理由】[2]以降ではthenが何を指すか不明になり、時系列が崩れる。\n【弱点】文挿入は、接続語だけでなく指示語・時系列・因果・前後の内容を2つ以上見る。\n【戦略】B：候補位置の前後1文を必ず両方確認する。"
+  },
+  {
+    "id": "lin07",
+    "skill": "insertion",
+    "level": 3,
+    "type": "choice",
+    "targetId": "insertion-cohesion",
+    "focusTag": "insertion-two-clues",
+    "familyId": "loop4-insertion-07",
+    "examFormat": "choice",
+    "prompt": "【オリジナル類題・文挿入】次の英文を入れる最も適切な位置を選びなさい。\n挿入文: “These two results did not match.”\nThe first test showed that the water was safe to drink. [1] A second test at another laboratory found a small amount of harmful metal. [2] The town asked both laboratories to check their machines. [3] Until the cause was clear, residents were told to drink bottled water. [4]",
+    "options": [
+      "[1]",
+      "[2]",
+      "[3]",
+      "[4]"
+    ],
+    "answer": 1,
+    "explanation": "【正解】イ\n【設問和訳】挿入文を入れる最も自然な位置を選ぶ。\n【根拠英文】first test showed safe / second test found harmful metal / check their machines\n【根拠英文和訳】first test showed safe / second test found harmful metal / check their machines\n【なぜ正解か】These two results は直前までに出た2つの結果を受け、その不一致が次の再確認につながる。\n【他選択肢が違う理由】[1]は結果が1つだけ。[3]は再確認後で遅い。[4]は住民への指示後で説明が遅い。\n【弱点】文挿入は、接続語だけでなく指示語・時系列・因果・前後の内容を2つ以上見る。\n【戦略】B：候補位置の前後1文を必ず両方確認する。"
+  },
+  {
+    "id": "lin08",
+    "skill": "insertion",
+    "level": 3,
+    "type": "choice",
+    "targetId": "insertion-cohesion",
+    "focusTag": "insertion-two-clues",
+    "familyId": "loop4-insertion-08",
+    "examFormat": "choice",
+    "prompt": "【オリジナル類題・文挿入】次の英文を入れる最も適切な位置を選びなさい。\n挿入文: “In other words, the machine helped but did not solve everything.”\nThe new sorting machine separated plastic bottles from other trash much faster than workers could. [1] However, workers still had to remove dirty bottles by hand. [2] The manager said he would keep both the machine and the trained staff. [3] He planned to buy one more machine next year. [4]",
+    "options": [
+      "[1]",
+      "[2]",
+      "[3]",
+      "[4]"
+    ],
+    "answer": 1,
+    "explanation": "【正解】イ\n【設問和訳】挿入文を入れる最も自然な位置を選ぶ。\n【根拠英文】much faster than workers could / still had to remove dirty bottles by hand\n【根拠英文和訳】much faster than workers could / still had to remove dirty bottles by hand\n【なぜ正解か】機械の利点と限界の両方が出た直後に、『役立つが全てを解決しない』とまとめるのが自然。\n【他選択肢が違う理由】[1]は限界がまだ出ていない。[3]は管理者の判断後で説明が遅い。[4]は次年度計画後で不自然。\n【弱点】文挿入は、接続語だけでなく指示語・時系列・因果・前後の内容を2つ以上見る。\n【戦略】B：候補位置の前後1文を必ず両方確認する。"
+  },
+  {
+    "id": "lin09",
+    "skill": "insertion",
+    "level": 2,
+    "type": "choice",
+    "targetId": "insertion-cohesion",
+    "focusTag": "insertion-two-clues",
+    "familyId": "loop4-insertion-09",
+    "examFormat": "choice",
+    "prompt": "【オリジナル類題・文挿入】次の英文を入れる最も適切な位置を選びなさい。\n挿入文: “The third group served as a comparison.”\nOne group of students used tablets to study vocabulary. [1] Another group used paper cards. [2] A third group studied the same words without any special tool. [3] By comparing the three groups, the teacher could see whether the tools made a difference. [4]",
+    "options": [
+      "[1]",
+      "[2]",
+      "[3]",
+      "[4]"
+    ],
+    "answer": 2,
+    "explanation": "【正解】ウ\n【設問和訳】挿入文を入れる最も自然な位置を選ぶ。\n【根拠英文】A third group studied... without any special tool / comparing the three groups\n【根拠英文和訳】A third group studied... without any special tool / comparing the three groups\n【なぜ正解か】third groupの役割説明なので、第三群の説明直後かつ比較文の前が自然。\n【他選択肢が違う理由】[1][2]はthird group未提示。[4]は比較した後で役割説明が遅い。\n【弱点】文挿入は、接続語だけでなく指示語・時系列・因果・前後の内容を2つ以上見る。\n【戦略】B：候補位置の前後1文を必ず両方確認する。"
+  },
+  {
+    "id": "lin10",
+    "skill": "insertion",
+    "level": 2,
+    "type": "choice",
+    "targetId": "insertion-cohesion",
+    "focusTag": "insertion-two-clues",
+    "familyId": "loop4-insertion-10",
+    "examFormat": "choice",
+    "prompt": "【オリジナル類題・文挿入】次の英文を入れる最も適切な位置を選びなさい。\n挿入文: “Instead, they learned it from watching older birds.”\nYoung birds in the study did not know how to open the box at first. [1] When they stayed with adult birds, they began to copy the adults’ movements. [2] After several days, some young birds opened the box by themselves. [3] This showed that the skill was not only a matter of age. [4]",
+    "options": [
+      "[1]",
+      "[2]",
+      "[3]",
+      "[4]"
+    ],
+    "answer": 0,
+    "explanation": "【正解】ア\n【設問和訳】挿入文を入れる最も自然な位置を選ぶ。\n【根拠英文】did not know... at first / copy the adults’ movements\n【根拠英文和訳】did not know... at first / copy the adults’ movements\n【なぜ正解か】Insteadは『最初はできなかった』に対し、年齢だけでなく観察から学んだことを示す。次のcopyの具体例につながる。\n【他選択肢が違う理由】[2]は学び方の具体例後で少し遅い。[3][4]は結果・結論後で不自然。\n【弱点】文挿入は、接続語だけでなく指示語・時系列・因果・前後の内容を2つ以上見る。\n【戦略】B：候補位置の前後1文を必ず両方確認する。"
+  },
+  {
+    "id": "lin11",
+    "skill": "insertion",
+    "level": 3,
+    "type": "choice",
+    "targetId": "insertion-cohesion",
+    "focusTag": "insertion-two-clues",
+    "familyId": "loop4-insertion-11",
+    "examFormat": "choice",
+    "prompt": "【オリジナル類題・文挿入】次の英文を入れる最も適切な位置を選びなさい。\n挿入文: “This is why the first plan failed.”\nThe club wanted to start cleaning the beach at 7 a.m. [1] They forgot that the only bus arrived at the beach at 8:30. [2] Everyone finally began working after nine. [3] For the next event, they checked the bus schedule before choosing a time. [4]",
+    "options": [
+      "[1]",
+      "[2]",
+      "[3]",
+      "[4]"
+    ],
+    "answer": 1,
+    "explanation": "【正解】イ\n【設問和訳】挿入文を入れる最も自然な位置を選ぶ。\n【根拠英文】forgot that the only bus arrived at 8:30 / began working after nine\n【根拠英文和訳】forgot that the only bus arrived at 8:30 / began working after nine\n【なぜ正解か】Thisはバス時刻の見落としを受け、first plan failedの理由として説明する。次の実際の遅れにつながる。\n【他選択肢が違う理由】[1]は失敗理由がまだない。[3]は結果後で説明が遅い。[4]は次回対策後で不自然。\n【弱点】文挿入は、接続語だけでなく指示語・時系列・因果・前後の内容を2つ以上見る。\n【戦略】B：候補位置の前後1文を必ず両方確認する。"
+  },
+  {
+    "id": "lin12",
+    "skill": "insertion",
+    "level": 3,
+    "type": "choice",
+    "targetId": "insertion-cohesion",
+    "focusTag": "insertion-two-clues",
+    "familyId": "loop4-insertion-12",
+    "examFormat": "choice",
+    "prompt": "【オリジナル類題・文挿入】次の英文を入れる最も適切な位置を選びなさい。\n挿入文: “The discovery surprised the team because they had expected the opposite.”\nThe team believed that the larger fish would scare away the smaller fish. [1] In the video, however, smaller fish stayed closer to the food when larger fish were nearby. [2] The researchers repeated the observation at three different reefs. [3] They found the same pattern each time. [4]",
+    "options": [
+      "[1]",
+      "[2]",
+      "[3]",
+      "[4]"
+    ],
+    "answer": 1,
+    "explanation": "【正解】イ\n【設問和訳】挿入文を入れる最も自然な位置を選ぶ。\n【根拠英文】believed larger fish would scare away smaller fish / however, smaller fish stayed closer\n【根拠英文和訳】believed larger fish would scare away smaller fish / however, smaller fish stayed closer\n【なぜ正解か】expected the oppositeは仮説と結果の逆転を受ける。surprisedの後、再観察につながる。\n【他選択肢が違う理由】[1]は発見前。[3]は再観察後で驚きの理由説明が遅い。[4]は全結果後で位置が遅い。\n【弱点】文挿入は、接続語だけでなく指示語・時系列・因果・前後の内容を2つ以上見る。\n【戦略】B：候補位置の前後1文を必ず両方確認する。"
+  },
+  {
+    "id": "lin13",
+    "skill": "insertion",
+    "level": 2,
+    "type": "choice",
+    "targetId": "insertion-cohesion",
+    "focusTag": "insertion-two-clues",
+    "familyId": "loop4-insertion-13",
+    "examFormat": "choice",
+    "prompt": "【オリジナル類題・文挿入】次の英文を入れる最も適切な位置を選びなさい。\n挿入文: “For example, they practiced checking the source of online photos.”\nThe media class taught students how to avoid believing false information. [1] Students also compared two articles about the same event. [2] At the end of the lesson, they wrote down three questions to ask before sharing news online. [3] The teacher said these habits would help them outside school too. [4]",
+    "options": [
+      "[1]",
+      "[2]",
+      "[3]",
+      "[4]"
+    ],
+    "answer": 0,
+    "explanation": "【正解】ア\n【設問和訳】挿入文を入れる最も自然な位置を選ぶ。\n【根拠英文】avoid believing false information / checking the source of online photos\n【根拠英文和訳】avoid believing false information / checking the source of online photos\n【なぜ正解か】一般的な授業目的の直後に、具体例としてsource checkingを置く。次の比較活動にもつながる。\n【他選択肢が違う理由】[2]は別活動の後でFor exampleの範囲が曖昧。[3][4]はまとめ後で遅い。\n【弱点】文挿入は、接続語だけでなく指示語・時系列・因果・前後の内容を2つ以上見る。\n【戦略】B：候補位置の前後1文を必ず両方確認する。"
+  },
+  {
+    "id": "lin14",
+    "skill": "insertion",
+    "level": 2,
+    "type": "choice",
+    "targetId": "insertion-cohesion",
+    "focusTag": "insertion-two-clues",
+    "familyId": "loop4-insertion-14",
+    "examFormat": "choice",
+    "prompt": "【オリジナル類題・文挿入】次の英文を入れる最も適切な位置を選びなさい。\n挿入文: “As a result, the number of accidents fell the next month.”\nThe school put bright lights near the bicycle parking area. [1] Students could see the steps more clearly after club activities. [2] The principal thanked the students who had suggested the lights. [3] He also asked them to report any other dangerous places. [4]",
+    "options": [
+      "[1]",
+      "[2]",
+      "[3]",
+      "[4]"
+    ],
+    "answer": 1,
+    "explanation": "【正解】イ\n【設問和訳】挿入文を入れる最も自然な位置を選ぶ。\n【根拠英文】put bright lights / see the steps more clearly\n【根拠英文和訳】put bright lights / see the steps more clearly\n【なぜ正解か】As a resultは明るくなった効果を受け、事故減少という結果を示す。感謝文の前が自然。\n【他選択肢が違う理由】[1]は原因直後でも可能に見えるが、stepsが見えやすいという直接の改善を受ける[2]後がより自然。[3][4]は感謝・依頼後で遅い。\n【弱点】文挿入は、接続語だけでなく指示語・時系列・因果・前後の内容を2つ以上見る。\n【戦略】B：候補位置の前後1文を必ず両方確認する。"
+  },
+  {
+    "skill": "connector",
+    "type": "choice",
+    "targetId": "connector-logic",
+    "examFormat": "choice",
+    "id": "lco01",
+    "focusTag": "connector-example",
+    "level": 3,
+    "sourceComparison": "2022大問6問2型: 前文の抽象説明を受け、次文で具体例を導入する接続関係。",
+    "prompt": "【オリジナル類題】Many students now use more than one screen while studying. They may read a textbook on a desk, keep a chat app open on a phone, and check short videos whenever they feel bored. (     ), some students try to solve math problems while replying to messages from friends. Researchers say this habit can make it harder to stay focused.",
+    "options": [
+      "For example",
+      "However",
+      "In other words",
+      "As a result"
+    ],
+    "answer": 0,
+    "explanation": "【正解】For example\n【設問和訳】空所に入る最も適切な接続表現を選ぶ。\n【根拠英文】Many students now use more than one screen while studying. / some students try to solve math problems while replying to messages from friends.\n【根拠英文和訳】多くの生徒は勉強中に複数の画面を使う。数学の問題を解きながら友人へのメッセージに返信する生徒もいる。\n【なぜ正解か】前文の一般説明に対して、後文が具体例を出しているので For example が適切。\n【他選択肢】However は逆接、In other words は言い換え、As a result は結果なので合わない。\n【元弱点とのつながり】接続関係: 抽象説明と具体例の関係を判断する。\n【戦略分類】A/B: 具体例導入を見抜けば取れる。"
+  },
+  {
+    "skill": "connector",
+    "type": "choice",
+    "targetId": "connector-logic",
+    "examFormat": "choice",
+    "id": "lco02",
+    "focusTag": "connector-contrast",
+    "level": 3,
+    "sourceComparison": "2021大問6問4型: 一般的な思い込みと本文で述べる実際の事実を対比する接続関係。",
+    "prompt": "【オリジナル類題】Many people imagine that school gardens are used only by science classes. (     ), teachers in other subjects also use them. Art students draw plants there, and English classes sometimes write short poems after observing the flowers.",
+    "options": [
+      "However",
+      "For example",
+      "Therefore",
+      "In addition"
+    ],
+    "answer": 0,
+    "explanation": "【正解】However\n【設問和訳】空所に入る最も適切な接続表現を選ぶ。\n【根拠英文】Many people imagine that school gardens are used only by science classes. / teachers in other subjects also use them.\n【根拠英文和訳】多くの人は学校の庭は理科だけで使われると思っている。しかし他教科の先生もそれを使う。\n【なぜ正解か】『理科だけ』という思い込みに対して『他教科も使う』と反対内容が続くので However。\n【他選択肢】For example は具体例導入、Therefore は結果、In addition は追加で、ここでは対比を示せない。\n【元弱点とのつながり】接続関係: 思い込みと実際の事実の逆接を読む。\n【戦略分類】A/B: only と also の対比を拾う。"
+  },
+  {
+    "skill": "connector",
+    "type": "choice",
+    "targetId": "connector-logic",
+    "examFormat": "choice",
+    "id": "lco03",
+    "focusTag": "connector-contrast-limit",
+    "level": 3,
+    "sourceComparison": "2020大問6問4型: 前文で制限を述べ、後文でそれでも得られる利点を示す逆接。",
+    "prompt": "【オリジナル類題】The new reading app does not make students love books immediately. Some students still prefer games and videos after using it for a few weeks. (     ), the app helps many of them read a little longer each day because it shows their progress clearly.",
+    "options": [
+      "However",
+      "For example",
+      "Because",
+      "Otherwise"
+    ],
+    "answer": 0,
+    "explanation": "【正解】However\n【設問和訳】空所に入る最も適切な接続表現を選ぶ。\n【根拠英文】does not make students love books immediately / the app helps many of them read a little longer each day\n【根拠英文和訳】すぐに本好きにするわけではないが、多くの生徒が毎日少し長く読む助けになる。\n【なぜ正解か】限界を述べた後に利点を述べているため逆接の However が合う。\n【他選択肢】For example は例、Because は理由、Otherwise は『そうでなければ』で文脈に合わない。\n【元弱点とのつながり】接続関係: マイナス情報の後のプラス情報を読む。\n【戦略分類】B: 前後の評価の向きが変わることを読む。"
+  },
+  {
+    "skill": "connector",
+    "type": "choice",
+    "targetId": "connector-logic",
+    "examFormat": "choice",
+    "id": "lco04",
+    "focusTag": "connector-restatement",
+    "level": 3,
+    "sourceComparison": "近年説明文型: 専門的・抽象的な内容を別表現で言い換える接続関係。",
+    "prompt": "【オリジナル類題】Some birds remember the places where they hide seeds for winter. They do not simply fly around until they find food by chance. (     ), they use memory to return to many small storage places when food becomes hard to find.",
+    "options": [
+      "In other words",
+      "However",
+      "For example",
+      "As a result"
+    ],
+    "answer": 0,
+    "explanation": "【正解】In other words\n【設問和訳】空所に入る最も適切な接続表現を選ぶ。\n【根拠英文】remember the places where they hide seeds / use memory to return to many small storage places\n【根拠英文和訳】種を隠した場所を覚え、記憶を使って多くの貯蔵場所へ戻る。\n【なぜ正解か】後文は前の内容を別の言い方で説明しているので In other words が適切。\n【他選択肢】However は逆接、For example は例、As a result は結果で、言い換えではない。\n【元弱点とのつながり】接続関係: 同じ内容の言い換えを見抜く。\n【戦略分類】B: remember と use memory の対応を読む。"
+  },
+  {
+    "skill": "connector",
+    "type": "choice",
+    "targetId": "connector-logic",
+    "examFormat": "choice",
+    "id": "lco05",
+    "focusTag": "connector-result",
+    "level": 3,
+    "sourceComparison": "2022・2023説明文型: 実験や状況の結果を述べる接続関係。",
+    "prompt": "【オリジナル類題】The town added more bicycle lanes and made the roads around schools safer. It also placed signs asking drivers to slow down. (     ), more children began riding bicycles to school instead of being driven by their parents.",
+    "options": [
+      "As a result",
+      "For example",
+      "However",
+      "In other words"
+    ],
+    "answer": 0,
+    "explanation": "【正解】As a result\n【設問和訳】空所に入る最も適切な接続表現を選ぶ。\n【根拠英文】added more bicycle lanes / made the roads around schools safer / more children began riding bicycles to school\n【根拠英文和訳】自転車レーンを増やし学校周辺の道路を安全にした。その結果、より多くの子どもが自転車で通学し始めた。\n【なぜ正解か】道路整備という原因・条件の後に、子どもの行動変化という結果が続くので As a result。\n【他選択肢】For example は例、However は逆接、In other words は言い換えで合わない。\n【元弱点とのつながり】接続関係: 原因となる取り組みと結果をつなぐ。\n【戦略分類】A/B: 前後の因果を読む。"
+  },
+  {
+    "skill": "connector",
+    "type": "choice",
+    "targetId": "connector-logic",
+    "examFormat": "choice",
+    "id": "lco06",
+    "focusTag": "connector-addition",
+    "level": 2,
+    "sourceComparison": "説明文の列挙型: 1つ目の利点に加えて別の利点を述べる接続関係。",
+    "prompt": "【オリジナル類題】Planting trees near classrooms can make the air cooler in summer. Students may feel more comfortable during break time. (     ), trees can give birds and insects a place to live, so the schoolyard becomes a better environment for nature.",
+    "options": [
+      "In addition",
+      "However",
+      "For example",
+      "Therefore"
+    ],
+    "answer": 0,
+    "explanation": "【正解】In addition\n【設問和訳】空所に入る最も適切な接続表現を選ぶ。\n【根拠英文】make the air cooler / trees can give birds and insects a place to live\n【根拠英文和訳】空気を涼しくする。さらに、鳥や昆虫のすみかにもなる。\n【なぜ正解か】木を植える利点を追加しているので In addition が自然。\n【他選択肢】However は反対、For example は例、Therefore は結果で、ここでは『追加』が中心。\n【元弱点とのつながり】接続関係: 利点の追加を読む。\n【戦略分類】A: also のような追加関係を見抜く。"
+  },
+  {
+    "skill": "connector",
+    "type": "choice",
+    "targetId": "connector-logic",
+    "examFormat": "choice",
+    "id": "lco07",
+    "focusTag": "connector-concession",
+    "level": 3,
+    "sourceComparison": "物語・説明混合型: 一見不利な条件があっても結果が成立する譲歩関係。",
+    "prompt": "【オリジナル類題】(     ) the robot was small and moved slowly, it was useful during the rescue practice. It could enter narrow spaces under desks and send pictures to the students controlling it.",
+    "options": [
+      "Although",
+      "Because",
+      "Until",
+      "Unless"
+    ],
+    "answer": 0,
+    "explanation": "【正解】Although\n【設問和訳】空所に入る最も適切な接続表現を選ぶ。\n【根拠英文】the robot was small and moved slowly / it was useful during the rescue practice\n【根拠英文和訳】ロボットは小さくゆっくり動いたが、救助訓練では役に立った。\n【なぜ正解か】不利に見える特徴と良い結果をつなぐ譲歩なので Although が適切。\n【他選択肢】Because は理由、Until は時、Unless は条件で、逆方向の関係を示せない。\n【元弱点とのつながり】接続関係: 『〜だけれども』の譲歩を読む。\n【戦略分類】A/B: 前半がマイナス、後半がプラス。"
+  },
+  {
+    "skill": "connector",
+    "type": "choice",
+    "targetId": "connector-logic",
+    "examFormat": "choice",
+    "id": "lco08",
+    "focusTag": "connector-conclusion",
+    "level": 3,
+    "sourceComparison": "説明文結論型: 研究結果や複数情報から結論を導く接続関係。",
+    "prompt": "【オリジナル類題】In the experiment, students who slept seven or eight hours remembered more English words than students who slept only four hours. They also made fewer careless mistakes on the next morning's quiz. (     ), getting enough sleep seems important for learning.",
+    "options": [
+      "Therefore",
+      "For example",
+      "However",
+      "Instead"
+    ],
+    "answer": 0,
+    "explanation": "【正解】Therefore\n【設問和訳】空所に入る最も適切な接続表現を選ぶ。\n【根拠英文】remembered more English words / made fewer careless mistakes / getting enough sleep seems important for learning\n【根拠英文和訳】より多くの英単語を覚え、ケアレスミスも少なかった。したがって十分な睡眠は学習に重要だと思われる。\n【なぜ正解か】実験結果から結論を導いているので Therefore が合う。\n【他選択肢】For example は例、However は逆接、Instead は代替で合わない。\n【元弱点とのつながり】接続関係: 複数結果から結論へ進む流れを読む。\n【戦略分類】B: 実験結果→結論を整理する。"
+  },
+  {
+    "skill": "connector",
+    "type": "choice",
+    "targetId": "connector-logic",
+    "examFormat": "choice",
+    "id": "lco09",
+    "focusTag": "connector-alternative",
+    "level": 3,
+    "sourceComparison": "リスニング・読解の予定変更型にも通じる情報更新: 予定Aではなく別案Bに変わる接続関係。",
+    "prompt": "【オリジナル類題】The class first planned to visit the river to collect water samples. Heavy rain made the path too muddy, so the teacher canceled that plan. (     ), the students used water kept in the school laboratory and practiced testing it indoors.",
+    "options": [
+      "Instead",
+      "For example",
+      "However",
+      "In other words"
+    ],
+    "answer": 0,
+    "explanation": "【正解】Instead\n【設問和訳】空所に入る最も適切な接続表現を選ぶ。\n【根拠英文】canceled that plan / used water kept in the school laboratory and practiced testing it indoors\n【根拠英文和訳】その計画を中止し、代わりに学校の実験室の水を使って室内で検査練習をした。\n【なぜ正解か】当初の計画をやめ、別の方法を選んでいるので Instead が適切。\n【他選択肢】For example は例、However は逆接、In other words は言い換えで、『代わりに』を表さない。\n【元弱点とのつながり】接続関係: 予定変更・代替案を読む。\n【戦略分類】A/B: canceled that plan を手がかりにする。"
+  },
+  {
+    "skill": "connector",
+    "type": "choice",
+    "targetId": "connector-logic",
+    "examFormat": "choice",
+    "id": "lco10",
+    "focusTag": "connector-condition",
+    "level": 3,
+    "sourceComparison": "説明文の条件型: ある条件が満たされない場合の結果を示す接続関係。",
+    "prompt": "【オリジナル類題】The museum allows visitors to take photographs of old paintings, but the flash must be turned off. Strong light can damage the colors over time. (     ) visitors follow this rule, the museum may have to stop allowing photographs altogether.",
+    "options": [
+      "Unless",
+      "Although",
+      "Because",
+      "For example"
+    ],
+    "answer": 0,
+    "explanation": "【正解】Unless\n【設問和訳】空所に入る最も適切な接続表現を選ぶ。\n【根拠英文】the flash must be turned off / visitors follow this rule / the museum may have to stop allowing photographs\n【根拠英文和訳】フラッシュは消さなければならない。来館者がこの規則を守らなければ、写真撮影自体を禁止する必要が出るかもしれない。\n【なぜ正解か】『規則を守らないなら』という条件なので Unless が適切。\n【他選択肢】Although は譲歩、Because は理由、For example は例で、条件を示さない。\n【元弱点とのつながり】接続関係: 条件と結果をつなぐ表現を選ぶ。\n【戦略分類】B: rule と stop allowing の関係を読む。"
+  },
+  {
+    "skill": "connector",
+    "type": "choice",
+    "targetId": "connector-logic",
+    "examFormat": "choice",
+    "id": "lco11",
+    "focusTag": "connector-sequence-logic",
+    "level": 3,
+    "sourceComparison": "説明文の手順・因果型: 先行する準備の後に次の段階へ進む論理関係。",
+    "prompt": "【オリジナル類題】The volunteers did not begin planting flowers as soon as they arrived. First, they removed stones from the ground and mixed in fresh soil. (     ), they placed the young plants in straight lines and watered them carefully.",
+    "options": [
+      "After that",
+      "However",
+      "For example",
+      "Otherwise"
+    ],
+    "answer": 0,
+    "explanation": "【正解】After that\n【設問和訳】空所に入る最も適切な接続表現を選ぶ。\n【根拠英文】First, they removed stones... / they placed the young plants... and watered them carefully.\n【根拠英文和訳】まず石を取り除いて新しい土を混ぜた。その後、若い苗をまっすぐ並べて植え、水をやった。\n【なぜ正解か】First の後に次の手順が続くので After that が最も自然。\n【他選択肢】However は逆接、For example は例、Otherwise は『そうしなければ』で手順関係に合わない。\n【元弱点とのつながり】接続関係: 時系列と作業手順を読む。\n【戦略分類】A: First に対応する次の段階を選ぶ。"
+  }
+]
