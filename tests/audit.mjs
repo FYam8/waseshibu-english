@@ -6,7 +6,7 @@ import crypto from 'node:crypto'
 import {fileURLToPath} from 'node:url'
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..')
-const scripts=['data.js','paper-underlines.js','manual-guides.js','extra-drills.js','learning-model.js','app.js']
+const scripts=['data.js','paper-underlines.js','manual-guides.js','extra-drills.js','detail-drills-v2.js','learning-model.js','original-drills-loop3.js','original-drills-loop4.js','app.js']
 
 function storage(initial={}){
   const values=new Map(Object.entries(initial))
