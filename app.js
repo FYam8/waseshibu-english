@@ -513,16 +513,22 @@ function drill(){
  const w=S.weak[drillState.key], q=drillState.q;
  if(!w||!q)return `<section class=card><h2>ドリルを開始できませんでした</h2><p>${h(drillState.error||"ドリル対象がありません。")}</p><button onclick="finishSession()">間違い対策へ戻る</button></section>`;
  const target=drillState.mode==="confirm"?2:3, streak=drillState.mode==="confirm"?(w.confirmStreak||0):(w.streak||0);
- return `<section class="card drill-card"><div class="row space"><div><div class=eyebrow>${drillState.mode==="confirm"?"SPACED RETEST":"REPEATED SIMILAR PRACTICE"}</div><h2>${skillName(drillState.skill)} 克服ドリル</h2></div><span>${streak}/${target} 連続正解</span></div>
+ return `<section class="card drill-card"><div class="row space drill-head"><div><div class=drill-mode>${drillState.mode==="confirm"?"翌日の定着チェック":"類題反復"}</div><h2>${skillName(drillState.skill)} 克服ドリル</h2></div><span class=streak-label>${streak}/${target} 連続正解</span></div>
  <div class=progress><span style="width:${Math.min(100,streak/target*100)}%"></span></div>
- <p class=muted>元の誤答：${w.year} ${h(w.label)} ／ ${h(w.category)} ／ ${h(w.trap||w.focusTag||"")}</p>
- <hr><h3 class=drill-prompt>${h(q.prompt)}</h3>${drillInput(q)}
+ <p class=drill-origin>元の誤答：${w.year} ${h(w.label)} ／ ${h(w.category)} ／ ${h(w.trap||w.focusTag||"")}</p>
+ <hr><div class=drill-kind>オリジナル類題</div><h3 class=drill-prompt>${h(q.prompt)}</h3>${drillInput(q)}
  ${drillState.answered?drillFeedback(q):""}
  </section>`;
 }
+function drillChoiceMark(original,isCorrect){
+ if(!drillState.answered)return "";
+ if(isCorrect)return `<span class="choice-mark correct-mark" aria-label="正解">✓ 正解</span>`;
+ if(original===drillState.selected||drillState.selectedMany.includes(original))return `<span class="choice-mark wrong-mark" aria-label="あなたの回答、不正解">× あなたの回答</span>`;
+ return "";
+}
 function drillInput(q){
- if(q.type==="choice")return `<div class=choices>${drillState.choiceOrder.map((original,shown)=>`<button ${drillState.answered?"disabled":""} class="choice ${drillState.answered?(original===q.answer?"correct":original===drillState.selected?"wrong":""):""}" onclick="answerDrillChoice(${original})">${kana[shown]}　${h(q.options[original])}</button>`).join("")}</div>`;
- if(q.type==="multi_choice")return `<div class=selection-summary>${drillState.selectedMany.length?`選択中：${drillState.selectedMany.map(i=>h(q.options[i])).join(" ／ ")}`:`未選択（${q.answer.length}つ）`}</div><div class=choices>${drillState.choiceOrder.map((original,shown)=>`<button ${drillState.answered?"disabled":""} class="choice ${drillState.selectedMany.includes(original)?"selected":""} ${drillState.answered?(q.answer.includes(original)?"correct":drillState.selectedMany.includes(original)?"wrong":""):""}" onclick="toggleDrillMulti(${original})">${kana[shown]}　${h(q.options[original])}</button>`).join("")}</div><button class=primary onclick="answerDrillChoiceMulti()">この2つで答える</button>`;
+ if(q.type==="choice")return `<div class=choices>${drillState.choiceOrder.map((original,shown)=>`<button ${drillState.answered?"disabled":""} class="choice ${drillState.answered?(original===q.answer?"correct":original===drillState.selected?"wrong":""):""}" onclick="answerDrillChoice(${original})"><span>${kana[shown]}　${h(q.options[original])}</span>${drillChoiceMark(original,original===q.answer)}</button>`).join("")}</div>`;
+ if(q.type==="multi_choice")return `<div class=selection-summary>${drillState.selectedMany.length?`選択中：${drillState.selectedMany.map(i=>h(q.options[i])).join(" ／ ")}`:`未選択（${q.answer.length}つ）`}</div><div class=choices>${drillState.choiceOrder.map((original,shown)=>`<button ${drillState.answered?"disabled":""} class="choice ${drillState.selectedMany.includes(original)?"selected":""} ${drillState.answered?(q.answer.includes(original)?"correct":drillState.selectedMany.includes(original)?"wrong":""):""}" onclick="toggleDrillMulti(${original})"><span>${kana[shown]}　${h(q.options[original])}</span>${drillChoiceMark(original,q.answer.includes(original))}</button>`).join("")}</div><button class=primary onclick="answerDrillChoiceMulti()">この${q.answer.length}つで答える</button>`;
  if(q.type==="pair")return `<p><b>${h(q.lead)}</b>　${h(q.pairInstruction||"選択肢を並べたときの2番目・5番目を順にタップ")}</p><div class=selection-summary>${drillState.selectedMany.length?drillState.selectedMany.map(i=>`${kana[i]} ${h(q.tokens[i])}`).join(" → "):`未選択（2つ）`}</div><div class="answer-options multi">${q.tokens.map((t,i)=>`<button class="answer-kana ${drillState.selectedMany.includes(i)?"selected":""}" ${drillState.answered?"disabled":""} onclick="toggleDrillPair(${i})">${kana[i]}<small>${h(t)}</small></button>`).join("")}</div><button class=primary onclick="answerDrillPair()">この順で答える</button>`;
  if(q.type==="text")return `<input id=drillText placeholder="${q.initial?`${h(q.initial)} から始まる英語1語`:"本文から英語1語"}" value="${h(drillState.textDraft||"")}" oninput="rememberDrillText(this.value)"><button class=primary onclick="answerDrillText()">答える</button>`;
  if(q.type==="text_multi")return `<div class=grid>${q.answers.map((_,i)=>`<input id=mt${i} placeholder="(${i+1})" value="${h(drillState.textInputs?.[i]||"")}" oninput="rememberTextInput(${i},this.value)">`).join("")}</div><button class=primary onclick="answerDrillMulti()">答える</button>`;
@@ -564,20 +570,40 @@ function finishDrill(ok){
    if(ok)w.confirmStreak=(w.confirmStreak||0)+1;else{w.confirmStreak=0;w.status="active";w.streak=0;w.next=today();w.reservedConfirm=[];drillState.mode="train";drillState.used=[];drillState.failedConfirmation=true;ensureConfirmationReserve(drillState.key,w,poolForWeak(w))}
    if(w.confirmStreak>=2){w.status="mastered";w.masteredAt=new Date().toISOString();w.last="correct"}
  }
- S.drillLog.push({key:drillState.key,skill:drillState.skill,targetId:w.targetId,q:drillState.q.id,ok,at:new Date().toISOString()});persistDrill();render()
+ S.drillLog.push({key:drillState.key,skill:drillState.skill,targetId:w.targetId,q:drillState.q.id,ok,at:new Date().toISOString()});persistDrill();render();if(typeof requestAnimationFrame==="function")requestAnimationFrame(revealDrillFeedback)
+}
+function explanationParts(text){
+ const parts=[],source=String(text||"").trim(),re=/【([^】]+)】/g;let match,last=null;
+ while((match=re.exec(source))){if(last)parts.push({label:last.label,text:source.slice(last.start,match.index).trim()});last={label:match[1],start:re.lastIndex}}
+ if(last)parts.push({label:last.label,text:source.slice(last.start).trim()});
+ else if(source)parts.push({label:"解説",text:source});
+ return parts.filter(x=>x.text);
+}
+function formatDrillExplanation(text){
+ const parts=explanationParts(text),priority=["他選択肢との差","要点","発音","強勢位置","戦略","根拠"],key=priority.map(label=>parts.find(x=>x.label===label)).find(Boolean)||parts.find(x=>!["正解","設問和訳"].includes(x.label))||parts[0];
+ const details=parts.filter(x=>x!==key&&x.label!=="正解");
+ return `<div class=learning-point><b>覚えるポイント</b><p>${h(key?.text||"解説を確認しましょう。")}</p></div>${details.length?`<details class=drill-details><summary>詳しい解説を見る</summary>${details.map(x=>`<div class=explanation-row><b>${h(x.label)}</b><p>${h(x.text)}</p></div>`).join("")}</details>`:""}`;
+}
+function revealDrillFeedback(){
+ const feedback=document.getElementById("drillFeedback");if(!feedback)return;
+ const rect=feedback.getBoundingClientRect();if(rect.top>=0&&rect.top<window.innerHeight*.82)return;
+ const anchor=document.querySelector(".choice.correct,.answer-kana.correct")||feedback;
+ const reduce=window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+ anchor.scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"});
 }
 function drillFeedback(q){
  const w=S.weak[drillState.key];
  let msg=drillState.correct?"正解":drillState.failedConfirmation?"定着チェック不正解":"不正解";
- let nextLabel="似た問題をもう1問";
+ const activeStreak=drillState.mode==="confirm"?(w.confirmStreak||0):(w.streak||0),remaining=Math.max(0,(drillState.mode==="confirm"?2:3)-activeStreak);
+ let nextLabel=activeStreak?`次の類題へ（あと${remaining}連続正解）`:"次の類題へ（3連続正解で克服）";
  if(w.status==="pending"&&drillState.mode==="train")nextLabel="今日は終了（翌日確認へ）";
- if(w.status==="mastered")nextLabel="克服完了";
+ if(w.status==="mastered")nextLabel="克服ドリルを完了";
  const reachedLimit=dailyQuestionLimitReached();if(reachedLimit&&w.status!=="pending"&&w.status!=="mastered")nextLabel="今日の必須10問を完了";
- return `<div class="${drillState.correct?"okbox":"notice"}" style="margin-top:14px"><b>${msg}</b><p>${h(q.explanation||"")}</p>
+ return `<div id=drillFeedback class="drill-feedback ${drillState.correct?"okbox":"notice"}" role=status aria-live=polite><h3>${drillState.correct?"✓":"×"} ${msg}</h3>${formatDrillExplanation(q.explanation)}
  ${drillState.failedConfirmation?"<p>定着しきっていません。ここから3問連続正解の練習へ戻ります。</p>":""}
  ${w.status==="pending"&&drillState.mode==="train"?`<p>3問連続正解。<b>${w.next}</b> に2問の定着チェックを行います。</p>`:""}
  ${w.status==="mastered"?`<p>翌日の定着チェックも2問連続正解。克服済みにしました。</p>`:""}
- <button class=primary onclick="${reachedLimit||w.status==="mastered"|| (w.status==="pending"&&drillState.mode==="train")?"finishSession()":"continueDrill()"}">${nextLabel}</button></div>`;
+ <div class=drill-next><button class=primary onclick="${reachedLimit||w.status==="mastered"|| (w.status==="pending"&&drillState.mode==="train")?"finishSession()":"continueDrill()"}">${nextLabel}</button>${w.status==="mastered"?"<small>結果を保存して「今日やること」へ戻ります。</small>":""}</div></div>`;
 }
 function continueDrill(){drillState.selfcheck=false;drillState.shuffled=null;drillState.failedConfirmation=false;nextDrill();render()}
 function finishSession(){drillState=null;S.currentSkill=null;S.currentDrill=null;save();goto("home")}
