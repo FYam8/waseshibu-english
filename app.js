@@ -587,8 +587,9 @@ function remapExplanationChoiceLabels(text,q){
  const mapping=Object.fromEntries(kana.map((label,original)=>[label,kana[drillState.choiceOrder.indexOf(original)]]).filter(([,shown])=>shown));
  return String(text||"").replace(/(^|[】\s／/、。・（(:：はが])([アイウエオ])(?=\s|は|が|を|の|で|なら|、|。|・|:|：|／|\/|）|\)|$)/g,(_,before,label)=>`${before}${mapping[label]||label}`);
 }
+function hasExplanationChoiceLabels(text){return /(^|[】\s／/、。・（(:：はが])[アイウエオ](?=\s|は|が|を|の|で|なら|、|。|・|:|：|／|\/|）|\)|$)/.test(String(text||""))}
 function formatDrillExplanation(text,q){
- const parts=explanationParts(remapExplanationChoiceLabels(text,q)),priority=["要点","発音","強勢位置","根拠","戦略","他選択肢との差"],key=priority.map(label=>parts.find(x=>x.label===label)).find(Boolean)||parts.find(x=>!["正解","設問和訳"].includes(x.label))||parts[0];
+ const parts=explanationParts(remapExplanationChoiceLabels(text,q)),priority=["要点","発音","強勢位置","他選択肢との差","根拠","戦略"],candidates=priority.map(label=>parts.find(x=>x.label===label)).filter(Boolean),key=candidates.find(x=>!hasExplanationChoiceLabels(x.text))||candidates[0]||parts.find(x=>!["正解","設問和訳"].includes(x.label))||parts[0];
  const details=parts.filter(x=>x!==key&&x.label!=="正解");
  return `<div class=learning-point><b>覚えるポイント</b><p>${h(key?.text||"解説を確認しましょう。")}</p></div>${details.length?`<details class=drill-details><summary>詳しい解説を見る</summary>${details.map(x=>`<div class=explanation-row><b>${h(x.label)}</b><p>${h(x.text)}</p></div>`).join("")}</details>`:""}`;
 }
