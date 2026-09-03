@@ -505,6 +505,7 @@ function nextDrill(){
  drillState.error=null;
  drillState.q=q;drillState.used.push(q.id);w.lastDrillId=q.id;w.seenDrills=[...new Set([...(w.seenDrills||[]),q.id])];drillState.answered=false;drillState.selected=null;drillState.selectedMany=[];drillState.order=[];drillState.orderIndices=[];drillState.textInputs=[];drillState.selfText="";drillState.selfParts=[];drillState.selfChecks=[];drillState.selfcheck=false;drillState.choiceOrder=q.options?q.options.map((_,i)=>i).sort(()=>Math.random()-.5):[];persistDrill();
 }
+function displayedDrillPrompt(q){return String(q?.prompt||"").replace(/^\s*【オリジナル類題】\s*/,"")}
 function drill(){
  if(!drillState){
    const due=activeWeak();
@@ -516,7 +517,7 @@ function drill(){
  return `<section class="card drill-card"><div class="row space drill-head"><div><div class=drill-mode>${drillState.mode==="confirm"?"翌日の定着チェック":"類題反復"}</div><h2>${skillName(drillState.skill)} 克服ドリル</h2></div><span class=streak-label>${streak}/${target} 連続正解</span></div>
  <div class=progress><span style="width:${Math.min(100,streak/target*100)}%"></span></div>
  <p class=drill-origin>元の誤答：${w.year} ${h(w.label)} ／ ${h(w.category)} ／ ${h(w.trap||w.focusTag||"")}</p>
- <hr><div class=drill-kind>オリジナル類題</div><h3 class=drill-prompt>${h(q.prompt)}</h3>${drillInput(q)}
+ <hr><h3 class=drill-prompt>${h(displayedDrillPrompt(q))}</h3>${drillInput(q)}
  ${drillState.answered?drillFeedback(q):""}
  </section>`;
 }
@@ -579,8 +580,16 @@ function explanationParts(text){
  else if(source)parts.push({label:"解説",text:source});
  return parts.filter(x=>x.text);
 }
-function formatDrillExplanation(text){
- const parts=explanationParts(text),priority=["他選択肢との差","要点","発音","強勢位置","戦略","根拠"],key=priority.map(label=>parts.find(x=>x.label===label)).find(Boolean)||parts.find(x=>!["正解","設問和訳"].includes(x.label))||parts[0];
+function remapExplanationChoiceLabels(text,q){
+ if(!q?.options||!Array.isArray(drillState?.choiceOrder))return text;
+ const kana=["ア","イ","ウ","エ","オ"];
+ if(q.options.every((option,index)=>option===kana[index]))return text;
+ const mapping=Object.fromEntries(kana.map((label,original)=>[label,kana[drillState.choiceOrder.indexOf(original)]]).filter(([,shown])=>shown));
+ return String(text||"").replace(/(^|[】\s／/、。・（(:：はが])([アイウエオ])(?=\s|は|が|を|の|で|なら|、|。|・|:|：|／|\/|）|\)|$)/g,(_,before,label)=>`${before}${mapping[label]||label}`);
+}
+function hasExplanationChoiceLabels(text){return /(^|[】\s／/、。・（(:：はが])[アイウエオ](?=\s|は|が|を|の|で|なら|、|。|・|:|：|／|\/|）|\)|$)/.test(String(text||""))}
+function formatDrillExplanation(text,q){
+ const parts=explanationParts(remapExplanationChoiceLabels(text,q)),priority=["要点","発音","強勢位置","他選択肢との差","根拠","戦略"],candidates=priority.map(label=>parts.find(x=>x.label===label)).filter(Boolean),key=candidates.find(x=>!hasExplanationChoiceLabels(x.text))||candidates[0]||parts.find(x=>!["正解","設問和訳"].includes(x.label))||parts[0];
  const details=parts.filter(x=>x!==key&&x.label!=="正解");
  return `<div class=learning-point><b>覚えるポイント</b><p>${h(key?.text||"解説を確認しましょう。")}</p></div>${details.length?`<details class=drill-details><summary>詳しい解説を見る</summary>${details.map(x=>`<div class=explanation-row><b>${h(x.label)}</b><p>${h(x.text)}</p></div>`).join("")}</details>`:""}`;
 }
@@ -599,7 +608,7 @@ function drillFeedback(q){
  if(w.status==="pending"&&drillState.mode==="train")nextLabel="今日は終了（翌日確認へ）";
  if(w.status==="mastered")nextLabel="克服ドリルを完了";
  const reachedLimit=dailyQuestionLimitReached();if(reachedLimit&&w.status!=="pending"&&w.status!=="mastered")nextLabel="今日の必須10問を完了";
- return `<div id=drillFeedback class="drill-feedback ${drillState.correct?"okbox":"notice"}" role=status aria-live=polite><h3>${drillState.correct?"✓":"×"} ${msg}</h3>${formatDrillExplanation(q.explanation)}
+ return `<div id=drillFeedback class="drill-feedback ${drillState.correct?"okbox":"notice"}" role=status aria-live=polite><h3>${drillState.correct?"✓":"×"} ${msg}</h3>${formatDrillExplanation(q.explanation,q)}
  ${drillState.failedConfirmation?"<p>定着しきっていません。ここから3問連続正解の練習へ戻ります。</p>":""}
  ${w.status==="pending"&&drillState.mode==="train"?`<p>3問連続正解。<b>${w.next}</b> に2問の定着チェックを行います。</p>`:""}
  ${w.status==="mastered"?`<p>翌日の定着チェックも2問連続正解。克服済みにしました。</p>`:""}
