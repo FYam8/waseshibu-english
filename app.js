@@ -1,5 +1,9 @@
 
 const D=window.EXAM_DATA, P=window.PAPERS, BANK=window.DRILLS, FALLBACK=window.FALLBACK;
+// Hotfix v0.18.2-hf1: legacy/new drill records without familyId must still be usable.
+// The mastery flow needs at least five distinct "family" values for the immediate 3 + next-day 2 confirmation plan.
+// Some active pronunciation/stress/connector/writing_completion records were missing familyId, which collapsed them to one family.
+BANK.forEach((q,i)=>{ if(!q.familyId) q.familyId=String(q.id||`${q.skill||"skill"}:${q.targetId||"target"}:${i}`); });
 // STORAGE_KEY is permanent. Future releases migrate schemaVersion in place and must not rename this key.
 const STORAGE_KEY="waseshibu.adaptive.v3", LEGACY_KEYS=["waseshibu.adaptive.v2"], RECOVERY_PREFIX="waseshibu.adaptive.pre-migration", IMPORT_RECOVERY_PREFIX="waseshibu.adaptive.pre-import", SCHEMA_VERSION=8, DAILY_TASK_LIMIT=10;
 const ROUTE=[2024,2023,2022,2021,2020,2019,2025,2026];
@@ -451,7 +455,17 @@ function review(){
 function setCause(key,v){S.cause[key]=v;save()}
 function startTodayTasks(){const remaining=planRemaining();if(!remaining.length)return alert("今日の割当は完了しています。");if(S.currentSkill&&remaining.includes(S.currentSkill))return startSkill(S.currentSkill);const entries=remaining.map(key=>[key,S.weak[key]]).sort(sortWeakEntries),last=entries.findIndex(([key])=>key===S.lastStartedWeakKey),chosen=entries[(last+1)%entries.length];startSkill(chosen[0])}
 function startDue(){startTodayTasks()}
-function poolForWeak(w){return BANK.filter(x=>!x.retired&&x.targetId===w.targetId)}
+function familyCount(items){return new Set(items.map(x=>x.familyId)).size}
+function poolForWeak(w){
+ const active=BANK.filter(x=>!x.retired);
+ const exact=active.filter(x=>x.targetId===w.targetId);
+ // Some legitimate target subtypes have fewer than five drills.
+ // Use exact target pool when it can support immediate 3 + next-day 2;
+ // otherwise broaden to the same UI skill while leastRecentlyUsed still prioritizes focusTag/examFormat.
+ if(familyCount(exact)>=5)return exact;
+ const broad=active.filter(x=>x.skill===w.skill);
+ return broad.length?broad:exact;
+}
 function lastDrillUse(key,id){for(let i=S.drillLog.length-1;i>=0;i--){const x=S.drillLog[i];if(x.key===key&&x.q===id)return i}return -1}
 function leastRecentlyUsed(key,items,lastId,w,confirm=false){return [...items].sort((a,b)=>{const rank=q=>(q.focusTag===w.focusTag?-30:0)+(confirm&&q.level===3?-20:0)+(q.examFormat===w.examFormat?-6:0);return rank(a)-rank(b)||(a.id===lastId?1:b.id===lastId?-1:0)||lastDrillUse(key,a.id)-lastDrillUse(key,b.id)||a.id.localeCompare(b.id)})}
 function ensureConfirmationReserve(key,w,pool){
