@@ -53,7 +53,7 @@ function today(){return localDate()}
 function plusDays(n){let d=new Date();d.setDate(d.getDate()+n);return localDate(d)}
 function normalizeDrillState(value){
  if(!value||typeof value!=="object")return null;
- const q=value.q||null,choiceOrder=q?.options?q.options.map((_,i)=>i):[],order=Array.isArray(value.order)?value.order:[];
+ const q=value.q||null,expected=q?.options?q.options.map((_,i)=>i):[],candidate=Array.isArray(value.choiceOrder)?value.choiceOrder:[],choiceOrder=candidate.length===expected.length&&new Set(candidate).size===expected.length&&candidate.every(i=>expected.includes(i))?candidate:expected,order=Array.isArray(value.order)?value.order:[];
  let orderIndices=Array.isArray(value.orderIndices)?value.orderIndices.filter(i=>Number.isInteger(i)):[];
  if(!orderIndices.length&&order.length&&Array.isArray(value.shuffled)){const used=new Set();orderIndices=order.map(token=>{const index=value.shuffled.findIndex((x,i)=>x===token&&!used.has(i));if(index>=0)used.add(index);return index}).filter(i=>i>=0)}
  return {...value,used:Array.isArray(value.used)?value.used:[],selectedMany:Array.isArray(value.selectedMany)?value.selectedMany:[],order,orderIndices,textInputs:Array.isArray(value.textInputs)?value.textInputs:[],selfParts:Array.isArray(value.selfParts)?value.selfParts:[],selfChecks:Array.isArray(value.selfChecks)?value.selfChecks:[],choiceOrder,textDraft:value.textDraft||"",selfText:value.selfText||""};
@@ -503,7 +503,7 @@ function nextDrill(){
  const q=candidates[0];
  if(!q){drillState.q=null;drillState.error="出題できる類題を確保できませんでした。間違い対策へ戻って、もう一度開始してください。";persistDrill();return}
  drillState.error=null;
- drillState.q=q;drillState.used.push(q.id);w.lastDrillId=q.id;w.seenDrills=[...new Set([...(w.seenDrills||[]),q.id])];drillState.answered=false;drillState.selected=null;drillState.selectedMany=[];drillState.order=[];drillState.orderIndices=[];drillState.textInputs=[];drillState.selfText="";drillState.selfParts=[];drillState.selfChecks=[];drillState.selfcheck=false;drillState.choiceOrder=q.options?q.options.map((_,i)=>i):[];persistDrill();
+ drillState.q=q;drillState.used.push(q.id);w.lastDrillId=q.id;w.seenDrills=[...new Set([...(w.seenDrills||[]),q.id])];drillState.answered=false;drillState.selected=null;drillState.selectedMany=[];drillState.order=[];drillState.orderIndices=[];drillState.textInputs=[];drillState.selfText="";drillState.selfParts=[];drillState.selfChecks=[];drillState.selfcheck=false;drillState.choiceOrder=q.options?q.options.map((_,i)=>i).sort(()=>Math.random()-.5):[];persistDrill();
 }
 function displayedDrillPrompt(q){return String(q?.prompt||"").replace(/^\s*【オリジナル類題】\s*/,"")}
 function drill(){
@@ -580,8 +580,13 @@ function explanationParts(text){
  else if(source)parts.push({label:"解説",text:source});
  return parts.filter(x=>x.text);
 }
-function formatDrillExplanation(text){
- const parts=explanationParts(text),priority=["他選択肢との差","要点","発音","強勢位置","戦略","根拠"],key=priority.map(label=>parts.find(x=>x.label===label)).find(Boolean)||parts.find(x=>!["正解","設問和訳"].includes(x.label))||parts[0];
+function remapExplanationChoiceLabels(text,q){
+ if(!q?.options||!Array.isArray(drillState?.choiceOrder))return text;
+ const kana=["ア","イ","ウ","エ","オ"],mapping=Object.fromEntries(kana.map((label,original)=>[label,kana[drillState.choiceOrder.indexOf(original)]]).filter(([,shown])=>shown));
+ return String(text||"").replace(/(^|[】\s／/、。（(:：])([アイウエオ])(?=\s|は|が|を|の|で|なら|、|。|／|\/|）|\)|$)/g,(_,before,label)=>`${before}${mapping[label]||label}`);
+}
+function formatDrillExplanation(text,q){
+ const parts=explanationParts(remapExplanationChoiceLabels(text,q)),priority=["要点","発音","強勢位置","根拠","戦略","他選択肢との差"],key=priority.map(label=>parts.find(x=>x.label===label)).find(Boolean)||parts.find(x=>!["正解","設問和訳"].includes(x.label))||parts[0];
  const details=parts.filter(x=>x!==key&&x.label!=="正解");
  return `<div class=learning-point><b>覚えるポイント</b><p>${h(key?.text||"解説を確認しましょう。")}</p></div>${details.length?`<details class=drill-details><summary>詳しい解説を見る</summary>${details.map(x=>`<div class=explanation-row><b>${h(x.label)}</b><p>${h(x.text)}</p></div>`).join("")}</details>`:""}`;
 }
@@ -600,7 +605,7 @@ function drillFeedback(q){
  if(w.status==="pending"&&drillState.mode==="train")nextLabel="今日は終了（翌日確認へ）";
  if(w.status==="mastered")nextLabel="克服ドリルを完了";
  const reachedLimit=dailyQuestionLimitReached();if(reachedLimit&&w.status!=="pending"&&w.status!=="mastered")nextLabel="今日の必須10問を完了";
- return `<div id=drillFeedback class="drill-feedback ${drillState.correct?"okbox":"notice"}" role=status aria-live=polite><h3>${drillState.correct?"✓":"×"} ${msg}</h3>${formatDrillExplanation(q.explanation)}
+ return `<div id=drillFeedback class="drill-feedback ${drillState.correct?"okbox":"notice"}" role=status aria-live=polite><h3>${drillState.correct?"✓":"×"} ${msg}</h3>${formatDrillExplanation(q.explanation,q)}
  ${drillState.failedConfirmation?"<p>定着しきっていません。ここから3問連続正解の練習へ戻ります。</p>":""}
  ${w.status==="pending"&&drillState.mode==="train"?`<p>3問連続正解。<b>${w.next}</b> に2問の定着チェックを行います。</p>`:""}
  ${w.status==="mastered"?`<p>翌日の定着チェックも2問連続正解。克服済みにしました。</p>`:""}
