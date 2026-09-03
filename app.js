@@ -53,7 +53,7 @@ function today(){return localDate()}
 function plusDays(n){let d=new Date();d.setDate(d.getDate()+n);return localDate(d)}
 function normalizeDrillState(value){
  if(!value||typeof value!=="object")return null;
- const q=value.q||null,expected=q?.options?q.options.map((_,i)=>i):[],candidate=Array.isArray(value.choiceOrder)?value.choiceOrder:[],choiceOrder=candidate.length===expected.length&&new Set(candidate).size===expected.length&&candidate.every(i=>expected.includes(i))?candidate:expected,order=Array.isArray(value.order)?value.order:[];
+ const q=value.q||null,choiceOrder=q?.options?q.options.map((_,i)=>i):[],order=Array.isArray(value.order)?value.order:[];
  let orderIndices=Array.isArray(value.orderIndices)?value.orderIndices.filter(i=>Number.isInteger(i)):[];
  if(!orderIndices.length&&order.length&&Array.isArray(value.shuffled)){const used=new Set();orderIndices=order.map(token=>{const index=value.shuffled.findIndex((x,i)=>x===token&&!used.has(i));if(index>=0)used.add(index);return index}).filter(i=>i>=0)}
  return {...value,used:Array.isArray(value.used)?value.used:[],selectedMany:Array.isArray(value.selectedMany)?value.selectedMany:[],order,orderIndices,textInputs:Array.isArray(value.textInputs)?value.textInputs:[],selfParts:Array.isArray(value.selfParts)?value.selfParts:[],selfChecks:Array.isArray(value.selfChecks)?value.selfChecks:[],choiceOrder,textDraft:value.textDraft||"",selfText:value.selfText||""};
@@ -503,8 +503,9 @@ function nextDrill(){
  const q=candidates[0];
  if(!q){drillState.q=null;drillState.error="出題できる類題を確保できませんでした。間違い対策へ戻って、もう一度開始してください。";persistDrill();return}
  drillState.error=null;
- drillState.q=q;drillState.used.push(q.id);w.lastDrillId=q.id;w.seenDrills=[...new Set([...(w.seenDrills||[]),q.id])];drillState.answered=false;drillState.selected=null;drillState.selectedMany=[];drillState.order=[];drillState.orderIndices=[];drillState.textInputs=[];drillState.selfText="";drillState.selfParts=[];drillState.selfChecks=[];drillState.selfcheck=false;drillState.choiceOrder=q.options?q.options.map((_,i)=>i).sort(()=>Math.random()-.5):[];persistDrill();
+ drillState.q=q;drillState.used.push(q.id);w.lastDrillId=q.id;w.seenDrills=[...new Set([...(w.seenDrills||[]),q.id])];drillState.answered=false;drillState.selected=null;drillState.selectedMany=[];drillState.order=[];drillState.orderIndices=[];drillState.textInputs=[];drillState.selfText="";drillState.selfParts=[];drillState.selfChecks=[];drillState.selfcheck=false;drillState.choiceOrder=q.options?q.options.map((_,i)=>i):[];persistDrill();
 }
+function displayedDrillPrompt(q){return String(q?.prompt||"").replace(/^\s*【オリジナル類題】\s*/,"")}
 function drill(){
  if(!drillState){
    const due=activeWeak();
@@ -516,7 +517,7 @@ function drill(){
  return `<section class="card drill-card"><div class="row space drill-head"><div><div class=drill-mode>${drillState.mode==="confirm"?"翌日の定着チェック":"類題反復"}</div><h2>${skillName(drillState.skill)} 克服ドリル</h2></div><span class=streak-label>${streak}/${target} 連続正解</span></div>
  <div class=progress><span style="width:${Math.min(100,streak/target*100)}%"></span></div>
  <p class=drill-origin>元の誤答：${w.year} ${h(w.label)} ／ ${h(w.category)} ／ ${h(w.trap||w.focusTag||"")}</p>
- <hr><div class=drill-kind>オリジナル類題</div><h3 class=drill-prompt>${h(q.prompt)}</h3>${drillInput(q)}
+ <hr><h3 class=drill-prompt>${h(displayedDrillPrompt(q))}</h3>${drillInput(q)}
  ${drillState.answered?drillFeedback(q):""}
  </section>`;
 }
