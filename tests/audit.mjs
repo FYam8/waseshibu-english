@@ -43,6 +43,8 @@ app.run('startSkill("2024:3-1:test-0")')
 assert.equal(app.run('drillState.key'),'2024:3-1:test-0')
 assert.equal(app.run('drillState.q.targetId'),'pronunciation-contrast')
 assert.equal(app.run('drillState.q.retired===true'),false)
+assert.equal(app.run('JSON.stringify(drillState.choiceOrder)'),app.run('JSON.stringify(drillState.q.options.map((_,i)=>i))'))
+assert.equal(app.run('displayedDrillPrompt(BANK.find(q=>q.id==="rdt_cx01"))').startsWith('Mika:'),true)
 assert.equal(app.run('S.weak[drillState.key].reservedConfirm.length'),2)
 assert.equal(app.run('(()=>{const ids=S.weak[drillState.key].reservedConfirm,rows=ids.map(id=>BANK.find(q=>q.id===id));return new Set(rows.map(q=>q.familyId)).size})()'),2)
 app.run('answerDrillChoice(drillState.q.answer)')
@@ -123,10 +125,13 @@ skillApp.run('startFirstSkill("pronunciation")')
 assert.equal(skillApp.run('drillState.key'),'ready')
 
 // Current drill uses the current bank record, while a removed question is cleared safely.
-const currentQuestion=app.run('BANK.find(q=>!q.retired).id')
+const currentQuestion=app.run('BANK.find(q=>q.id==="rdt_cx01"&&!q.retired).id')
 const currentWeak={...weak['2024:3-1:test-0'],targetId:app.run(`BANK.find(q=>q.id==="${currentQuestion}").targetId`)}
 const refreshApp=runtime(storage({'waseshibu.adaptive.v3':JSON.stringify({...initial,schemaVersion:8,weak:{wk:currentWeak},currentSkill:'wk',currentDrill:{key:'wk',q:{id:currentQuestion,prompt:'stale'},used:[],answered:false}})}))
 assert.notEqual(refreshApp.run('drillState.q.prompt'),'stale')
+refreshApp.run('drillState.choiceOrder=[3,2,1,0];S.currentDrill=drillState;save()')
+const normalizedOrderApp=runtime(refreshApp.context.localStorage)
+assert.equal(normalizedOrderApp.run('JSON.stringify(drillState.choiceOrder)'),normalizedOrderApp.run('JSON.stringify(drillState.q.options.map((_,i)=>i))'))
 const removedApp=runtime(storage({'waseshibu.adaptive.v3':JSON.stringify({...initial,schemaVersion:8,weak:{wk:currentWeak},currentSkill:'wk',currentDrill:{key:'wk',q:{id:'removed-question'},used:[],answered:false}})}))
 assert.equal(removedApp.run('drillState'),null)
 
