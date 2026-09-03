@@ -582,8 +582,10 @@ function explanationParts(text){
 }
 function remapExplanationChoiceLabels(text,q){
  if(!q?.options||!Array.isArray(drillState?.choiceOrder))return text;
- const kana=["ア","イ","ウ","エ","オ"],mapping=Object.fromEntries(kana.map((label,original)=>[label,kana[drillState.choiceOrder.indexOf(original)]]).filter(([,shown])=>shown));
- return String(text||"").replace(/(^|[】\s／/、。（(:：])([アイウエオ])(?=\s|は|が|を|の|で|なら|、|。|／|\/|）|\)|$)/g,(_,before,label)=>`${before}${mapping[label]||label}`);
+ const kana=["ア","イ","ウ","エ","オ"];
+ if(q.options.every((option,index)=>option===kana[index]))return text;
+ const mapping=Object.fromEntries(kana.map((label,original)=>[label,kana[drillState.choiceOrder.indexOf(original)]]).filter(([,shown])=>shown));
+ return String(text||"").replace(/(^|[】\s／/、。・（(:：はが])([アイウエオ])(?=\s|は|が|を|の|で|なら|、|。|・|:|：|／|\/|）|\)|$)/g,(_,before,label)=>`${before}${mapping[label]||label}`);
 }
 function formatDrillExplanation(text,q){
  const parts=explanationParts(remapExplanationChoiceLabels(text,q)),priority=["要点","発音","強勢位置","根拠","戦略","他選択肢との差"],key=priority.map(label=>parts.find(x=>x.label===label)).find(Boolean)||parts.find(x=>!["正解","設問和訳"].includes(x.label))||parts[0];
