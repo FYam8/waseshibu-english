@@ -133,6 +133,8 @@ refreshApp.run('drillState.choiceOrder=[3,2,1,0];S.currentDrill=drillState;save(
 const normalizedOrderApp=runtime(refreshApp.context.localStorage)
 assert.equal(normalizedOrderApp.run('JSON.stringify(drillState.choiceOrder)'),'[3,2,1,0]')
 assert.equal(normalizedOrderApp.run('remapExplanationChoiceLabels("ア this／イ think／ウ those／エ there",{options:["this","think","those","there"]})'),'エ this／ウ think／イ those／ア there')
+assert.equal(normalizedOrderApp.run('remapExplanationChoiceLabels("正解はア・ウ。イ：不一致。エではない。",{options:["one","two","three","four"]})'),'正解はエ・イ。ウ：不一致。アではない。')
+assert.equal(normalizedOrderApp.run('remapExplanationChoiceLabels("【正解】イ。【他位置】アでは早い。ウ・エでは遅い。",{options:["ア","イ","ウ","エ"]})'),'【正解】イ。【他位置】アでは早い。ウ・エでは遅い。')
 const removedApp=runtime(storage({'waseshibu.adaptive.v3':JSON.stringify({...initial,schemaVersion:8,weak:{wk:currentWeak},currentSkill:'wk',currentDrill:{key:'wk',q:{id:'removed-question'},used:[],answered:false}})}))
 assert.equal(removedApp.run('drillState'),null)
 
