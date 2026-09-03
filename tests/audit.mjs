@@ -135,6 +135,8 @@ assert.equal(normalizedOrderApp.run('JSON.stringify(drillState.choiceOrder)'),'[
 assert.equal(normalizedOrderApp.run('remapExplanationChoiceLabels("ア this／イ think／ウ those／エ there",{options:["this","think","those","there"]})'),'エ this／ウ think／イ those／ア there')
 assert.equal(normalizedOrderApp.run('remapExplanationChoiceLabels("正解はア・ウ。イ：不一致。エではない。",{options:["one","two","three","four"]})'),'正解はエ・イ。ウ：不一致。アではない。')
 assert.equal(normalizedOrderApp.run('remapExplanationChoiceLabels("【正解】イ。【他位置】アでは早い。ウ・エでは遅い。",{options:["ア","イ","ウ","エ"]})'),'【正解】イ。【他位置】アでは早い。ウ・エでは遅い。')
+assert.match(normalizedOrderApp.run('formatDrillExplanation("【正解】ウ dangerous【強勢位置】ア delicious／イ important／ウ dangerous／エ expensive【他選択肢との差】dangerous は第1音節、important / expensive / delicious は第2音節。",{options:["delicious","important","dangerous","expensive"]})'),/覚えるポイント<\/b><p>dangerous は第1音節/)
+assert.match(normalizedOrderApp.run('formatDrillExplanation("【正解】イ think【発音】think の th は \/θ\/、this / those / there は \/ð\/。【他選択肢との差】ア this／イ think／ウ those／エ there",{options:["this","think","those","there"]})'),/覚えるポイント<\/b><p>think の th は/)
 const removedApp=runtime(storage({'waseshibu.adaptive.v3':JSON.stringify({...initial,schemaVersion:8,weak:{wk:currentWeak},currentSkill:'wk',currentDrill:{key:'wk',q:{id:'removed-question'},used:[],answered:false}})}))
 assert.equal(removedApp.run('drillState'),null)
 
