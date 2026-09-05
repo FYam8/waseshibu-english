@@ -132,9 +132,22 @@ const transitionApp=runtime(storage({'waseshibu.adaptive.v3':JSON.stringify({...
 transitionApp.run('startSkill("first");finishDrill(true)')
 assert.equal(transitionApp.run('S.weak.first.status'),'pending')
 assert.match(transitionApp.run('drillFeedback(drillState.q)'),/次の弱点へ/)
+transitionApp.run('goto("home")')
+assert.equal(transitionApp.run('todayAction().label'),'次の弱点へ')
 transitionApp.run('continueToNextLearning()')
 assert.equal(transitionApp.run('drillState.key'),'second')
 assert.equal(transitionApp.run('S.weak.first.streak'),3)
+
+// Reloading after 3/3 must not revive a completed answer as unfinished; when due, the same weakness starts a fresh 2/2 confirmation.
+const dueStore=storage({'waseshibu.adaptive.v3':JSON.stringify({...initial,schemaVersion:8,weak:{first:{...weak["2024:3-1:test-0"],streak:2},second:{...weak["2024:3-1:test-1"]}}})})
+const dueBeforeReload=runtime(dueStore)
+dueBeforeReload.run('startSkill("first");finishDrill(true);S.weak.first.next=today();save()')
+const dueAfterReload=runtime(dueStore)
+assert.equal(dueAfterReload.run('todayAction().label'),'今日の定着チェックへ')
+dueAfterReload.run('runLearningAction(availableLearningActions()[0])')
+assert.equal(dueAfterReload.run('drillState.key'),'first')
+assert.equal(dueAfterReload.run('drillState.mode'),'confirm')
+assert.equal(dueAfterReload.run('drillState.answered'),false)
 
 // Future confirmations are previewed but remain locked; due work outranks an unfinished past paper while both stay visible.
 const scheduleApp=runtime(storage({'waseshibu.adaptive.v3':JSON.stringify({...initial,schemaVersion:8,weak:{future:{...weak["2024:3-1:test-0"],status:"pending",next:"2999-01-01"}}})}))
