@@ -33,7 +33,9 @@ assert.equal(app.run('S.goal'),60)
 assert.equal(app.run('S.weak["2024:3-1:test-0"].customField'),'keep-0')
 assert.equal(app.run('S.weak["2024:3-1:test-0"].targetId'),'pronunciation-contrast')
 assert.equal(app.run('ensureDailyPlan().weakKeys.length'),12)
-assert.equal(app.run('dailyQuestionsRemaining()'),10)
+assert.equal(app.run('DAILY_TASK_TARGET'),10)
+assert.equal(app.run('dailyTargetRemaining()'),10)
+assert.equal(app.run('dailyTargetReached()'),false)
 assert.equal(app.run('ensureDailyPlan().weakKeys.every(k=>S.weak[k].priority==="A")'),true)
 assert.ok(store.getItem('waseshibu.adaptive.pre-migration.v5'))
 assert.match(app.app.innerHTML,/A 60点/)
@@ -51,7 +53,7 @@ app.run('answerDrillChoice(drillState.q.answer)')
 const savedOrder=app.run('JSON.stringify(drillState.choiceOrder)')
 app.run('goto("home")')
 assert.equal(app.run('todayAction().action'),'resumeCurrentDrill()')
-assert.match(app.app.innerHTML,/克服ドリルの続きから/)
+assert.match(app.app.innerHTML,/途中の1問を再開/)
 
 // Reloading the updated app must resume the same answered drill, not select a new first problem.
 const savedQuestion=app.run('drillState.q.id')
@@ -96,28 +98,78 @@ assert.equal(app.run('BANK.filter(q=>!q.retired&&q.type==="selfcheck"&&q.maxWord
 assert.equal(app.run('Object.values(PAPER_UNDERLINES).flat().length'),114)
 assert.equal(app.run(`Object.entries(PAPER_UNDERLINES).every(([key,entries])=>{const [y,p]=key.split(":");const page=P[y]?.find(x=>String(x.page)===p);return page&&entries.every(e=>e.text.includes(e.part||e.text)&&page.text.includes(e.text)&&paperLineHtml(page.text.split("\\n").find(line=>line.includes(e.text)),Number(y),Number(p)).includes("paper-underline"))})`),true)
 
-// Finishing the frozen daily ten must reveal, but not silently require, the next optional task.
+// Completing the currently actionable weaknesses must reveal the next route without calling it tomorrow's work.
 const optionalApp=runtime(storage({'waseshibu.adaptive.v3':JSON.stringify(initial)}))
 optionalApp.run('for(const key of ensureDailyPlan().weakKeys)S.weak[key].status="mastered";save();goto("home")')
-assert.match(optionalApp.app.innerHTML,/時間があれば次の過去問へ/)
+assert.match(optionalApp.app.innerHTML,/2024年度の過去問を見る/)
+assert.doesNotMatch(optionalApp.app.innerHTML,/明日以降に進めます/)
 assert.equal(optionalApp.run('planRemaining().length'),0)
 
-// A past-paper draft always overrides remediation in the home call to action.
+// A past-paper draft remains directly available.
 optionalApp.run('S.currentAttempt={id:"draft-1",year:2024,status:"active",mode:"untimed",exposure:"first",startedAt:new Date().toISOString()};save();goto("home")')
-assert.match(optionalApp.app.innerHTML,/2024年度の続きを解く/)
+assert.match(optionalApp.app.innerHTML,/2024年度の続きへ/)
 
-// The daily maximum counts questions actually answered and survives A/B/C changes.
+// Ten is a standard target, not a hard stop; the 11th answer is counted and goal changes preserve it.
 const countApp=runtime(storage({'waseshibu.adaptive.v3':JSON.stringify({...initial,schemaVersion:8})}))
 countApp.run('startSkill("2024:3-1:test-0")')
 for(let i=0;i<10;i++)countApp.run(`finishDrill(false);${i<9?'continueDrill();':''}`)
 assert.equal(countApp.run('dailyAnswered()'),10)
-assert.equal(countApp.run('dailyQuestionsRemaining()'),0)
+assert.equal(countApp.run('dailyTargetRemaining()'),0)
+assert.equal(countApp.run('dailyTargetReached()'),true)
+assert.match(countApp.run('drillFeedback(drillState.q)'),/この弱点を続ける/)
+assert.match(countApp.run('drillFeedback(drillState.q)'),/今日はここまで/)
+countApp.run('continueDrill();finishDrill(false)')
+assert.equal(countApp.run('dailyAnswered()'),11)
 assert.equal(countApp.run('new Set(S.drillLog.slice(-5).map(x=>x.q)).size'),5)
 countApp.run('drillState=null;S.currentDrill=null;S.currentSkill=null;setGoal(70)')
-assert.equal(countApp.run('dailyAnswered()'),10)
-assert.equal(countApp.run('dailyQuestionsRemaining()'),0)
+assert.equal(countApp.run('dailyAnswered()'),11)
+assert.equal(countApp.run('dailyTargetRemaining()'),0)
 countApp.run('S.dailyProgress={date:"2000-01-01",answeredCount:10};S.dailyPlan=null')
-assert.equal(countApp.run('dailyQuestionsRemaining()'),10)
+assert.equal(countApp.run('dailyTargetRemaining()'),10)
+
+// Direct continuation safely closes a completed weakness, recomputes, and starts another one.
+const transitionApp=runtime(storage({'waseshibu.adaptive.v3':JSON.stringify({...initial,schemaVersion:8,weak:{first:{...weak["2024:3-1:test-0"],streak:2},second:{...weak["2024:3-1:test-1"]}}})}))
+transitionApp.run('startSkill("first");finishDrill(true)')
+assert.equal(transitionApp.run('S.weak.first.status'),'pending')
+assert.match(transitionApp.run('drillFeedback(drillState.q)'),/次の弱点へ/)
+transitionApp.run('continueToNextLearning()')
+assert.equal(transitionApp.run('drillState.key'),'second')
+assert.equal(transitionApp.run('S.weak.first.streak'),3)
+
+// Future confirmations are previewed but remain locked; due work outranks an unfinished past paper while both stay visible.
+const scheduleApp=runtime(storage({'waseshibu.adaptive.v3':JSON.stringify({...initial,schemaVersion:8,weak:{future:{...weak["2024:3-1:test-0"],status:"pending",next:"2999-01-01"}}})}))
+scheduleApp.run('goto("home")')
+assert.match(scheduleApp.app.innerHTML,/今後の定着確認予定（現時点）/)
+assert.match(scheduleApp.app.innerHTML,/2999-01-01/)
+assert.equal(scheduleApp.run('availableLearningActions().some(x=>x.key==="future")'),false)
+scheduleApp.run('S.weak.future.next=today();S.currentAttempt={id:"draft-due",year:2024,status:"active",mode:"untimed",exposure:"first",startedAt:new Date().toISOString()};S.dailyPlan=null;save();goto("home")')
+assert.equal(scheduleApp.run('todayAction().label'),'今日の定着チェックへ')
+assert.match(scheduleApp.app.innerHTML,/今日の定着チェックへ/)
+assert.match(scheduleApp.app.innerHTML,/2024年度の続きへ/)
+
+// A drill answer is counted even when a valid non-weak daily plan was already stored.
+const routePlanApp=runtime(storage({'waseshibu.adaptive.v3':JSON.stringify({...initial,schemaVersion:8})}))
+routePlanApp.run('S.dailyPlan={date:today(),goal:S.goal,kind:"route",weakKeys:[],routeYear:2024,answeredCount:0};startSkill("2024:3-1:test-0");finishDrill(false)')
+assert.equal(routePlanApp.run('S.dailyProgress.answeredCount'),1)
+
+// Midnight never rerenders an unanswered drill; completing it reconciles the date and keeps the new day's count.
+const midnightApp=runtime(storage({'waseshibu.adaptive.v3':JSON.stringify({...initial,schemaVersion:8})}))
+midnightApp.run('startSkill("2024:3-1:test-0");renderedDate="2000-01-01";S.dailyPlan.date="2000-01-01";S.dailyProgress={date:"2000-01-01",answeredCount:7};checkDayChange()')
+assert.equal(midnightApp.run('dayChangePending'),true)
+assert.equal(midnightApp.run('S.dailyProgress.answeredCount'),7)
+assert.equal(midnightApp.run('drillState.answered'),false)
+midnightApp.run('finishDrill(false)')
+assert.equal(midnightApp.run('S.dailyProgress.date'),midnightApp.run('today()'))
+assert.equal(midnightApp.run('S.dailyProgress.answeredCount'),1)
+assert.equal(midnightApp.run('dayChangeNotice'),true)
+assert.equal(midnightApp.run('dayChangeAnswerMoved'),true)
+assert.match(midnightApp.app.innerHTML,/日付が変わりました/)
+assert.match(midnightApp.app.innerHTML,/この回答は新しい日の学習として保存しました/)
+
+const afterAnswerMidnightApp=runtime(storage({'waseshibu.adaptive.v3':JSON.stringify({...initial,schemaVersion:8})}))
+afterAnswerMidnightApp.run('startSkill("2024:3-1:test-0");finishDrill(false);renderedDate="2000-01-01";S.dailyPlan.date="2000-01-01";S.dailyProgress={date:"2000-01-01",answeredCount:1};checkDayChange()')
+assert.equal(afterAnswerMidnightApp.run('dayChangeAnswerMoved'),false)
+assert.match(afterAnswerMidnightApp.app.innerHTML,/前日の回答は保存済みです/)
 
 // Same-skill links skip a future retention item and open an eligible item.
 const skillApp=runtime(storage({'waseshibu.adaptive.v3':JSON.stringify({...initial,schemaVersion:8,weak:{future:{...weak["2024:3-1:test-0"],status:"pending",next:"2999-01-01"},ready:{...weak["2024:3-1:test-1"],next:"2000-01-01"}}})}))
@@ -199,4 +251,4 @@ assert.match(app.run('paperLineHtml("②“[      ]” asked Miss Mebbin.",2022,
 assert.doesNotMatch(app.run('paperLineHtml("ordinary text",2024,4)'),/paper-underline/)
 assert.equal(app.run(`(()=>{for(const [y,pages] of Object.entries(P)){for(const p of pages){for(const line of p.text.split("\\n")){if(/[①②③④⑤⑥⑦⑧⑨⑩➀➁➂➃➄➅]/.test(line)&&!/下線部/.test(line)&&!paperLineHtml(line,Number(y),p.page).includes("paper-underline"))return false}}}return true})()`),true)
 
-console.log('audit ok: schema8 migration/recovery, A/B/C goals, actual daily 10, 151 official answers, 283 drills, resume/merge, timeout/input, mobile/noindex')
+console.log('audit ok: schema8 migration/recovery, A/B/C goals, daily target 10 with unlimited continuation, future confirmations, 151 official answers, 283 drills, resume/merge, timeout/input, mobile/noindex')
