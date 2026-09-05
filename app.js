@@ -65,7 +65,7 @@ function strategyPriority(q){if(q.priority==="A")return "A";if(q.skill==="insert
 function gradeInGoal(grade,goal=S.goal){return grade==="A"||(grade==="B"&&goal>=70)||(grade==="C"&&goal>=75)}
 function goalLabel(goal=S.goal){return goal===60?"A 60点":goal===70?"B 70点":"C 75点"}
 function goalAdvice(goal=S.goal){return goal===60?"A問題を最優先にして60点を守ります。":goal===70?"Aを固め、B問題まで直して70点を狙います。":"A・Bを確実にした後、取れるC問題を選んで75点を狙います。"}
-function setGoal(goal){goal=Number(goal);if(![60,70,75].includes(goal))return;S.goal=goal;S.dailyPlan=null;save();render()}
+function setGoal(goal){goal=Number(goal);if(![60,70,75].includes(goal))return;if(completedDrillCycle())endDrillSession();S.goal=goal;S.dailyPlan=null;save();render()}
 function routeRole(y){return y===2024?"初見診断":y===2025?"実戦確認":y===2026?"最終判定":"弱点補強"}
 function routeRecommendations(y){
  if(y>=2025)return [];
@@ -140,10 +140,11 @@ function availableLearningActions(){
  const outside=activeWeak().filter(eligibleToday).filter(([_,w])=>!gradeInGoal(w.priority)).sort(sortWeakEntries)[0];if(outside){const goal=outside[1].priority==="B"?70:75;actions.push({kind:"goal",goal,label:`${goalLabel(goal)}へ進む`,note:`${outside[1].priority}問題の未克服があります。`})}
  return actions;
 }
+function completedDrillCycle(){const w=drillState?.key?S.weak[drillState.key]:null;return !!(drillState?.answered&&(w?.status==="mastered"||(drillState.mode==="train"&&w?.status==="pending")))}
 function actionCommand(action){return action?.kind==="weak"?`startSkill('${action.key}')`:action?.kind==="attempt"||action?.kind==="route"?`openYear(${action.year})`:action?.kind==="goal"?`setGoal(${action.goal})`:"goto('home')"}
 function runLearningAction(action){if(!action)return goto("home");if(action.kind==="weak")return startSkill(action.key);if(action.kind==="attempt"||action.kind==="route")return openYear(action.year);if(action.kind==="goal"){setGoal(action.goal);return goto("home")}goto("home")}
 function todayAction(){
- if(drillState?.key&&S.weak[drillState.key]&&S.weak[drillState.key].status!=="mastered")return {kind:"resume",label:"途中の1問を再開",action:"resumeCurrentDrill()",note:`${S.weak[drillState.key].year} ${S.weak[drillState.key].label} の途中から再開します。`};
+ if(drillState?.key&&S.weak[drillState.key]&&!completedDrillCycle()&&S.weak[drillState.key].status!=="mastered")return {kind:"resume",label:"途中の1問を再開",action:"resumeCurrentDrill()",note:`${S.weak[drillState.key].year} ${S.weak[drillState.key].label} の途中から再開します。`};
  const action=availableLearningActions()[0];if(action)return {...action,action:actionCommand(action)};
  const plan=ensureDailyPlan();return {complete:true,label:"現在できる学習は完了",note:completeTodayNote(plan)};
 }
@@ -185,7 +186,7 @@ function route(){
  return `<section class="card hero"><div class=eyebrow>DIAGNOSE → REMEDIATE → VERIFY</div><h2>過去問学習ルート</h2><p>年度ごとの目的を変え、2025・2026の初見性を守ります。</p></section>
  <section class=route-list>${ROUTE.map((y,i)=>{const attempts=S.attempts.filter(a=>a.year===y),last=[...attempts].reverse().find(a=>a.status==="graded"),exp=S.exposure[y],status=last?"採点済み":S.currentAttempt?.year===y&&S.currentAttempt.status==="active"?"解答中":exp?"一部既出":"未着手",protectedYear=y>=2025&&!attempts.length&&!exp,recs=routeRecommendations(y);return `<article class="card route-step ${protectedYear?"protected":""}"><div class=route-number>${i+1}</div><div class=route-main><div class="row space"><div><h3>${y}年度</h3><b>${routeRole(y)}</b></div><span class="status-pill">${protectedYear?"初見温存中":status}</span></div><p>${y===2024?"現在地を測り、全問を弱点分析します。":y<2024?"2024で見つかった弱点に対応する実際の過去問を使います。":y===2025?"補強が直近型に通用するか確認します。":"本番前の最後の完全初見判定です。"}</p>${recs.length?`<div class=route-recs><b>現在の弱点に対応</b><p>${recs.map(q=>`${h(q.label)}（${skillName(q.skill)}・${strategyPriority(q)}）`).join(" ／ ")}</p></div>`:""}${last?`<p class=tiny>最新：筆記 ${last.writtenScore}/80　${exposureLabel(last.exposure)}　${last.comparable?"比較対象":"練習記録"}</p>`:""}<button class="${y===nextRouteYear()?"primary":""}" onclick="openYear(${y})">${S.currentAttempt?.year===y&&S.currentAttempt.status==="active"?"続きを解く":"年度を開く"}</button></div></article>`}).join("")}</section>`;
 }
-function openYear(y){y=Number(y);if(!ROUTE.includes(y))return goto("home");S.year=y;save();goto("exam")}
+function openYear(y){y=Number(y);if(!ROUTE.includes(y))return goto("home");if(completedDrillCycle())endDrillSession();S.year=y;save();goto("exam")}
 function clearYearWork(y){yearKeys(S.answers,y).forEach(x=>delete S.answers[x]);yearKeys(S.manual,y).forEach(x=>delete S.manual[x])}
 function beginAttempt(y){
  const exposure=document.querySelector('input[name="exposure"]:checked')?.value,mode=document.querySelector('input[name="examMode"]:checked')?.value;
@@ -495,6 +496,7 @@ function persistDrill(){S.currentDrill=drillState?JSON.parse(JSON.stringify(dril
 function resumeCurrentDrill(){if(!drillState||!S.weak[drillState.key]){S.currentDrill=null;drillState=null;save();return goto("home")}goto("drill")}
 function startSkill(key){
  const w=S.weak[key];if(!w)return;
+ if(completedDrillCycle())endDrillSession();
  if(drillState?.key&&S.weak[drillState.key]?.status==="mastered"){drillState=null;S.currentDrill=null;S.currentSkill=null}
  if(drillState?.key===key&&drillState.q&&!drillState.q.retired)return resumeCurrentDrill();
  if(drillState?.key&&drillState.key!==key)return alert("別の克服ドリルが途中です。『今日やること』から途中の問題を完了してから次へ進んでください。");
