@@ -5,7 +5,7 @@ const D=window.EXAM_DATA, P=window.PAPERS, BANK=window.DRILLS, FALLBACK=window.F
 // Some active pronunciation/stress/connector/writing_completion records were missing familyId, which collapsed them to one family.
 BANK.forEach((q,i)=>{ if(!q.familyId) q.familyId=String(q.id||`${q.skill||"skill"}:${q.targetId||"target"}:${i}`); });
 // STORAGE_KEY is permanent. Future releases migrate schemaVersion in place and must not rename this key.
-const STORAGE_KEY="waseshibu.adaptive.v3", LEGACY_KEYS=["waseshibu.adaptive.v2"], RECOVERY_PREFIX="waseshibu.adaptive.pre-migration", IMPORT_RECOVERY_PREFIX="waseshibu.adaptive.pre-import", SCHEMA_VERSION=8, DAILY_TASK_LIMIT=10;
+const STORAGE_KEY="waseshibu.adaptive.v3", LEGACY_KEYS=["waseshibu.adaptive.v2"], RECOVERY_PREFIX="waseshibu.adaptive.pre-migration", IMPORT_RECOVERY_PREFIX="waseshibu.adaptive.pre-import", SCHEMA_VERSION=8, DAILY_TASK_TARGET=10;
 const ROUTE=[2024,2023,2022,2021,2020,2019,2025,2026];
 const INIT={schemaVersion:SCHEMA_VERSION,goal:60,year:2024,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentDrill:null,currentAttempt:null,lastResultId:null,lastStartedWeakKey:null,dailyPlan:null,dailyProgress:null,recoveredDrills:[],exposure:{},theme:"light",answerSheetOpen:true,answerSheetExpanded:false,examInfoCompact:false,recoveryNotice:null};
 function storageKeys(prefix){const keys=[];try{for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key?.startsWith(prefix))keys.push(key)}}catch(e){}return keys}
@@ -37,7 +37,7 @@ function loadState(){
  return next;
 }
 let S=loadState();
-let view="home", drillState=normalizeDrillState(S.currentDrill), timerHandle=null, dayRefreshHandle=null, renderedDate=today();
+let view="home", drillState=normalizeDrillState(S.currentDrill), timerHandle=null, dayRefreshHandle=null, renderedDate=today(), dayChangePending=false, dayChangeNotice=false, dayChangeAnswerMoved=false;
 if(drillState){const current=BANK.find(q=>q.id===drillState.q?.id&&!q.retired);if(!current||!S.weak[drillState.key]||S.weak[drillState.key].status==="mastered"){drillState=null;S.currentDrill=null;S.currentSkill=null}else{drillState=normalizeDrillState({...drillState,q:current});S.currentDrill=drillState}}
 let storageWarningShown=false;
 const app=document.getElementById("app"), kana=["ア","イ","ウ","エ","オ","カ","キ","ク"];
@@ -65,7 +65,7 @@ function strategyPriority(q){if(q.priority==="A")return "A";if(q.skill==="insert
 function gradeInGoal(grade,goal=S.goal){return grade==="A"||(grade==="B"&&goal>=70)||(grade==="C"&&goal>=75)}
 function goalLabel(goal=S.goal){return goal===60?"A 60点":goal===70?"B 70点":"C 75点"}
 function goalAdvice(goal=S.goal){return goal===60?"A問題を最優先にして60点を守ります。":goal===70?"Aを固め、B問題まで直して70点を狙います。":"A・Bを確実にした後、取れるC問題を選んで75点を狙います。"}
-function setGoal(goal){goal=Number(goal);if(![60,70,75].includes(goal))return;S.goal=goal;S.dailyPlan=null;save();render()}
+function setGoal(goal){goal=Number(goal);if(![60,70,75].includes(goal))return;if(completedDrillCycle())endDrillSession();S.goal=goal;S.dailyPlan=null;save();render()}
 function routeRole(y){return y===2024?"初見診断":y===2025?"実戦確認":y===2026?"最終判定":"弱点補強"}
 function routeRecommendations(y){
  if(y>=2025)return [];
@@ -96,8 +96,8 @@ function dailyPlanValid(){return S.dailyPlan&&S.dailyPlan.date===today()&&Number
 function invalidateDailyPlan(){S.dailyPlan=null;save()}
 function dailyProgressCount(){return S.dailyProgress?.date===today()?Math.max(0,Number(S.dailyProgress.answeredCount)||0):0}
 function dailyAnswered(plan=ensureDailyPlan()){return Math.max(dailyProgressCount(),plan?.date===today()?Number(plan.answeredCount)||0:0)}
-function dailyQuestionsRemaining(plan=ensureDailyPlan()){return plan?.kind==="weak"?Math.max(0,DAILY_TASK_LIMIT-dailyAnswered(plan)):0}
-function dailyQuestionLimitReached(plan=ensureDailyPlan()){return dailyQuestionsRemaining(plan)<=0}
+function dailyTargetRemaining(plan=ensureDailyPlan()){return Math.max(0,DAILY_TASK_TARGET-dailyAnswered(plan))}
+function dailyTargetReached(plan=ensureDailyPlan()){return dailyAnswered(plan)>=DAILY_TASK_TARGET}
 function ensureDailyPlan(){
  if(dailyPlanValid())return S.dailyPlan;
  const candidates=activeWeak().filter(([_,w])=>gradeInGoal(w.priority)).filter(eligibleToday).sort(sortWeakEntries),all=activeWeak().filter(([_,w])=>gradeInGoal(w.priority)),routeYear=nextRouteYear();
@@ -114,45 +114,63 @@ function ensureDailyPlan(){
  save();return S.dailyPlan;
 }
 function planRemaining(plan=ensureDailyPlan()){
- if(plan.kind!=="weak"||dailyQuestionLimitReached(plan))return [];
+ if(plan.kind!=="weak"||dailyTargetReached(plan))return [];
  return (plan.weakKeys||[]).filter(key=>{const w=S.weak[key];return w&&eligibleToday([key,w])});
 }
 function planBacklog(plan=ensureDailyPlan()){
- if(!dailyQuestionLimitReached(plan))return 0;
+ if(!dailyTargetReached(plan))return 0;
  return activeWeak().filter(([_,w])=>gradeInGoal(w.priority)).filter(eligibleToday).length;
 }
 function nextPendingDate(){return activeWeak().filter(([_,w])=>gradeInGoal(w.priority)).map(([_,w])=>w.status==="pending"&&w.next>today()?w.next:null).filter(Boolean).sort()[0]||null}
+function futureConfirmations(){return activeWeak().filter(([_,w])=>gradeInGoal(w.priority)&&w.status==="pending"&&w.next>today()).sort((a,b)=>(a[1].next||"").localeCompare(b[1].next||"")||sortWeakEntries(a,b))}
 function completeTodayNote(plan){
  const backlog=planBacklog(plan),next=nextPendingDate();
- if(dailyQuestionLimitReached(plan)&&backlog)return `今日の必須10問は完了しました。残り${backlog}件は任意で続けられます。`;
- if(next)return `今日の必須課題は完了しました。次の定着チェックは ${next} です。`;
- if(nextRouteYear())return "今日の必須課題は完了しました。次の年度は明日以降に進めます。";
- return "今日の必須課題はすべて完了しました。";
+ if(dailyTargetReached(plan)&&backlog)return `今日の目安${DAILY_TASK_TARGET}問を達成しました。取り組める弱点があと${backlog}件あります。`;
+ if(next)return `現在取り組める弱点は完了しました。次の定着チェックは ${next} です。`;
+ if(nextRouteYear())return "現在取り組める弱点は完了しました。次の過去問へ進めます。";
+ return dailyTargetReached(plan)?`今日の目安${DAILY_TASK_TARGET}問を達成しました。現在実施できる学習はすべて完了です。`:"現在実施できる学習はすべて完了です。";
 }
+function availableLearningActions(){
+ const rows=activeWeak().filter(([key,w])=>gradeInGoal(w.priority)&&eligibleToday([key,w])).sort(sortWeakEntries),due=rows.filter(([_,w])=>w.status==="pending"),progressed=rows.filter(([_,w])=>w.status==="active"&&(w.streak||0)>0),other=rows.filter(([_,w])=>w.status==="active"&&!(w.streak||0)),actions=[];
+ if(due[0])actions.push({kind:"weak",key:due[0][0],label:"今日の定着チェックへ",note:`${due[0][1].year} ${due[0][1].label}（${due[0][1].confirmStreak||0}/2）`});
+ if(progressed[0])actions.push({kind:"weak",key:progressed[0][0],label:"この弱点を続ける",note:`${progressed[0][1].year} ${progressed[0][1].label}（${progressed[0][1].streak||0}/3）`});
+ if(S.currentAttempt?.status==="active")actions.push({kind:"attempt",year:S.currentAttempt.year,label:`${S.currentAttempt.year}年度の続きへ`,note:"解答途中の過去問があります。"});
+ if(other[0])actions.push({kind:"weak",key:other[0][0],label:"次の弱点へ",note:`${other[0][1].year} ${other[0][1].label}（${other[0][1].priority}）`});
+ const y=nextRouteYear();if(y&&!actions.some(x=>x.kind==="attempt"&&x.year===y))actions.push({kind:"route",year:y,label:`${y}年度の過去問を見る`,note:`${routeRole(y)}。年度ページを開くだけでは初見性を消費しません。`});
+ const outside=activeWeak().filter(eligibleToday).filter(([_,w])=>!gradeInGoal(w.priority)).sort(sortWeakEntries)[0];if(outside){const goal=outside[1].priority==="B"?70:75;actions.push({kind:"goal",goal,label:`${goalLabel(goal)}へ進む`,note:`${outside[1].priority}問題の未克服があります。`})}
+ return actions;
+}
+function completedDrillCycle(){const w=drillState?.key?S.weak[drillState.key]:null;return !!(drillState?.answered&&(w?.status==="mastered"||(drillState.mode==="train"&&w?.status==="pending")))}
+function actionCommand(action){return action?.kind==="weak"?`startSkill('${action.key}')`:action?.kind==="attempt"||action?.kind==="route"?`openYear(${action.year})`:action?.kind==="goal"?`setGoal(${action.goal})`:"goto('home')"}
+function runLearningAction(action){if(!action)return goto("home");if(action.kind==="weak")return startSkill(action.key);if(action.kind==="attempt"||action.kind==="route")return openYear(action.year);if(action.kind==="goal"){setGoal(action.goal);return goto("home")}goto("home")}
 function todayAction(){
- if(S.currentAttempt?.status==="active")return {label:`${S.currentAttempt.year}年度の続きを解く`,action:`openYear(${S.currentAttempt.year})`,note:"解答途中の過去問があります。"};
- if(drillState?.key&&S.weak[drillState.key]&&S.weak[drillState.key].status!=="mastered")return {label:"克服ドリルの続きから",action:"resumeCurrentDrill()",note:`${S.weak[drillState.key].year} ${S.weak[drillState.key].label} の途中から正確に再開します。`};
- const plan=ensureDailyPlan(),remaining=planRemaining(plan);
- if(remaining.length){const due=remaining.filter(key=>S.weak[key]?.status==="pending").length;return {label:due?"今日の定着チェック":"誤答の克服ドリル",action:"startTodayTasks()",note:`今日の必須問題は残り${dailyQuestionsRemaining(plan)}問です（実際に答えた問題を数えます）。`};}
- if(plan.kind==="route"&&plan.routeYear)return {label:`${plan.routeYear}年度 ${routeRole(plan.routeYear)}を始める`,action:`openYear(${plan.routeYear})`,note:"推奨ルート上の今日の課題です。"};
- return {complete:true,label:"今日の割当は完了",note:completeTodayNote(plan)};
+ if(drillState?.key&&S.weak[drillState.key]&&!completedDrillCycle()&&S.weak[drillState.key].status!=="mastered")return {kind:"resume",label:"途中の1問を再開",action:"resumeCurrentDrill()",note:`${S.weak[drillState.key].year} ${S.weak[drillState.key].label} の途中から再開します。`};
+ const action=availableLearningActions()[0];if(action)return {...action,action:actionCommand(action)};
+ const plan=ensureDailyPlan();return {complete:true,label:"現在できる学習は完了",note:completeTodayNote(plan)};
 }
 function optionalNextAction(){
- const plan=ensureDailyPlan(),extra=activeWeak().filter(([key,w])=>gradeInGoal(w.priority)&&eligibleToday([key,w])).sort(sortWeakEntries)[0];
- if(extra)return {label:"時間があれば次の1件へ",action:`startSkill('${extra[0]}')`,note:`${extra[1].year} ${extra[1].label}（${extra[1].priority}）`};
- const y=nextRouteYear();if(y)return {label:"時間があれば次の過去問へ",action:`openYear(${y})`,note:`${y}年度 ${routeRole(y)}`};
- const outside=activeWeak().filter(eligibleToday).sort(sortWeakEntries)[0];if(outside)return {label:"時間があれば上の目標へ",action:`setGoal(${outside[1].priority==="B"?70:75})`,note:`${outside[1].priority}問題の未克服があります`};
- return null;
+ const action=availableLearningActions()[1]||null;return action?{...action,action:actionCommand(action)}:null;
 }
-function goalEstimate(goal){const rows=activeWeak().filter(([_,w])=>gradeInGoal(w.priority,goal)),count=rows.length,years=ROUTE.filter(y=>!S.attempts.some(a=>a.year===y&&a.status==="graded")).length,questions=rows.reduce((sum,[_,w])=>sum+(w.status==="pending"?Math.max(0,2-(w.confirmStreak||0)):Math.max(0,3-(w.streak||0))+2),0),days=Math.ceil(questions/DAILY_TASK_LIMIT)+years;return {count,days}}
+function goalEstimate(goal){const rows=activeWeak().filter(([_,w])=>gradeInGoal(w.priority,goal)),count=rows.length,years=ROUTE.filter(y=>!S.attempts.some(a=>a.year===y&&a.status==="graded")).length,questions=rows.reduce((sum,[_,w])=>sum+(w.status==="pending"?Math.max(0,2-(w.confirmStreak||0)):Math.max(0,3-(w.streak||0))+2),0),days=Math.ceil(questions/DAILY_TASK_TARGET)+years;return {count,days}}
+function futureConfirmationMarkup(){
+ const rows=futureConfirmations();if(!rows.length)return "";const shown=rows.slice(0,3),extra=rows.length-shown.length,label=rows.every(([_,w])=>w.next===plusDays(1))?"明日の定着確認予定（現時点）":"今後の定着確認予定（現時点）";
+ return `<div class=future-confirmations><b>${label}</b>${shown.map(([_,w])=>`<div><span>${h(w.next)}</span><span>${h(w.year+" "+w.label)}</span></div>`).join("")}${extra?`<small>ほか${extra}件。予定日になったものから優先し、目安${DAILY_TASK_TARGET}問の後も続けられます。</small>`:""}</div>`;
+}
+function learningActionsMarkup(action){
+ const hasDrill=action.kind==="resume",available=availableLearningActions();
+ if(hasDrill)return `<div class=resume-action><button class=primary onclick="${action.action}">${h(action.label)}</button><span>${h(action.note)}</span></div>${available.length?`<div class=queued-actions><b>この1問の完了後</b>${available.slice(0,3).map(x=>`<span>${h(x.label)}：${h(x.note)}</span>`).join("")}</div>`:""}`;
+ if(action.complete)return `<div class=row><span class=completion-mark>✓ ${h(action.label)}</span><button onclick="goto('route')">学習ルートを見る</button></div>`;
+ return `<div class=learning-actions><div class=resume-action><button class=primary onclick="${action.action}">${h(action.label)}</button><span>${h(action.note)}</span></div>${available.slice(1,4).length?`<div class=alternative-actions><b>ほかにできること</b>${available.slice(1,4).map(x=>`<button onclick="${actionCommand(x)}">${h(x.label)}</button>`).join("")}</div>`:""}<button onclick="goto('route')">学習ルートを見る</button></div>`;
+}
 function home(){
  const active=activeWeak();
  const last=S.history.at(-1);
- const action=todayAction(),plan=ensureDailyPlan(),remaining=planRemaining(plan),optional=optionalNextAction(),isResume=S.currentAttempt?.status==="active"||(drillState?.key&&S.weak[drillState.key]&&S.weak[drillState.key].status!=="mastered"),etas=[60,70,75].map(t=>[t,goalEstimate(t)]);
- return `${S.recoveryNotice?`<section class="card okbox recovery-notice"><b>学習履歴を自動復元しました</b><p>${h(S.recoveryNotice)}</p><button onclick="dismissRecoveryNotice()">確認</button></section>`:""}<section class="card hero today-card ${action.complete?"today-complete":""}"><div class=today-head><div><div class=eyebrow>${action.complete?"TODAY'S PLAN COMPLETE":"TODAY · MAX 10 QUESTIONS"}</div><h2>今日やること</h2><p>${h(action.note)}</p></div><div class=goal-block><span>学習目標</span><strong>${goalLabel()}</strong><small>得点・履歴とは別に管理</small></div></div>
+ const action=todayAction(),plan=ensureDailyPlan(),answered=dailyAnswered(plan),targetReached=dailyTargetReached(plan),extra=Math.max(0,answered-DAILY_TASK_TARGET),etas=[60,70,75].map(t=>[t,goalEstimate(t)]);
+ return `${S.recoveryNotice?`<section class="card okbox recovery-notice"><b>学習履歴を自動復元しました</b><p>${h(S.recoveryNotice)}</p><button onclick="dismissRecoveryNotice()">確認</button></section>`:""}<section class="card hero today-card ${action.complete?"today-complete":""}"><div class=today-head><div><div class=eyebrow>${action.complete?"AVAILABLE WORK COMPLETE":targetReached?"TARGET ACHIEVED · KEEP GOING":"TODAY · STANDARD 10 QUESTIONS"}</div><h2>今日やること</h2><p>${h(action.note)}</p></div><div class=goal-block><span>学習目標</span><strong>${goalLabel()}</strong><small>得点・履歴とは別に管理</small></div></div>
  <div class="target-row goal-selector"><span>目標を変更</span>${[60,70,75].map((t,i)=>`<button class="target-chip ${S.goal===t?"selected":""}" onclick="setGoal(${t})">${String.fromCharCode(65+i)} ${t}点</button>`).join("")}</div>
- <div class=goal-eta>${etas.map(([t,e])=>`<article class="${S.goal===t?"selected":""}"><div><b>${goalLabel(t)}</b><small>${e.count}弱点を対象</small></div><strong>${e.days?`約${e.days}日`:"達成"}</strong></article>`).join("")}</div><p class=goal-eta-note>現在の未克服数と1日最大10問から計算した目安です。得点到達を保証する日数ではありません。</p>
- ${isResume?`<div class=resume-action><button class=primary onclick="${action.action}">${h(action.label)}</button><span>${h(action.note)}</span></div>`:remaining.length?`<div class=today-list>${remaining.map((key,i)=>{const w=S.weak[key];return `<article><span>${i+1}</span><div><b>${h(w.year+" "+w.label)}</b><small>${badge(w.priority)} ${h(w.category)} ／ ${h(w.trap||w.focusTag||skillName(w.skill))}</small></div><button class="${i===0?"primary":""}" onclick="startSkill('${key}')">${i===0?"今これをやる":"開く"}</button></article>`}).join("")}</div>`:`<div class=row>${action.complete?`<span class=completion-mark>✓ ${h(action.label)}</span>${optional?`<button onclick="${optional.action}">${h(optional.label)}</button><small>${h(optional.note)}</small>`:""}`:`<button class=primary onclick="${action.action}">${h(action.label)}</button>`}<button onclick="goto('route')">学習ルートを見る</button></div>`}</section>
+ <div class=daily-summary><article><b>${answered}問</b><small>今日の克服ドリル</small></article><article><b>${DAILY_TASK_TARGET}問</b><small>標準目安</small></article><article><b>${targetReached?`${extra}問`:`あと${dailyTargetRemaining(plan)}問`}</b><small>${targetReached?"目安達成後":"目安まで"}</small></article></div>
+ <div class=goal-eta>${etas.map(([t,e])=>`<article class="${S.goal===t?"selected":""}"><div><b>${goalLabel(t)}</b><small>${e.count}弱点を対象</small></div><strong>${e.days?`約${e.days}日`:"達成"}</strong></article>`).join("")}</div><p class=goal-eta-note>1日${DAILY_TASK_TARGET}問のペースで進めた場合の目安です。追加学習で短くなることがあります。得点到達を保証する日数ではありません。</p>
+ ${learningActionsMarkup(action)}${futureConfirmationMarkup()}</section>
  <section class="grid three"><div class=card><div class=metric>${last?`${last.score}/80`:"--"}</div><div class=muted>${last?`${last.year}年度の筆記得点`:"過去問未実施"}</div></div>
  <div class=card><div class=metric>${goalLabel()}</div><div class=muted>現在の学習目標</div></div>
  <div class=card><div class=metric>${active.filter(([_,w])=>w.priority==="A").length}</div><div class=muted>A問題の未克服</div></div></section>
@@ -168,7 +186,7 @@ function route(){
  return `<section class="card hero"><div class=eyebrow>DIAGNOSE → REMEDIATE → VERIFY</div><h2>過去問学習ルート</h2><p>年度ごとの目的を変え、2025・2026の初見性を守ります。</p></section>
  <section class=route-list>${ROUTE.map((y,i)=>{const attempts=S.attempts.filter(a=>a.year===y),last=[...attempts].reverse().find(a=>a.status==="graded"),exp=S.exposure[y],status=last?"採点済み":S.currentAttempt?.year===y&&S.currentAttempt.status==="active"?"解答中":exp?"一部既出":"未着手",protectedYear=y>=2025&&!attempts.length&&!exp,recs=routeRecommendations(y);return `<article class="card route-step ${protectedYear?"protected":""}"><div class=route-number>${i+1}</div><div class=route-main><div class="row space"><div><h3>${y}年度</h3><b>${routeRole(y)}</b></div><span class="status-pill">${protectedYear?"初見温存中":status}</span></div><p>${y===2024?"現在地を測り、全問を弱点分析します。":y<2024?"2024で見つかった弱点に対応する実際の過去問を使います。":y===2025?"補強が直近型に通用するか確認します。":"本番前の最後の完全初見判定です。"}</p>${recs.length?`<div class=route-recs><b>現在の弱点に対応</b><p>${recs.map(q=>`${h(q.label)}（${skillName(q.skill)}・${strategyPriority(q)}）`).join(" ／ ")}</p></div>`:""}${last?`<p class=tiny>最新：筆記 ${last.writtenScore}/80　${exposureLabel(last.exposure)}　${last.comparable?"比較対象":"練習記録"}</p>`:""}<button class="${y===nextRouteYear()?"primary":""}" onclick="openYear(${y})">${S.currentAttempt?.year===y&&S.currentAttempt.status==="active"?"続きを解く":"年度を開く"}</button></div></article>`}).join("")}</section>`;
 }
-function openYear(y){y=Number(y);if(!ROUTE.includes(y))return goto("home");S.year=y;save();goto("exam")}
+function openYear(y){y=Number(y);if(!ROUTE.includes(y))return goto("home");if(completedDrillCycle())endDrillSession();S.year=y;save();goto("exam")}
 function clearYearWork(y){yearKeys(S.answers,y).forEach(x=>delete S.answers[x]);yearKeys(S.manual,y).forEach(x=>delete S.manual[x])}
 function beginAttempt(y){
  const exposure=document.querySelector('input[name="exposure"]:checked')?.value,mode=document.querySelector('input[name="examMode"]:checked')?.value;
@@ -444,8 +462,8 @@ function review(){
  const arr=activeWeak().sort(sortWeakEntries).map(([key,w])=>({key,w}));
  if(!arr.length)return `<section class="card hero"><h2>現在、未克服の誤答はありません。</h2><p>A問題を維持しながらB問題の上積みに進めます。</p></section>`;
  const plan=ensureDailyPlan(),remaining=planRemaining(plan),assigned=new Set(plan.weakKeys||[]),backlog=planBacklog(plan);
- return `<section class=card><div class="row space"><div><div class=eyebrow>ERROR → DRILL → RETEST</div><h2>間違い対策 ${arr.length}件</h2></div>${remaining.length?`<button class=primary onclick="startTodayTasks()">今日の残り ${remaining.length}件を進める</button>`:`<span class=completion-mark>✓ 今日の割当完了</span>`}</div>
- <p>${goalLabel()}の範囲を優先し、1日最大${DAILY_TASK_LIMIT}課題。同じ論点の類題を3連続正解→翌日2連続正解で克服です。${backlog?` 枠外の${backlog}件は次回以降に回します。`:""}</p></section>
+ return `<section class=card><div class="row space"><div><div class=eyebrow>ERROR → DRILL → RETEST</div><h2>間違い対策 ${arr.length}件</h2></div>${remaining.length?`<button class=primary onclick="startTodayTasks()">目安まであと${dailyTargetRemaining(plan)}問</button>`:dailyTargetReached(plan)?`<span class=completion-mark>✓ 今日の目安${DAILY_TASK_TARGET}問を達成</span>`:`<span class=completion-mark>✓ 現在できる課題は完了</span>`}</div>
+ <p>${goalLabel()}の範囲を優先し、1日${DAILY_TASK_TARGET}問を標準目安にします。同じ論点の類題を3連続正解→翌日2連続正解で克服です。${backlog?` 目安達成後も、取り組める${backlog}件を任意で続けられます。`:""}</p></section>
  ${arr.map(({key,w})=>{const isAssigned=assigned.has(key),future=w.status==="pending"&&w.next>today(),buttonLabel=future?`${w.next} まで待つ`:isAssigned?(w.status==="pending"?"今日の定着チェック":"今日の克服ドリル"):(w.status==="pending"?"定着チェック":"追加練習");return `<section class="card wrong ${isAssigned?"today-assigned":""}"><div class="row space"><div><b>${w.year} ${h(w.label)}</b><div class="tiny"><span class=skill>${skillName(w.skill)}</span> ／ ${h(w.category)} ／ ${w.component&&w.component!=="main"?`元設問 ${w.points}点`:`${w.points}点`}</div></div>${badge(w.priority)}</div>
  <p>誤答：<b>${h(w.user||"未入力")}</b>　${w.status==="pending"?`<span class=badge>翌日確認待ち</span>`:""}</p>
  <p class=muted>${w.status==="pending"?`次の定着チェック：${w.next}`:`類題連続正解：${w.streak||0}/3`}</p>
@@ -453,7 +471,7 @@ function review(){
  <div class=row style="margin-top:10px"><button ${future?"disabled":""} class="${isAssigned&&!future?"primary":""}" onclick="startSkill('${key}')">${buttonLabel}</button><button onclick="openYear(${w.year})">過去問本文を確認</button></div></section>`}).join("")}`;
 }
 function setCause(key,v){S.cause[key]=v;save()}
-function startTodayTasks(){const remaining=planRemaining();if(!remaining.length)return alert("今日の割当は完了しています。");if(S.currentSkill&&remaining.includes(S.currentSkill))return startSkill(S.currentSkill);const entries=remaining.map(key=>[key,S.weak[key]]).sort(sortWeakEntries),last=entries.findIndex(([key])=>key===S.lastStartedWeakKey),chosen=entries[(last+1)%entries.length];startSkill(chosen[0])}
+function startTodayTasks(){const remaining=planRemaining();if(!remaining.length)return alert(dailyTargetReached()?"今日の目安分は完了しています。引き続き、一覧から任意の弱点を選べます。":"現在取り組める目安課題はありません。");if(S.currentSkill&&remaining.includes(S.currentSkill))return startSkill(S.currentSkill);const entries=remaining.map(key=>[key,S.weak[key]]).sort(sortWeakEntries),last=entries.findIndex(([key])=>key===S.lastStartedWeakKey),chosen=entries[(last+1)%entries.length];startSkill(chosen[0])}
 function startDue(){startTodayTasks()}
 function familyCount(items){return new Set(items.map(x=>x.familyId)).size}
 function poolForWeak(w){
@@ -478,6 +496,7 @@ function persistDrill(){S.currentDrill=drillState?JSON.parse(JSON.stringify(dril
 function resumeCurrentDrill(){if(!drillState||!S.weak[drillState.key]){S.currentDrill=null;drillState=null;save();return goto("home")}goto("drill")}
 function startSkill(key){
  const w=S.weak[key];if(!w)return;
+ if(completedDrillCycle())endDrillSession();
  if(drillState?.key&&S.weak[drillState.key]?.status==="mastered"){drillState=null;S.currentDrill=null;S.currentSkill=null}
  if(drillState?.key===key&&drillState.q&&!drillState.q.retired)return resumeCurrentDrill();
  if(drillState?.key&&drillState.key!==key)return alert("別の克服ドリルが途中です。『今日やること』から途中の問題を完了してから次へ進んでください。");
@@ -559,11 +578,10 @@ function showSelfCheck(){const q=drillState.q;if(q.partLimits){for(let i=0;i<q.p
 function selfResult(ok){if(ok && !drillState.q.check.every((_,i)=>drillState.selfChecks?.[i]))return alert("必須チェックをすべて確認してください。");finishDrill(ok)}
 function finishDrill(ok){
  if(!drillState||drillState.answered)return;
+ if(renderedDate!==today()||dayChangePending){applyDayChange();dayChangeNotice=true;dayChangeAnswerMoved=true}
  ensureDailyPlan();
  const w=S.weak[drillState.key];drillState.answered=true;drillState.correct=ok;
- if(S.dailyPlan?.date===today()&&S.dailyPlan.kind==="weak"){
-   const count=dailyAnswered(S.dailyPlan)+1;S.dailyPlan.answeredCount=count;S.dailyProgress={date:today(),answeredCount:count};
- }
+ const count=dailyAnswered(S.dailyPlan)+1;S.dailyProgress={date:today(),answeredCount:count};if(S.dailyPlan?.date===today())S.dailyPlan.answeredCount=count;
  if(drillState.mode==="train"){
    if(ok)w.streak=(w.streak||0)+1;else w.streak=0;
    if(w.streak>=3){w.status="pending";w.next=plusDays(1);w.confirmStreak=0}
@@ -605,17 +623,20 @@ function drillFeedback(q){
  let msg=drillState.correct?"正解":drillState.failedConfirmation?"定着チェック不正解":"不正解";
  const activeStreak=drillState.mode==="confirm"?(w.confirmStreak||0):(w.streak||0),remaining=Math.max(0,(drillState.mode==="confirm"?2:3)-activeStreak);
  let nextLabel=activeStreak?`次の類題へ（あと${remaining}連続正解）`:"次の類題へ（3連続正解で克服）";
- if(w.status==="pending"&&drillState.mode==="train")nextLabel="今日は終了（翌日確認へ）";
- if(w.status==="mastered")nextLabel="克服ドリルを完了";
- const reachedLimit=dailyQuestionLimitReached();if(reachedLimit&&w.status!=="pending"&&w.status!=="mastered")nextLabel="今日の必須10問を完了";
+ const completed=w.status==="mastered"||(w.status==="pending"&&drillState.mode==="train"),targetReached=dailyTargetReached(),nextAction=completed?availableLearningActions()[0]:null,dueAfterDayChange=dayChangeNotice?availableLearningActions().find(x=>x.kind==="weak"&&S.weak[x.key]?.status==="pending"&&S.weak[x.key]?.next<=today()):null;
+ if(targetReached&&!completed)nextLabel=`この弱点を続ける（あと${remaining||3}連続正解）`;
+ if(completed)nextLabel=nextAction?.label||"次回予定を確認";
  return `<div id=drillFeedback class="drill-feedback ${drillState.correct?"okbox":"notice"}" role=status aria-live=polite><h3>${drillState.correct?"✓":"×"} ${msg}</h3>${formatDrillExplanation(q.explanation,q)}
  ${drillState.failedConfirmation?"<p>定着しきっていません。ここから3問連続正解の練習へ戻ります。</p>":""}
  ${w.status==="pending"&&drillState.mode==="train"?`<p>3問連続正解。<b>${w.next}</b> に2問の定着チェックを行います。</p>`:""}
  ${w.status==="mastered"?`<p>翌日の定着チェックも2問連続正解。克服済みにしました。</p>`:""}
- <div class=drill-next><button class=primary onclick="${reachedLimit||w.status==="mastered"|| (w.status==="pending"&&drillState.mode==="train")?"finishSession()":"continueDrill()"}">${nextLabel}</button>${w.status==="mastered"?"<small>結果を保存して「今日やること」へ戻ります。</small>":""}</div></div>`;
+ ${dayChangeNotice?`<div class=bluebox><b>日付が変わりました</b><p>${dayChangeAnswerMoved?"この回答は新しい日の学習として保存しました。":"前日の回答は保存済みです。今日の学習予定を更新しました。"}${dueAfterDayChange?"今日の定着チェックが利用できます。":"今のドリルをそのまま続けられます。"}</p></div>`:""}
+ <div class=drill-next>${dayChangeNotice&&dueAfterDayChange&&!completed?`<button class=primary onclick="continueToNextLearning()">今日の定着チェックへ</button><button onclick="continueDrill()">今のドリルを続ける</button>`:`<button class=primary onclick="${completed?"continueToNextLearning()":"continueDrill()"}">${nextLabel}</button>`}<button onclick="finishSession()">今日はここまで</button>${completed&&nextAction?`<small>${h(nextAction.note)}</small>`:""}</div></div>`;
 }
-function continueDrill(){drillState.selfcheck=false;drillState.shuffled=null;drillState.failedConfirmation=false;nextDrill();render()}
-function finishSession(){drillState=null;S.currentSkill=null;S.currentDrill=null;save();goto("home")}
+function continueDrill(){dayChangeNotice=false;dayChangeAnswerMoved=false;drillState.selfcheck=false;drillState.shuffled=null;drillState.failedConfirmation=false;nextDrill();render()}
+function endDrillSession(){drillState=null;S.currentSkill=null;S.currentDrill=null;dayChangeNotice=false;dayChangeAnswerMoved=false;save()}
+function continueToNextLearning(){if(!drillState?.answered)return;endDrillSession();runLearningAction(availableLearningActions()[0])}
+function finishSession(){endDrillSession();goto("home")}
 
 function stats(){
  const active=activeWeak(), bySkill={}, byCause={}, a=active.filter(([_,w])=>w.priority==="A"), b=active.filter(([_,w])=>w.priority==="B"), c=active.filter(([_,w])=>w.priority==="C");
@@ -662,7 +683,7 @@ function guide(){
  <li>誤答は自動で<b>間違い対策</b>へ入る。</li>
  <li>失点原因を選ぶ。</li>
  <li><b>学習目標</b>：A 60点、B 70点、C 75点から選ぶ。目標変更は得点・正誤・履歴を変えず、今日の推奨だけを再計算する。</li>
- <li><b>今日の割当</b>：定着確認と目標範囲の誤答を優先し、実際に答えた類題を1日最大10問まで数える。終えた後も任意の次問題を表示する。</li>
+ <li><b>今日の目安</b>：定着確認と目標範囲の誤答を優先し、克服ドリル10問を標準目安にする。10問後も、取り組める弱点や次の過去問へ任意で進める。</li>
  <li><b>克服ドリル</b>：元の誤答と同じ論点の類題を3問連続正解するまで繰り返す。途中で画面を移動しても同じ進行位置から再開する。</li>
  <li>3連続正解しても消さず、翌日に2問の定着チェック。</li>
  <li>翌日も2連続正解して初めて克服済み。</li></ol>
@@ -672,7 +693,8 @@ function guide(){
  <section class=backup-box><h3>学習データのバックアップ</h3><p>この端末では、アプリを更新しても学習履歴を自動で引き継ぎます。機種変更、ブラウザ変更、端末故障への備えにはバックアップを使ってください。復元前の状態は端末内にも3世代まで退避します。</p><div class=row><button onclick="exportData()">バックアップを書き出す</button><label>復元方法 <select id=importMode><option value=merge>現在データへ統合</option><option value=replace>現在データと置換</option></select></label><label class=file-button>バックアップを選ぶ<input type=file accept="application/json,.json" onchange="importData(this)"></label></div></section>${S.recoveredDrills?.length?`<section class=backup-box><h3>退避した途中ドリル</h3><p>バックアップ統合時に重なった途中データです。</p>${S.recoveredDrills.map((d,i)=>`<div class="row space"><span>${h(S.weak[d.key]?.label||d.key||"不明なドリル")} ／ ${h(d.q?.id||"問題不明")}</span><span><button onclick="restoreRecoveredDrill(${i})">再開</button><button onclick="deleteRecoveredDrill(${i})">削除</button></span></div>`).join("")}</section>`:""}</section>`;
 }
 function scheduleDayRefresh(){if(dayRefreshHandle)clearTimeout(dayRefreshHandle);const next=new Date();next.setHours(24,0,1,0);dayRefreshHandle=setTimeout(()=>{checkDayChange();scheduleDayRefresh()},Math.max(1000,next-Date.now()))}
-function checkDayChange(){if(renderedDate===today())return;renderedDate=today();S.dailyPlan=null;S.dailyProgress=null;save();render()}
+function applyDayChange(){const current=today();renderedDate=current;dayChangePending=false;if(S.dailyPlan?.date!==current)S.dailyPlan=null;if(S.dailyProgress?.date!==current)S.dailyProgress=null;save()}
+function checkDayChange(){if(renderedDate===today())return;if(view==="drill"&&drillState&&!drillState.answered){dayChangePending=true;return}dayChangeNotice=view==="drill"&&!!drillState;dayChangeAnswerMoved=false;applyDayChange();render()}
 window.addEventListener("focus",checkDayChange);document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkDayChange()});
 function render(){if(timerHandle){clearInterval(timerHandle);timerHandle=null}app.innerHTML=({home,route,exam,result,review,drill,stats,guide})[view]();if(view==="exam"&&S.currentAttempt?.status==="active"&&S.currentAttempt.mode==="timed")timerHandle=setInterval(updateTimer,1000);scheduleDayRefresh()}
 render();
