@@ -606,10 +606,45 @@ function remapExplanationChoiceLabels(text,q){
  return String(text||"").replace(/(^|[】\s／/、。・（(:：はが])([アイウエオ])(?=\s|は|が|を|の|で|なら|、|。|・|:|：|／|\/|）|\)|$)/g,(_,before,label)=>`${before}${mapping[label]||label}`);
 }
 function hasExplanationChoiceLabels(text){return /(^|[】\s／/、。・（(:：はが])[アイウエオ](?=\s|は|が|を|の|で|なら|、|。|・|:|：|／|\/|）|\)|$)/.test(String(text||""))}
+function cleanLearningPointText(text){
+ return String(text||"").trim().replace(/^(?:A\s*[\/／]\s*B|A\s*[〜～-]\s*B|[ABC])(?:（非公式）)?\s*(?:[：:]|[。.])\s*/,"").trim();
+}
+function learningPointSelection(parts,q){
+ const part=label=>parts.find(x=>x.label===label),pick=(entry,clean=false)=>entry?{text:clean?cleanLearningPointText(entry.text):entry.text,used:[entry]}:null,combine=(entries,text)=>({text,used:entries.filter(Boolean)}),skill=q?.skill;
+ if(skill==="pronunciation"){
+   const selected=pick(part("発音"))||pick(part("他選択肢との差"));
+   if(selected)return selected;
+ }
+ if(skill==="stress"){
+   const selected=pick(part("他選択肢との差"))||pick(part("強勢位置"));
+   if(selected)return selected;
+ }
+ if(skill==="vocab_definition"){
+   const answer=part("正解"),meaning=part("単語の意味"),pos=part("品詞");
+   if(answer&&meaning)return combine([answer,meaning,pos],`${answer.text} ＝ ${meaning.text}${pos?`（${pos.text}）`:""}`);
+ }
+ if(skill==="sentence_completion"){
+   const strategy=part("戦略"),expression=part("重要表現"),base=cleanLearningPointText(strategy?.text);
+   if(base&&expression)return combine([strategy,expression],`${base} 重要表現：${expression.text}`);
+ }
+ if(skill==="summary"){
+   const structure=part("構成"),essentials=part("残す要点");
+   if(structure&&essentials)return combine([structure,essentials],`${structure.text} 残す要点：${essentials.text}`);
+ }
+ if(skill==="rebuttal"&&part("設問条件"))return pick(part("設問条件"));
+ const strategy=part("戦略")||part("戦略分類"),strategyText=cleanLearningPointText(strategy?.text);
+ if(strategyText.length>=18&&!hasExplanationChoiceLabels(strategyText))return {text:strategyText,used:[strategy]};
+ for(const label of ["元弱点とのつながり","弱点","なぜ正解か","重要構文","語順理由","重要表現","構成","設問条件","他選択肢との差","根拠英文和訳","根拠英文"]){
+   const entry=part(label),value=String(entry?.text||"").trim();
+   if(value.length>=10&&!hasExplanationChoiceLabels(value))return {text:value,used:[entry]};
+ }
+ if(strategyText)return {text:strategyText,used:[strategy]};
+ const fallback=parts.find(x=>!["正解","設問和訳"].includes(x.label))||parts[0];
+ return fallback?pick(fallback):{text:"解説を確認しましょう。",used:[]};
+}
 function formatDrillExplanation(text,q){
- const parts=explanationParts(remapExplanationChoiceLabels(text,q)),priority=["要点","発音","強勢位置","他選択肢との差","根拠","戦略"],candidates=priority.map(label=>parts.find(x=>x.label===label)).filter(Boolean),key=candidates.find(x=>!hasExplanationChoiceLabels(x.text))||candidates[0]||parts.find(x=>!["正解","設問和訳"].includes(x.label))||parts[0];
- const details=parts.filter(x=>x!==key&&x.label!=="正解");
- return `<div class=learning-point><b>覚えるポイント</b><p>${h(key?.text||"解説を確認しましょう。")}</p></div>${details.length?`<details class=drill-details><summary>詳しい解説を見る</summary>${details.map(x=>`<div class=explanation-row><b>${h(x.label)}</b><p>${h(x.text)}</p></div>`).join("")}</details>`:""}`;
+ const parts=explanationParts(remapExplanationChoiceLabels(text,q)),point=learningPointSelection(parts,q),details=parts.filter(x=>!point.used.includes(x)&&x.label!=="正解");
+ return `<div class=learning-point><b>覚えるポイント</b><p>${h(point.text||"解説を確認しましょう。")}</p></div>${details.length?`<details class=drill-details><summary>詳しい解説を見る</summary>${details.map(x=>`<div class=explanation-row><b>${h(x.label)}</b><p>${h(x.text)}</p></div>`).join("")}</details>`:""}`;
 }
 function revealDrillFeedback(){
  const feedback=document.getElementById("drillFeedback");if(!feedback)return;
