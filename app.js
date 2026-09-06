@@ -609,8 +609,104 @@ function hasExplanationChoiceLabels(text){return /(^|[】\s／/、。・（(:：
 function cleanLearningPointText(text){
  return String(text||"").trim().replace(/^(?:A\s*[\/／]\s*B|A\s*[〜～-]\s*B|[ABC])(?:（非公式）)?\s*(?:[：:]|[。.])\s*/,"").trim();
 }
+const LEARNING_POINT_RELEASE1_OVERRIDES={
+ ro03:"ask＋人＋if＋主語＋動詞「人に〜かどうか尋ねる」。if I belongedの語順にし、belong toを一まとまりで使う。",
+ ro04:"whatが「何が」という節の主語になる。通常の語順はwhat brought him to Japanで、この文では疑問文語順にしない。",
+ ro10:"be better at -ing than anyone else「誰よりも〜が得意」。better at speaking ... than anyone elseの順にする。",
+ xro1:"be surprised to do「〜して驚く」。was surprised to hear the newsの語順にする。",
+ xro4:"tell＋人＋whether＋主語＋動詞「人に〜かどうか伝える」。whether he will comeの語順にする。",
+ xro5:"as＋副詞＋as possible「できるだけ〜に」。目的語の後にas quickly as possibleを置く。",
+ xro6:"prevent＋人＋from -ing「人が〜するのを妨げる」。prevented us from going outの形にする。",
+ xro7:"put effort into -ing「〜することに努力を注ぐ」。intoは前置詞なのでlearningを続ける。",
+ nr_iq1:"ask＋人＋why＋主語＋動詞。why was he lateではなくwhy he was late。",
+ nr_iq2:"know＋when＋主語＋動詞。when does the museum openではなくwhen the museum opens。",
+ nr_iq3:"find out＋where＋主語＋動詞。found out exactly where the train wentの語順にする。",
+ nr_iq4:"whatが「何が」という節の主語になる。what caused the problemを一まとまりにし、didを加えない。",
+ nr_iq5:"how long it takes to do「〜するのにどのくらいかかるか」。askedに合わせてwould takeを使う。",
+ nr_rc2:"目的格の関係代名詞は省略できる。the book I bought yesterdayで、I boughtがbookを説明する。",
+ nr_rc3:"someone who can do「〜できる人」。who can speak Englishがsomeoneを説明する。",
+ nr_rc4:"人＋who＋動詞で「〜する人」。the boy who won the contestを一まとまりにする。",
+ nr_rc5:"whose＋名詞で「その人の〜」。a student whose father is a doctorの語順にする。",
+ nr_ef1:"put a great deal of effort into -ing「〜することに多大な努力を注ぐ」。intoの後はorganizing。",
+ nr_ef2:"put effort into -ing「〜することに努力を注ぐ」。into improving our Englishの形にする。",
+ nr_ef3:"put a lot of effort into -ing「〜することに多くの努力を注ぐ」。intoの後はsolving。",
+ nr_ef4:"put effort into -ing「〜することに努力を注ぐ」。intoは前置詞なのでdecoratingを続ける。",
+ nr_ef5:"put all one’s effort into -ing「〜することに全力を注ぐ」。主語Heに合わせてall his effortとする。",
+ nr_cp2:"call off「中止する」＋because＋主語＋動詞。called off the game because it rainedの語順にする。",
+ nr_cp3:"show up at「〜に現れる」＋although＋主語＋動詞。showed up at the meeting although she was sick。",
+ nr_cp4:"could notの後は動詞原形。could not arrive on time because the train was lateの語順にする。",
+ nr_cp5:"look＋名詞＋up「〜を調べる」。looked the word up in the dictionaryの語順にする。",
+ nr_cm1:"比較級＋than anyone else in ...「…の誰よりも〜」。runs faster than anyone else in her class。",
+ nr_cm2:"more＋形容詞＋than ...「…より〜」。is more interesting than I expectedの語順にする。",
+ nr_cm3:"not as＋形容詞＋as「…ほど〜でない」。is not as tall as his brotherの形にする。",
+ nr_cm4:"The＋比較級..., the＋比較級...「〜すればするほど…」。The more you practice, the better you become。",
+ nr_cm5:"one of the＋最上級＋複数名詞「最も〜なものの一つ」。one of the oldest buildingsとする。",
+ nr_fp1:"as＋副詞＋as possible「できるだけ〜に」。answered as carefully as possibleの語順にする。",
+ nr_fp2:"too＋形容詞＋for＋人＋to do「人が〜するには…すぎる」。too heavy for me to carryの形にする。",
+ nr_fp3:"prevent＋人＋from -ing「人が〜するのを妨げる」。prevented us from playing outsideの形にする。",
+ nr_fp4:"be careful not to do「〜しないよう注意する」。否定のnotはto makeの前に置く。",
+ nr_fp5:"so＋形容詞＋that＋主語＋動詞「とても〜なので…」。so tired that she could not walkとする。",
+ sc01:"help＋人＋動詞原形「人が〜するのを助ける」。help people get well againの形にする。",
+ sc02:"without＋名詞「〜がなければ」。becomeの後は形容詞dangerousを置く。",
+ sc03:"help＋人＋動詞原形。make better decisionsで「よりよい決定をする」。",
+ xsc1:"force＋人＋to do「人に無理に〜させる」。forced us to cancelの形にする。",
+ xsc2:"ask＋人＋to do「人に〜するよう頼む」。asked me to openの形にする。",
+ xsc3:"whether＋主語＋動詞「〜かどうか」。whether he will comeの語順にする。",
+ xsc4:"too＋形容詞＋for＋人＋to do「人が〜するには…すぎる」。too difficult for me to readの形にする。",
+ xsc5:"The＋比較級..., the＋比較級...「〜すればするほど…」。The earlier..., the better...の形にする。",
+ xsc6:"not only A but also B「AだけでなくBも」。AとBは同じ形にし、singingとdancingを並べる。",
+ xsc7:"where＋主語＋助動詞＋動詞の間接疑問。where I could buy a ticketの語順にする。",
+ xsc8:"keep -ing「〜し続ける」＋in spite of「〜にもかかわらず」。kept walking in spite of the rain。",
+ nsc01:"help＋人＋動詞原形「人が〜するのを助ける」。help people get well againの形にする。",
+ nsc02:"without＋名詞「〜がなければ」、by ourselves「自分たちだけで」。両方を文の枠に合わせる。",
+ nsc03:"twice as many＋複数名詞＋as「…の2倍の数の〜」。twice as many fish ... as ...の形にする。",
+ nsc04:"find out whether＋主語＋動詞「〜かどうか調べる」。more harmful to ... than ...と比較する。",
+ nsc05:"so that＋主語＋can do「〜できるように」。so that schools can make better choicesの形にする。",
+ lrb01:"宿題全面廃止の理由を忙しさと休息不足で要約し、量を減らせば復習に役立つと反論する。",
+ lrb02:"携帯禁止の理由を授業妨害と会話減少で要約し、学習・緊急時に限定する規則を提案する。",
+ lrb03:"行事削減の理由を学習時間とストレスで要約し、準備時間を管理すれば協働力を学べると反論する。",
+ lrb04:"タブレットの軽さ・更新性を要約し、紙教材の集中しやすさも生かす併用案で反論する。",
+ lrb05:"部活動が勉強時間を奪い疲労を招く主張に、試験期の練習制限と協働・健康面の利点で反論する。",
+ lrb06:"給食一種類の安さ・簡単さを要約し、アレルギー・宗教・健康に応じた少数の選択肢を提案する。",
+ lrb07:"公園を駐車場にする利点を要約し、休息場所を残して別の場所で駐車問題を解く案で反論する。",
+ lrb08:"制服の不快さ・動きにくさを要約し、平等性を残しながら涼しく動きやすい素材へ改善すると反論する。",
+ lrb09:"翻訳技術の便利さを要約し、文化理解や直接交流のため外国語学習も必要だと反論する。",
+ lrb10:"動物園で自由が制限される主張を要約し、保護・教育の利点を残して飼育環境を改善すると反論する。",
+ lrb11:"清掃を専門業者に任せる理由を要約し、責任感を学び学校の費用も節約できると反論する。",
+ lrb12:"オンライン授業の移動不要・録画復習を要約し、質問と協働のため対面授業との併用を提案する。",
+ lrb13:"アルバイトで責任感や礼儀を学べる主張に、学習時間と健康を守る制限が必要だと反論する。",
+ lrb14:"上位者だけへの賞が努力を促す主張に、成績だけでなく努力や伸びも評価する案で反論する。",
+ lrb15:"教室カメラの安全・抑止効果を要約し、監視による不快感と信頼低下を踏まえ慎重な規則を求める。",
+ lrb16:"好きな科目を選ぶ意欲面の利点を要約し、将来必要な基礎科目を残した部分選択制を提案する。",
+ lem01:"袖で染みを隠し、後でクリーニングすると伝えた行動から、恥ずかしさと申し訳なさを読み取る。",
+ lem02:"切符を何度も確認して返事をやめた不安から、見つけて弱く笑う安堵への変化を読み取る。",
+ lem03:"残ったクッキーを静かに閉じ、ピクニックの話をしなかった行動から、落胆を読み取る。",
+ lem04:"母の忙しさと手紙を知って食べる手を止めた行動から、感謝と少しの後悔を読み取る。",
+ lem05:"発表前の緊張から、評価後に次の大会を尋ねる行動へ変わったため、自信の高まりを読み取る。",
+ lem06:"誕生日を忘れられたと思った後、ケーキとカードを見て顔を覆い二度読んだため、驚きと感動を読み取る。",
+ lem08:"ベンチで靴を見つめ、集合写真の前に帰った行動から、仲間外れにされた寂しさを読み取る。",
+ lem09:"弟を責めた後、猫が原因だと分かって飲み物を持っていった行動から、罪悪感を読み取る。",
+ lem10:"病院からの感謝の手紙を読み返し、静かに座った行動から、深く心を動かされたと読み取る。",
+ lem11:"借りた模型を壊し、部品を隠して目を伏せた後に話そうとした行動から、罪悪感と不安を読み取る。",
+ lcm06:"先生は彼をからかわず、火を弱める方法を教えた。『先生が笑った』という内容はdid not make fun of himと反対。",
+ lrs16:"完成ファイルは充電切れの端末内にあり、写真では提出条件を満たさないため、翌朝学校の端末から送った。"
+};
+const LEARNING_POINT_RELEASE1_DERIVED=new Set([
+ "lrs03","lrs07","lrs09","lrs10","lrs11","lrs12","lrs13","lrs14","lrs15",
+ "lcm01","lcm05","lcm06","lcm11","lcm13",
+ "lin01","lin03","lin06","lin07","lin08","lin09","lin10","lin11","lin13","lin14",
+ "lem01","lem02","lem03","lem04","lem05","lem06","lem08","lem09","lem10","lem11",
+ "lpa01","lpa02","lpa03","lpa04","lpa05","lpa06","lpa07","lpa08","lpa09","lpa10","lpa11"
+]);
+const LEARNING_POINT_RELEASE1_IDS=new Set([...Object.keys(LEARNING_POINT_RELEASE1_OVERRIDES),...LEARNING_POINT_RELEASE1_DERIVED,"ro01","lro48"]);
 function learningPointSelection(parts,q){
  const part=label=>parts.find(x=>x.label===label),pick=(entry,clean=false)=>entry?{text:clean?cleanLearningPointText(entry.text):entry.text,used:[entry]}:null,combine=(entries,text)=>({text,used:entries.filter(Boolean)}),skill=q?.skill;
+ const override=LEARNING_POINT_RELEASE1_OVERRIDES[q?.id];
+ if(override)return {text:override,used:[]};
+ if(LEARNING_POINT_RELEASE1_DERIVED.has(q?.id)){
+   const reason=part("なぜ正解か"),evidence=part("根拠英文和訳");
+   if(reason)return combine([evidence,reason],evidence?`${evidence.text} ${reason.text}`:reason.text);
+ }
  if(skill==="pronunciation"){
    const selected=pick(part("発音"))||pick(part("他選択肢との差"));
    if(selected)return selected;
