@@ -598,6 +598,48 @@ function explanationParts(text){
  else if(source)parts.push({label:"解説",text:source});
  return parts.filter(x=>x.text);
 }
+function replaceExplanationPart(q,label,text){
+ if(!q?.explanation)return;
+ const escaped=label.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),re=new RegExp(`【${escaped}】[^【]*`);
+ q.explanation=re.test(q.explanation)?q.explanation.replace(re,`【${label}】${text}\n`):q.explanation;
+}
+function applyLearningPointRelease2DataCorrections(){
+ const q=id=>BANK.find(item=>item.id===id);
+ const reference=q("lrf09");
+ if(reference){
+   reference.options[1]="his ankle becoming worse";
+   replaceExplanationPart(reference,"なぜ正解か","thatが直接受けるのは直前のhis ankle became worseであり、その悪化が回復を長引かせた。");
+   replaceExplanationPart(reference,"他選択肢が違う理由","医師の忠告は直接の先行内容ではない。練習の早期終了は本文になく、回復が短くなったという内容は逆。");
+ }
+ const connector=q("lco22");
+ if(connector)replaceExplanationPart(connector,"他選択肢","For exampleは例、As a resultは結果、In other wordsは言い換えであり、限界から利点への逆接を示さない。");
+ const contextReasons={
+   lcx01:"『すでに送った』はNot yetと矛盾する。歴史授業をやめる話とコンピューターの新しさは、今後の対応への返答にならない。",
+   lcx02:"体育館が壊れた記述はなく、雨の中に模型を置く内容とscience fairで作品を認めない内容は本文と矛盾する。",
+   lcx03:"silentは音、usefulは有用性、ordinaryは普通を表し、定員を超えてドアが閉まらない状況に合わない。",
+   lcx04:"読書室閉鎖と修理をやめる内容は新サービスにつながらず、展示のみでは道具を使えるという後文につながらない。",
+   lcx05:"実験をやめる内容は再実験と矛盾し、一方だけ光を増やすと条件差が広がる。植物に日光不要という内容も本文と逆。",
+   lcx06:"ポスターの色と階数の一般説明は困り事への返答にならず、箱を重くする提案は逆効果。",
+   lcx07:"dangerousは危険、expensiveは高価、ancientは古代のという意味で、最新の公式情報を選ぶ理由にならない。",
+   lcx08:"理科授業中止、庭へ入れない、学校活動と無関係という内容は、美術・英語でも庭を使う後文と矛盾する。",
+   lcx09:"確認前に高価なカメラを買う、撮影を永久にやめる、水泳部へ移るという助言は、新情報を受けた自然な返答ではない。",
+   lcx10:"peacefulは平和、privateは私的、creativeは創造的で、古い地図による混乱を解消する目的に合わない。"
+ };
+ for(const [id,text] of Object.entries(contextReasons))replaceExplanationPart(q(id),"他選択肢",text);
+ const example=q("lex21");
+ if(example)replaceExplanationPart(example,"他選択肢が違う理由","授業内容や参加後の様子は妨げではない。大きい教室を選ぶことも、参加を妨げる障壁の例ではない。");
+ const extract=q("let02");
+ if(extract){
+   extract.prompt=extract.prompt.replaceAll("混雑しすぎている","混雑している");
+   for(const label of ["設問和訳","根拠英文和訳","なぜ正解か"])replaceExplanationPart(extract,label,(explanationParts(extract.explanation).find(part=>part.label===label)?.text||"").replaceAll("混雑しすぎている","混雑している"));
+ }
+ const writingAnswers={
+   lwc29:"animals notice danger / we should listen to warnings",
+   lwc31:"acting quickly matters / we should help people before their trouble becomes worse"
+ };
+ for(const [id,text] of Object.entries(writingAnswers))replaceExplanationPart(q(id),"最小限答案例",text);
+}
+applyLearningPointRelease2DataCorrections();
 function remapExplanationChoiceLabels(text,q){
  if(!q?.options||!Array.isArray(drillState?.choiceOrder))return text;
  const kana=["ア","イ","ウ","エ","オ"];
@@ -699,11 +741,49 @@ const LEARNING_POINT_RELEASE1_DERIVED=new Set([
  "lpa01","lpa02","lpa03","lpa04","lpa05","lpa06","lpa07","lpa08","lpa09","lpa10","lpa11"
 ]);
 const LEARNING_POINT_RELEASE1_IDS=new Set([...Object.keys(LEARNING_POINT_RELEASE1_OVERRIDES),...LEARNING_POINT_RELEASE1_DERIVED,"ro01","lro48"]);
+const LEARNING_POINT_RELEASE2_OVERRIDES={
+ lco23:"前文の学校でごみを減らす行動に対し、残りページを練習帳にする一クラスの例が続くためFor example。",
+ lco24:"図書館は静かに一人で読む場所という考えに対し、議論室や実験教室もあるため、逆接のHowever。",
+ lco25:"待ち時間や売り切れという限界の後に、食品廃棄が減る利点を述べるため、逆接のHowever。",
+ lco26:"忘れやすい語だけを追加練習させる仕組みを、弱点に合わせた授業と言い換えるためIn other words。",
+ lco27:"歩道拡張・照明・自転車レーンの整備によって遅刻と事故が減った結果を示すためAs a result。",
+ lco28:"高齢者のつながりを助けるという一般説明の後に、運動・スマホ・昼食会の例が続くためFor example。",
+ lco29:"老犬は人気がないという予想に反し、穏やかさを好まれて早く引き取られたためHowever。",
+ lco30:"分別箱の設置と説明によって、ごみ分別の間違いが減った結果を示すためAs a result。",
+ lex12:"道具を持つだけでは役立たない。辞書を所有しても未知語を調べない例が『使い方を理解して初めて有用』に対応する。",
+ lex13:"見た目のよい情報より信頼できる情報を選ぶ。派手なアプリより地域の警報を信じて作物を守った例が対応する。",
+ lex14:"全体を変えられなくても一人には違いを生める。浜全体は救えなくても一匹のカニを海へ戻す例が対応する。",
+ lex15:"一部の情報だけで判断すると誤解する。弟の玩具の近くにカメラがあるだけで弟を責め、映像で猫が原因と分かる例が対応する。",
+ lex16:"報酬がなくても遊びは起こる。餌を得られないのにハチが自発的に何度もボールを転がす例が対応する。",
+ lex17:"規則は一つの問題を解決して別の問題を生むことがある。携帯禁止で授業は静かになる一方、緊急連絡ができない例が対応する。",
+ lex18:"お金より心の平穏を選ぶことがある。盗難が心配で眠れず、大金を返して元の生活を望む例が対応する。",
+ lex19:"善意でも方法が不適切なら失敗する。娘を助けるため染めた服の色が雨で落ちた例が対応する。",
+ lex20:"新しい証拠で出来事の理解は変わる。映像から、責められた生徒ではなく別の子が絵の具をこぼしたと分かる例が対応する。"
+};
+const LEARNING_POINT_RELEASE2_DERIVED=new Set([
+ "lrf01","lrf02","lrf03","lrf04","lrf05","lrf06","lrf07","lrf08","lrf09",
+ "lcx01","lcx02","lcx03","lcx04","lcx05","lcx06","lcx07","lcx08","lcx09","lcx10",
+ "lco20","lco22",
+ "let01","let02","let03","let04","let05","let06","let07","let08","let09","let10","let11",
+ "lex21",
+ "lwc29","lwc31","lwc43","lwc44","lwc45","lwc46","lwc47","lwc48","lwc49","lwc50","lwc51","lwc52","lwc53","lwc54"
+]);
+const LEARNING_POINT_RELEASE2_IDS=new Set([...Object.keys(LEARNING_POINT_RELEASE2_OVERRIDES),...LEARNING_POINT_RELEASE2_DERIVED]);
 function learningPointSelection(parts,q){
  const part=label=>parts.find(x=>x.label===label),pick=(entry,clean=false)=>entry?{text:clean?cleanLearningPointText(entry.text):entry.text,used:[entry]}:null,combine=(entries,text)=>({text,used:entries.filter(Boolean)}),skill=q?.skill;
  const override=LEARNING_POINT_RELEASE1_OVERRIDES[q?.id];
  if(override)return {text:override,used:[]};
  if(LEARNING_POINT_RELEASE1_DERIVED.has(q?.id)){
+   const reason=part("なぜ正解か"),evidence=part("根拠英文和訳");
+   if(reason)return combine([evidence,reason],evidence?`${evidence.text} ${reason.text}`:reason.text);
+ }
+ const release2Override=LEARNING_POINT_RELEASE2_OVERRIDES[q?.id];
+ if(release2Override)return {text:release2Override,used:[]};
+ if(LEARNING_POINT_RELEASE2_DERIVED.has(q?.id)){
+   if(skill==="writing_completion"){
+     const summary=part("全文要旨"),condition=part("空所条件");
+     if(summary&&condition)return combine([summary,condition],`${summary.text} ${condition.text}`);
+   }
    const reason=part("なぜ正解か"),evidence=part("根拠英文和訳");
    if(reason)return combine([evidence,reason],evidence?`${evidence.text} ${reason.text}`:reason.text);
  }
