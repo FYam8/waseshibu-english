@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.1.1",
   "ai_output": {
     "shape": "[S1,S2,R1,R2,X,G]",
     "S1_S2_R1_R2": {
@@ -13,9 +13,9 @@
       "1": "major source distortion or material self-contradiction"
     },
     "G": {
-      "0": "English clear enough",
-      "1": "minor language/spelling errors; meaning clear",
-      "2": "English materially impaired or materially non-English"
+      "0": "English is clear enough; errors do not materially interfere",
+      "1": "minor language/spelling errors; intended meaning remains clear without substantial inference",
+      "2": "English materially impairs interpretation, requires substantial inference, or is materially non-English"
     }
   },
   "not_ai_graded": [
