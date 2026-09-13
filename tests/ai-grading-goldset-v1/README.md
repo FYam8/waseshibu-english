@@ -64,7 +64,7 @@ This separation keeps the AI prompt smaller and avoids wasting model calls on de
 There are two distinct routing stages:
 
 1. **Pre-AI local checks**: blank input, technical input limits, obvious prompt-injection patterns if desired, and deterministic format metadata.
-2. **Post-L1 semantic escalation**: send to L2 when the L1 result contains any `3` in `S1..R2`, `X=1`, or `G=2`.
+2. **Post-L1 semantic escalation**: send to L2 when the L1 result contains any `3` in `S1..R2`, `X=1`, `G=2`, or the L1 output is malformed.
 
 Do **not** escalate merely because an answer contains `not`, `n't`, `but`, or `however`. Negation and contrast are normal in these questions.
 
@@ -91,24 +91,6 @@ There are 52 cases total: 26 per question. They include:
 
 Blank cases are expected to be handled locally without an AI call.
 
-## Blind adjudication
-
-Generate a packet that hides the provisional labels and all model predictions:
-
-```bash
-node tests/ai-grading-goldset-v1/generate-adjudication-packet.mjs \
-  tests/ai-grading-goldset-v1 > /tmp/adjudication.json
-```
-
-A reviewer fills `reviewer_label` for each case. Compare the independent review to the provisional labels with:
-
-```bash
-node tests/ai-grading-goldset-v1/reconcile-adjudication.mjs \
-  tests/ai-grading-goldset-v1 /tmp/adjudication-reviewed.json
-```
-
-See `ADJUDICATION.md`, `SECOND_REVIEW_PRIORITY.md`, and `PROVISIONAL_LABEL_REVIEW.md` before treating the labels as stable.
-
 ## Prompt A/B/C preflight
 
 `prompt-candidates.mjs` defines three semantically equivalent prompt shapes:
@@ -124,39 +106,58 @@ Character counts are only a rough preflight. After any prompt edit, regenerate t
 Generate test prompts with:
 
 ```bash
-node tests/ai-grading-goldset-v1/generate-prompts.mjs \
-  tests/ai-grading-goldset-v1 B L1
+node tests/ai-grading-goldset-v1/generate-prompts.mjs tests/ai-grading-goldset-v1 B L1
 ```
 
-## Cloudflare Workers AI evaluation
+## Blind adjudication
 
-`run-cloudflare-eval.mjs` can run all 50 AI-call cases against Cloudflare Workers AI. It performs L1 first and sends only ambiguous/high-risk semantic results to L2.
+Generate a reviewer packet that omits `expected_compact` and all model predictions:
 
-Credentials are read only from environment variables. **Never commit account IDs or API tokens into the repository.**
+```bash
+node tests/ai-grading-goldset-v1/generate-adjudication-packet.mjs tests/ai-grading-goldset-v1 > adjudication-packet.json
+```
+
+After an independent reviewer fills labels, use `reconcile-adjudication.mjs` to compare them with the provisional development labels. See `ADJUDICATION.md`, `SECOND_REVIEW_PRIORITY.md`, and `PROVISIONAL_LABEL_REVIEW.md`.
+
+## Cloudflare Workers AI real-model evaluation
+
+The repository includes `run-cloudflare-eval.mjs` and a manual GitHub Actions workflow `.github/workflows/ai-grading-benchmark.yml`.
+
+Credentials must never be committed. Provide them only as repository Actions secrets:
+
+- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_API_TOKEN`
+
+The token should be scoped for Workers AI access only as needed.
+
+Once the manual workflow is available on the default branch, choose **Actions → AI grading benchmark → Run workflow**. It runs A, B, and C on all 50 AI-call cases, applies L1→L2 escalation, validates each output set, compares the candidates, and uploads the raw/metric/comparison JSON files as an artifact.
+
+Local equivalent:
 
 ```bash
 export CLOUDFLARE_ACCOUNT_ID='...'
 export CLOUDFLARE_API_TOKEN='...'
-export CF_AI_MODEL='@cf/openai/gpt-oss-20b'   # optional; this is the default
+export CF_AI_MODEL='@cf/openai/gpt-oss-20b'
 
-node tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs \
-  tests/ai-grading-goldset-v1 A > /tmp/pred-A.json
-node tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs \
-  tests/ai-grading-goldset-v1 B > /tmp/pred-B.json
-node tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs \
-  tests/ai-grading-goldset-v1 C > /tmp/pred-C.json
+node tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs tests/ai-grading-goldset-v1 A > eval-A.json
+node tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs tests/ai-grading-goldset-v1 B > eval-B.json
+node tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs tests/ai-grading-goldset-v1 C > eval-C.json
+node tests/ai-grading-goldset-v1/compare-evals.mjs tests/ai-grading-goldset-v1 eval-A.json eval-B.json eval-C.json > comparison.json
 ```
 
-Validate each run:
+`pricing-snapshot.json` contains a dated price snapshot only for estimating development-run cost. Re-check current provider pricing before making any budget claim.
 
-```bash
-node tests/ai-grading-goldset-v1/validate.mjs \
-  tests/ai-grading-goldset-v1 /tmp/pred-A.json
-```
+## Candidate selection rule
 
-The runner records model name, L1/L2 usage, escalation rate, malformed outputs, and token usage when Cloudflare returns usage metadata. Temporary API errors are retried; a malformed model output is recorded rather than aborting the entire benchmark.
+A candidate is not allowed to win merely because it uses fewer tokens. The development comparator first requires:
 
-Do not use the same development set result to make a final production-accuracy claim. A/B/C may be selected here, then the chosen prompt/routing policy must be frozen and evaluated once on a new unseen holdout.
+- 100% prediction coverage;
+- zero major-contradiction miss/unresolved rate;
+- zero false semantic-complete rate.
+
+Among candidates that pass those safety gates, it ranks by semantic accuracy, then exact case match, then total token usage.
+
+This is only a **development leader**. It is not a production winner until blind adjudication and unseen holdout evaluation are complete.
 
 ## Safety/quality metrics
 
@@ -182,21 +183,12 @@ Recommended sequence:
 
 1. independently adjudicate this 52-case development set;
 2. compare A/B/C and freeze prompt + routing policy;
-3. create a new unseen holdout set covering the same failure categories plus new wording/topics;
-4. independently adjudicate the holdout without seeing model predictions;
+3. create a new unseen holdout set;
+4. independently adjudicate the holdout without model predictions;
 5. run the frozen grader once on holdout;
 6. decide production readiness from holdout safety + accuracy + token/cost metrics.
 
-## CI and tooling checks
-
-The repository CI runs:
-
-- existing cloud-progress-sync tests;
-- static development-set lint;
-- A/B/C prompt-generation smoke tests;
-- blind-adjudication packet generation.
-
-These checks validate the test infrastructure only. They are not a substitute for independent adjudication or real-model accuracy measurement.
+`HOLDOUT_PLAN.md` reserves the 2025 rebuttal-writing item for the unseen same-format holdout. 2019–2023 are reserved for later cross-format generalization work.
 
 ## Source files
 
