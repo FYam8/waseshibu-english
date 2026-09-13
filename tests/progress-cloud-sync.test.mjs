@@ -24,9 +24,41 @@ assert.match(sync,/collectionDisabled/);
 assert.match(sync,/deadletter/);
 assert.match(sync,/pagehide/);
 assert.match(sync,/studying remains local-first/);
+
+// Unstarted years must not become "started" merely because a state row exists.
 assert.match(sync,/payload:started\?\{year:String\(year\),completed\}:\{completed:false\}/);
 assert.doesNotMatch(sync,/payload:started\?\{year:String\(year\),completed\}:\{year:String\(year\),completed:false\}/);
-assert.doesNotMatch(sync,/S\.answers|S\.manual/);
+
+// From-now production needs occurrence rows because cumulative state:* rows are excluded formally.
+assert.match(sync,/function buildOccurrenceRecords/);
+assert.match(sync,/history:exam:/);
+assert.match(sync,/history:drill:/);
+assert.match(sync,/exam_started/);
+assert.match(sync,/exam_interrupted/);
+assert.match(sync,/drill_answered/);
+assert.match(sync,/correct:d\.ok\?1:0/);
+assert.match(sync,/reg\?\.status!=='production'/);
+assert.match(sync,/occurrenceSignature:/);
+assert.match(sync,/active:active\?\[active\.id,'active',active\.startedAt,active\.year\]:null/);
+assert.match(sync,/Object\.assign\(reg,next\)/);
+assert.match(sync,/flushAvailable/);
+
+// Current-state counts remain semantically valid and include an active exam session.
+assert.match(sync,/total:weak\.length,correct:mastered\.length/);
+assert.doesNotMatch(sync,/total:activeWeak\.length,correct:mastered\.length/);
+assert.match(sync,/active\?\.startedAt/);
+
+// State timestamps change every reconciliation; they must not create timestamp-only revisions.
+assert.match(sync,/canonicalJson\(\{eventType:record\.eventType,payload:record\.payload\}\)/);
+assert.doesNotMatch(sync,/canonicalJson\(\{eventType:record\.eventType,occurredAt:record\.occurredAt,payload:record\.payload\}\)/);
+
+// If control changes to revoked/ignored during baseline, stop before growing the outbox.
+assert.match(sync,/await uploadBaseline\(reg\);if\(await getControl\('syncRevoked'\)\|\|await getControl\('collectionDisabled'\)\)return/);
+
+// Reading local answers is allowed for counts/year-start detection, but raw answer maps must never be uploaded.
+assert.doesNotMatch(sync,/\banswers\s*:/);
+assert.doesNotMatch(sync,/\bmanual\s*:/);
+
 assert.match(index,/<script src="app\.js"><\/script><script src="progress-sync\.js"><\/script>/);
 assert.match(app,/const STORAGE_KEY="waseshibu\.adaptive\.v3"/);
 assert.match(app,/SCHEMA_VERSION=8/);
