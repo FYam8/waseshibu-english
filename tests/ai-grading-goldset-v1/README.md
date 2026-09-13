@@ -1,19 +1,25 @@
 # English AI Grading Gold Set v1
 
-Purpose: validate a low-token semantic grader for the free-response English writing items in the Waseda Shibuya Singapore entrance-exam trainer.
+Purpose: develop and validate a low-token semantic grader for the free-response English writing items in the Waseda Shibuya Singapore entrance-exam trainer.
+
+## Status: PROVISIONAL DEVELOPMENT SET
+
+This dataset is synthetic and was created during grader development. Its labels have **not yet been independently human-adjudicated**, so benchmark numbers from it must not be presented as final grading accuracy.
+
+Use this set to compare prompt candidates and find failure modes. After the prompt/routing policy is frozen, create a separate unseen holdout set and adjudicate it independently before making a production-quality claim.
 
 ## Scope
 
-This first gold set covers two 24-point rebuttal-writing questions:
+This first development set covers two 24-point rebuttal-writing questions:
 
 - `2024:4`: summarize B's opposition to allowing mobile phones at school, then rebut it. The exam instruction requires English and a maximum of 60 words.
 - `2026:6`: summarize Ken's preference for professional cleaners, then rebut it. The exam instruction asks for about 50 words.
 
-The repository contains official answer examples for both questions, but this gold set does **not** invent an official 24-point breakdown. It labels semantic components only. Numeric app scoring should be calibrated later and clearly shown as an app-estimated score unless an official detailed rubric is verified.
+The repository contains official answer examples for both questions, but this dataset does **not** invent an official 24-point breakdown. It labels semantic/language components only. Numeric app scoring must be calibrated later and clearly shown as an app-estimated score unless an official detailed rubric is verified.
 
-## Compact grader target
+## Compact AI target
 
-The grader should return only:
+The AI grader should return only:
 
 `[S1,S2,R1,R2,X,G]`
 
@@ -24,7 +30,7 @@ Where:
 - `R1`: an actual rebuttal or material qualification, not simple agreement.
 - `R2`: a relevant reason, example, rule, or compromise supporting the rebuttal.
 - `X`: major source distortion or material self-contradiction.
-- `G`: language severity.
+- `G`: English-language clarity only.
 
 For `S1/S2/R1/R2`:
 
@@ -40,13 +46,29 @@ For `X`:
 
 For `G`:
 
-- `0` clear enough
-- `1` minor grammar/spelling errors, meaning clear
-- `2` materially impaired English / response-condition violation
+- `0` English is clear enough
+- `1` minor grammar/spelling errors but meaning remains clear
+- `2` English is materially impaired or the response is materially non-English
 
-## Important routing rule
+### Word count / response format is NOT an AI field
 
-Do **not** escalate merely because an answer contains `not`, `n't`, `but`, or `however`. Negation and contrast are normal in these tasks. Risk escalation should target structural conflict, role reversal, prompt injection, mixed-language violations, or materially fragmentary/ambiguous answers.
+Do not ask the model to count words. Word-count and deterministic format checks belong in local code.
+
+- For `2024:4`, `>60` words is a deterministic hard-limit flag.
+- For `2026:6`, the instruction says "about 50 words" but the repository does not provide a verified hard scoring cutoff. Record the count locally; do not invent a numeric penalty threshold.
+
+This separation keeps the AI prompt smaller and avoids wasting model calls on deterministic checks.
+
+## Routing policy
+
+There are two distinct routing stages:
+
+1. **Pre-AI local checks**: blank input, technical input limits, obvious prompt-injection patterns if desired, and deterministic format metadata.
+2. **Post-L1 semantic escalation**: send to L2 when the L1 result contains any `3` in `S1..R2`, `X=1`, or `G=2`.
+
+Do **not** escalate merely because an answer contains `not`, `n't`, `but`, or `however`. Negation and contrast are normal in these questions.
+
+The case-level `risk_expectation` field is a development hint for obvious pre-AI/high-risk inputs; it is not the sole source of the post-L1 escalation decision.
 
 ## Dataset composition
 
@@ -77,15 +99,9 @@ Blank cases are expected to be handled locally without an AI call.
 - B: compact natural-language version
 - C: ultra-compact version
 
-On the current 50 AI-call cases, a character-count preflight produced approximately:
+The student answer is serialized as JSON data before insertion into the prompt. This makes the answer boundary explicit and reduces prompt-injection ambiguity.
 
-| Candidate | L1 average chars | L2 average chars |
-|---|---:|---:|
-| A | 810 | 1,009 |
-| B | 745 | 938 |
-| C | 652 | 845 |
-
-These are **not token counts** and do not select the winner. The production candidate must be chosen using the actual target model's measured input/output tokens plus grading accuracy. The shortest prompt must not be selected if it increases false-complete or contradiction-miss errors.
+Character counts are only a rough preflight. After any prompt edit, regenerate them rather than relying on previously recorded numbers. **Actual target-model input/output token counts and grading accuracy decide the winner.**
 
 Generate test prompts with:
 
@@ -95,18 +111,33 @@ node tests/ai-grading-goldset-v1/generate-prompts.mjs tests/ai-grading-goldset-v
 
 ## Safety/quality metrics
 
-The validation stage should report at least:
+`validate.mjs` reports at least:
 
-- exact case match
-- component accuracy across all six fields
-- semantic-component accuracy for `S1..R2`
-- major contradiction miss rate
-- false-complete rate on non-complete cases
-- average input/output tokens
-- Level-2 escalation rate
+- prediction coverage
+- exact case match across all AI cases
+- component accuracy on valid predictions and on all AI cases
+- semantic accuracy for `S1..R2`
+- major contradiction miss-or-unresolved rate
+- false **semantic-complete** rate (not a claim of official full credit)
+- expected L2 escalation cases and missed/unresolved escalation rate
+- declared word-count mismatches
+- deterministic hard word-limit violations
 
-The main safety metric is not just overall accuracy. False full-credit style outcomes and missed meaning reversals should be treated as high-severity failures.
+Missing/malformed outputs must never disappear from denominators in a way that makes accuracy look artificially high.
+
+## Development vs final evaluation
+
+Do not use the same 52 cases both to tune A/B/C and to make a final accuracy claim.
+
+Recommended sequence:
+
+1. independently adjudicate this 52-case development set;
+2. compare A/B/C and freeze prompt + routing policy;
+3. create a new unseen holdout set covering the same failure categories plus new wording/topics;
+4. independently adjudicate the holdout without seeing model predictions;
+5. run the frozen grader once on holdout;
+6. decide production readiness from holdout safety + accuracy + token/cost metrics.
 
 ## Source files
 
-The gold set is grounded in the current repository's `data.js`, `manual-guides.js`, and `app.js`. The official answer examples used here are already recorded in `manual-guides.js`. The current app still stores manual scores in `S.manual`; this gold set does not change production grading or storage behavior.
+The development set is grounded in the current repository's `data.js`, `manual-guides.js`, and `app.js`. The official answer examples used here are already recorded in `manual-guides.js`. The current app still stores manual scores in `S.manual`; this PR does not change production grading or storage behavior.
