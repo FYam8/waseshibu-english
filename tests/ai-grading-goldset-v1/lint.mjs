@@ -8,7 +8,7 @@ if (!shardFiles.length) throw new Error('no case shards found');
 
 const rubrics = JSON.parse(fs.readFileSync(path.join(goldDir, 'rubrics.json'), 'utf8'));
 const schema = JSON.parse(fs.readFileSync(path.join(goldDir, 'grader-schema.json'), 'utf8'));
-if (schema.schema_version !== '1.1.0') throw new Error(`unexpected grader schema ${schema.schema_version}`);
+if (!/^1\.1\./.test(String(schema.schema_version))) throw new Error(`unexpected grader schema ${schema.schema_version}`);
 
 const shards = shardFiles.map(name => ({name, data: JSON.parse(fs.readFileSync(path.join(goldDir, name), 'utf8'))}));
 const cases = shards.flatMap(x => x.data.cases || []);
@@ -49,6 +49,7 @@ for (const {name,data} of shards) {
   if (!qid) errors.push(`${name}: missing question_id`);
   if (!rubrics[qid]) errors.push(`${name}: no compact rubric for ${qid}`);
   if (!Array.isArray(data.cases) || !data.cases.length) errors.push(`${name}: no cases`);
+  if (!/^1\.1\./.test(String(data.schema_version))) errors.push(`${name}: unexpected shard schema ${data.schema_version}`);
   for (const c of data.cases || []) if (c.question_id !== qid) errors.push(`${c.case_id}: question_id does not match shard ${qid}`);
 }
 
