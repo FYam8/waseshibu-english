@@ -19,4 +19,6 @@ jobs:
       - run: node tests/ai-grading-goldset-v1/smoke.mjs tests/ai-grading-goldset-v1
       - run: node --check tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs
       - run: node --check tests/ai-grading-goldset-v1/reconcile-adjudication.mjs
+      - run: node --check tests/ai-grading-goldset-v1/compare-evals.mjs
+      - run: node tests/ai-grading-goldset-v1/compare-smoke.mjs tests/ai-grading-goldset-v1
       - run: node tests/ai-grading-goldset-v1/generate-adjudication-packet.mjs tests/ai-grading-goldset-v1 > /tmp/adjudication.json
