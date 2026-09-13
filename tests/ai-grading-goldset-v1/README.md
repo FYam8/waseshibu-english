@@ -130,7 +130,21 @@ Credentials must never be committed. Provide them only as repository Actions sec
 
 The token should be scoped for Workers AI access only as needed.
 
-Once the manual workflow is available on the default branch, choose **Actions → AI grading benchmark → Run workflow**. It runs A, B, and C on all 50 AI-call cases, applies L1→L2 escalation, validates each output set, compares the candidates, and uploads the raw/metric/comparison JSON files as an artifact.
+### Run a 12-answer pilot first
+
+The manual workflow defaults to `scope=pilot`. The pilot uses 12 deliberately mixed cases: official-quality answers, summary-only answers, contradiction/source-distortion cases, mixed-language/major-language cases, and prompt-injection cases. It runs all three candidates, so the first real-model trial is **12 answers × A/B/C = 36 grading evaluations**, plus any L2 escalations.
+
+This pilot is for technical and behavioral validation before spending calls on the full development set. Check especially:
+
+- malformed output rate;
+- L1→L2 escalation behavior;
+- contradiction/source-distortion detection;
+- prompt-injection resistance;
+- token usage and obvious A/B/C differences.
+
+If the pilot looks reasonable, rerun the same workflow with `scope=full`. That performs **50 answers × A/B/C = 150 grading evaluations**, plus any L2 escalations.
+
+Once the manual workflow is available on the default branch, choose **Actions → AI grading benchmark → Run workflow**, select `pilot` or `full`, and run it. The workflow validates each output set, compares the candidates, and uploads raw/metric/comparison JSON files as an artifact.
 
 Local equivalent:
 
@@ -139,10 +153,13 @@ export CLOUDFLARE_ACCOUNT_ID='...'
 export CLOUDFLARE_API_TOKEN='...'
 export CF_AI_MODEL='@cf/openai/gpt-oss-20b'
 
-node tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs tests/ai-grading-goldset-v1 A > eval-A.json
-node tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs tests/ai-grading-goldset-v1 B > eval-B.json
-node tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs tests/ai-grading-goldset-v1 C > eval-C.json
+# First: technical pilot
+node tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs tests/ai-grading-goldset-v1 A pilot > eval-A.json
+node tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs tests/ai-grading-goldset-v1 B pilot > eval-B.json
+node tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs tests/ai-grading-goldset-v1 C pilot > eval-C.json
 node tests/ai-grading-goldset-v1/compare-evals.mjs tests/ai-grading-goldset-v1 eval-A.json eval-B.json eval-C.json > comparison.json
+
+# Then, if the pilot is acceptable, repeat with `full`.
 ```
 
 `pricing-snapshot.json` contains a dated price snapshot only for estimating development-run cost. Re-check current provider pricing before making any budget claim.
@@ -164,14 +181,16 @@ This is only a **development leader**. It is not a production winner until blind
 `validate.mjs` reports at least:
 
 - prediction coverage
-- exact case match across all AI cases
-- component accuracy on valid predictions and on all AI cases
+- exact case match across evaluated AI cases
+- component accuracy on valid predictions and on evaluated AI cases
 - semantic accuracy for `S1..R2`
 - major contradiction miss-or-unresolved rate
 - false **semantic-complete** rate (not a claim of official full credit)
 - expected L2 escalation cases and missed/unresolved escalation rate
 - declared word-count mismatches
 - deterministic hard word-limit violations
+
+Pilot reports carry `evaluated_case_ids`, so the validator scores only the 12 pilot cases rather than incorrectly treating the remaining development cases as missing predictions.
 
 Missing/malformed outputs must never disappear from denominators in a way that makes accuracy look artificially high.
 
@@ -182,11 +201,12 @@ Do not use the same 52 cases both to tune A/B/C and to make a final accuracy cla
 Recommended sequence:
 
 1. independently adjudicate this 52-case development set;
-2. compare A/B/C and freeze prompt + routing policy;
-3. create a new unseen holdout set;
-4. independently adjudicate the holdout without model predictions;
-5. run the frozen grader once on holdout;
-6. decide production readiness from holdout safety + accuracy + token/cost metrics.
+2. run the 12-case technical pilot;
+3. if technically healthy, compare A/B/C on the full development set and freeze prompt + routing policy;
+4. create/use the unseen holdout set;
+5. independently adjudicate the holdout without model predictions;
+6. run the frozen grader once on holdout;
+7. decide production readiness from holdout safety + accuracy + token/cost metrics.
 
 `HOLDOUT_PLAN.md` reserves the 2025 rebuttal-writing item for the unseen same-format holdout. 2019–2023 are reserved for later cross-format generalization work.
 
