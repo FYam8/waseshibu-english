@@ -28,7 +28,14 @@ if (duplicatePredictionIds.length) throw new Error(`duplicate prediction ids: ${
 const allCaseIds = new Set(cases.map(c => c.case_id));
 const extraPredictionIds = predictions.map(x => x?.case_id).filter(id => id && !allCaseIds.has(id));
 const predById = new Map(predictions.map(x => [x.case_id, x.prediction]));
-const aiCases = cases.filter(c => c.ai_call_expected);
+const requestedIds = Array.isArray(predictionsRaw?.evaluated_case_ids) ? new Set(predictionsRaw.evaluated_case_ids) : null;
+if (requestedIds) {
+  const unknownRequested = [...requestedIds].filter(id => !allCaseIds.has(id));
+  if (unknownRequested.length) throw new Error(`unknown evaluated_case_ids: ${unknownRequested.join(', ')}`);
+}
+const aiCasesAll = cases.filter(c => c.ai_call_expected);
+const aiCases = requestedIds ? aiCasesAll.filter(c => requestedIds.has(c.case_id)) : aiCasesAll;
+if (requestedIds && aiCases.length !== requestedIds.size) throw new Error(`evaluated_case_ids include non-AI or missing cases`);
 const missing = aiCases.filter(c => !predById.has(c.case_id)).map(c => c.case_id);
 
 function validPrediction(p) {
@@ -116,8 +123,10 @@ for (const c of aiCases) {
 }
 
 const report = {
-  total_cases: cases.length,
+  dataset_total_cases: cases.length,
+  evaluated_scope: predictionsRaw?.scope || (requestedIds ? 'subset' : 'full'),
   local_precheck_cases: cases.filter(c => !c.ai_call_expected).length,
+  ai_cases_total: aiCasesAll.length,
   ai_cases: aiCases.length,
   predictions_received: aiCases.length - missing.length,
   valid_predictions: validCount,
