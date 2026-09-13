@@ -6,7 +6,7 @@ Purpose: develop and validate a low-token semantic grader for the free-response 
 
 This dataset is synthetic and was created during grader development. Its labels have **not yet been independently human-adjudicated**, so benchmark numbers from it must not be presented as final grading accuracy.
 
-Use this set to compare prompt candidates and find failure modes. After the prompt/routing policy is frozen, create a separate unseen holdout set and adjudicate it independently before making a production-quality claim.
+Use this set to find grader failure modes and, after blind adjudication, compare prompt candidates. After the prompt/routing policy is frozen, use a separate unseen holdout before making a production-quality claim.
 
 ## Scope
 
@@ -19,7 +19,7 @@ The repository contains official answer examples for both questions, but this da
 
 ## Compact AI target
 
-The AI grader should return only:
+The AI grader returns only:
 
 `[S1,S2,R1,R2,X,G]`
 
@@ -32,86 +32,48 @@ Where:
 - `X`: major source distortion or material self-contradiction.
 - `G`: English-language clarity only.
 
-For `S1/S2/R1/R2`:
+For `S1/S2/R1/R2`: `0=absent`, `1=supported`, `2=contradicted/materially wrong`, `3=unclear/mixed`.
 
-- `0` absent
-- `1` supported
-- `2` contradicted/materially wrong
-- `3` unclear/mixed
+For `X`: `0=none`, `1=major contradiction/distortion`.
 
-For `X`:
+For `G`: `0=clear enough`, `1=minor errors but meaning clear`, `2=materially impaired or materially non-English`.
 
-- `0` none
-- `1` major contradiction/distortion
-
-For `G`:
-
-- `0` English is clear enough
-- `1` minor grammar/spelling errors but meaning remains clear
-- `2` English is materially impaired or the response is materially non-English
-
-### Word count / response format is NOT an AI field
+## Deterministic checks stay local
 
 Do not ask the model to count words. Word-count and deterministic format checks belong in local code.
 
-- For `2024:4`, `>60` words is a deterministic hard-limit flag.
-- For `2026:6`, the instruction says "about 50 words" but the repository does not provide a verified hard scoring cutoff. Record the count locally; do not invent a numeric penalty threshold.
-
-This separation keeps the AI prompt smaller and avoids wasting model calls on deterministic checks.
+- `2024:4`: more than 60 words is a deterministic hard-limit flag.
+- `2026:6`: the instruction says about 50 words, but no verified hard scoring cutoff is stored; record the count locally and do not invent a numeric penalty threshold.
+- Blank input and technical input limits are also local checks.
 
 ## Routing policy
 
-There are two distinct routing stages:
+1. Local prechecks handle blank/technical/deterministic format information.
+2. L1 receives compact rubric + answer.
+3. Send to L2 when L1 has any `3` in `S1..R2`, `X=1`, `G=2`, or malformed output.
+4. L2 adds only the minimum source context.
 
-1. **Pre-AI local checks**: blank input, technical input limits, obvious prompt-injection patterns if desired, and deterministic format metadata.
-2. **Post-L1 semantic escalation**: send to L2 when the L1 result contains any `3` in `S1..R2`, `X=1`, `G=2`, or the L1 output is malformed.
+Do **not** escalate merely because an answer contains `not`, `n't`, `but`, or `however`; negation and contrast are normal in these questions.
 
-Do **not** escalate merely because an answer contains `not`, `n't`, `but`, or `however`. Negation and contrast are normal in these questions.
-
-The case-level `risk_expectation` field is a development hint for obvious pre-AI/high-risk inputs; it is not the sole source of the post-L1 escalation decision.
+The case-level `risk_expectation` field is a development hint, not a production scoring rule.
 
 ## Dataset composition
 
-There are 52 cases total: 26 per question. They include:
+There are 52 cases total, 26 per question. They include official examples, paraphrases, valid alternative reasons, summary-only/rebuttal-only responses, agreement instead of rebuttal, reversed summaries, source distortion, self-contradiction, language errors, short/overlong answers, prompt injection, mixed-language answers, and blank input. Blank cases are local-precheck only.
 
-- official answer examples
-- strong paraphrases
-- valid alternative reasons
-- answers without `However`
-- summary-only and rebuttal-only responses
-- agreement instead of rebuttal
-- reversed summaries
-- source distortions
-- self-contradictory answers
-- minor grammar/spelling errors
-- major language problems
-- very short / overlong answers
-- prompt-injection attempts
-- blank answers for local precheck
+## Prompt candidates
 
-Blank cases are expected to be handled locally without an AI call.
-
-## Prompt A/B/C preflight
-
-`prompt-candidates.mjs` defines three semantically equivalent prompt shapes:
+`prompt-candidates.mjs` defines three semantically equivalent shapes:
 
 - A: safest/readable baseline
 - B: compact natural-language version
 - C: ultra-compact version
 
-The student answer is serialized as JSON data before insertion into the prompt. This makes the answer boundary explicit and reduces prompt-injection ambiguity.
-
-Character counts are only a rough preflight. After any prompt edit, regenerate them rather than relying on previously recorded numbers. **Actual target-model input/output token counts and grading accuracy decide the winner.**
-
-Generate test prompts with:
-
-```bash
-node tests/ai-grading-goldset-v1/generate-prompts.mjs tests/ai-grading-goldset-v1 B L1
-```
+Student answers are JSON-serialized as untrusted data before insertion. Character counts are only a preflight; actual target-model token usage and grading behavior decide whether compression is worthwhile.
 
 ## Blind adjudication
 
-Generate a reviewer packet that omits `expected_compact` and all model predictions:
+Generate a reviewer packet that omits provisional labels and all model predictions:
 
 ```bash
 node tests/ai-grading-goldset-v1/generate-adjudication-packet.mjs tests/ai-grading-goldset-v1 > adjudication-packet.json
@@ -119,97 +81,64 @@ node tests/ai-grading-goldset-v1/generate-adjudication-packet.mjs tests/ai-gradi
 
 After an independent reviewer fills labels, use `reconcile-adjudication.mjs` to compare them with the provisional development labels. See `ADJUDICATION.md`, `SECOND_REVIEW_PRIORITY.md`, and `PROVISIONAL_LABEL_REVIEW.md`.
 
-## Cloudflare Workers AI real-model evaluation
+## Cloudflare Workers AI trial
 
-The repository includes `run-cloudflare-eval.mjs` and a manual GitHub Actions workflow `.github/workflows/ai-grading-benchmark.yml`.
+The repository includes `run-cloudflare-eval.mjs` and `.github/workflows/ai-grading-benchmark.yml`.
 
 Credentials must never be committed. Provide them only as repository Actions secrets:
 
 - `CLOUDFLARE_ACCOUNT_ID`
 - `CLOUDFLARE_API_TOKEN`
 
-The token should be scoped for Workers AI access only as needed.
+Use a token limited to the Workers AI permissions needed for inference. The benchmark workflow only runs its secret-bearing job from `main`.
 
-### Run a 12-answer pilot first
+The current trial defaults to `@cf/openai/gpt-oss-20b`, temperature `0`, seed `1`, and a bounded `max_tokens=64`. The 64-token cap is a safety margin for the trial, not a target output length; actual output tokens are measured. The expected answer remains only the six-value array. Structured JSON mode is not assumed by the harness; output is validated by the strict parser so unsupported model-specific structured-output behavior cannot silently affect the comparison.
 
-The manual workflow defaults to `scope=pilot`. The pilot uses 12 deliberately mixed cases: official-quality answers, summary-only answers, contradiction/source-distortion cases, mixed-language/major-language cases, and prompt-injection cases. It runs all three candidates, so the first real-model trial is **12 answers × A/B/C = 36 grading evaluations**, plus any L2 escalations.
+### Stage 1 — 12-answer technical pilot
 
-This pilot is for technical and behavioral validation before spending calls on the full development set. Check especially:
+Run **Actions → AI grading benchmark → Run workflow** on `main` with `scope=pilot`.
 
-- malformed output rate;
-- L1→L2 escalation behavior;
-- contradiction/source-distortion detection;
-- prompt-injection resistance;
-- token usage and obvious A/B/C differences.
+The pilot contains 12 deliberately difficult/mixed cases and runs A/B/C, so it makes 36 L1 evaluations plus any L2 escalations.
 
-If the pilot looks reasonable, rerun the same workflow with `scope=full`. That performs **50 answers × A/B/C = 150 grading evaluations**, plus any L2 escalations.
+**The pilot is technical-only. It must not choose an A/B/C winner.** The comparator always sets `development_leader` to `null` for pilot scope. Pilot accuracy figures are diagnostic only because the sample is deliberately small, adversarially skewed, and still uses provisional labels.
 
-Once the manual workflow is available on the default branch, choose **Actions → AI grading benchmark → Run workflow**, select `pilot` or `full`, and run it. The workflow validates each output set, compares the candidates, and uploads raw/metric/comparison JSON files as an artifact.
+Pilot pass checks only that the evaluation plumbing is healthy: exact pilot case set, valid final output coverage, no malformed final L2 output, and usable token telemetry. If the pilot fails, raw model output, stderr logs, metrics, and comparison JSON are still uploaded as an artifact before the workflow is marked failed.
 
-Local equivalent:
+### Stage 2 — full development comparison
 
-```bash
-export CLOUDFLARE_ACCOUNT_ID='...'
-export CLOUDFLARE_API_TOKEN='...'
-export CF_AI_MODEL='@cf/openai/gpt-oss-20b'
+Do not run the full 50-answer comparison until blind label adjudication is complete. The manual workflow enforces this: for `scope=full`, type `ADJUDICATED` in `full_confirmation`.
 
-# First: technical pilot
-node tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs tests/ai-grading-goldset-v1 A pilot > eval-A.json
-node tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs tests/ai-grading-goldset-v1 B pilot > eval-B.json
-node tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs tests/ai-grading-goldset-v1 C pilot > eval-C.json
-node tests/ai-grading-goldset-v1/compare-evals.mjs tests/ai-grading-goldset-v1 eval-A.json eval-B.json eval-C.json > comparison.json
+Full scope must contain exactly all 50 AI-call development cases. The validator rejects a subset labeled as full. Likewise, pilot scope must contain exactly the 12 IDs in `pilot-cases.json`.
 
-# Then, if the pilot is acceptable, repeat with `full`.
-```
+Only full development scope may produce a `development_leader`. A candidate cannot win merely because it uses fewer tokens. It must first have a technical pass, 100% valid prediction coverage, zero major-contradiction miss/unresolved rate, and zero false-semantic-complete rate. Eligible candidates are then ranked by semantic accuracy, exact case match, and finally total token usage.
 
-`pricing-snapshot.json` contains a dated price snapshot only for estimating development-run cost. Re-check current provider pricing before making any budget claim.
+This is still only a **development leader**, not a production winner.
 
-## Candidate selection rule
+## Failure evidence
 
-A candidate is not allowed to win merely because it uses fewer tokens. The development comparator first requires:
-
-- 100% prediction coverage;
-- zero major-contradiction miss/unresolved rate;
-- zero false semantic-complete rate.
-
-Among candidates that pass those safety gates, it ranks by semantic accuracy, then exact case match, then total token usage.
-
-This is only a **development leader**. It is not a production winner until blind adjudication and unseen holdout evaluation are complete.
+The GitHub Actions workflow preserves evidence even when a candidate, validator, or comparison fails. The uploaded artifact includes raw A/B/C JSON where available, candidate stderr logs, validation metrics, and `comparison.json`. A final gate then marks the workflow failed so errors cannot be mistaken for a passing benchmark.
 
 ## Safety/quality metrics
 
-`validate.mjs` reports at least:
+`validate.mjs` reports prediction coverage, exact case match, component/semantic accuracy, major contradiction miss-or-unresolved rate, false semantic-complete rate, L2 escalation misses, word-count metadata mismatches, and deterministic hard word-limit violations.
 
-- prediction coverage
-- exact case match across evaluated AI cases
-- component accuracy on valid predictions and on evaluated AI cases
-- semantic accuracy for `S1..R2`
-- major contradiction miss-or-unresolved rate
-- false **semantic-complete** rate (not a claim of official full credit)
-- expected L2 escalation cases and missed/unresolved escalation rate
-- declared word-count mismatches
-- deterministic hard word-limit violations
-
-Pilot reports carry `evaluated_case_ids`, so the validator scores only the 12 pilot cases rather than incorrectly treating the remaining development cases as missing predictions.
-
-Missing/malformed outputs must never disappear from denominators in a way that makes accuracy look artificially high.
+Missing/malformed outputs remain in the relevant denominators and cannot make accuracy look artificially high. Unexpected predictions outside the declared evaluation set are rejected.
 
 ## Development vs final evaluation
 
-Do not use the same 52 cases both to tune A/B/C and to make a final accuracy claim.
-
 Recommended sequence:
 
-1. independently adjudicate this 52-case development set;
-2. run the 12-case technical pilot;
-3. if technically healthy, compare A/B/C on the full development set and freeze prompt + routing policy;
-4. create/use the unseen holdout set;
-5. independently adjudicate the holdout without model predictions;
-6. run the frozen grader once on holdout;
-7. decide production readiness from holdout safety + accuracy + token/cost metrics.
+1. run the 12-case **technical-only** pilot;
+2. independently adjudicate the development labels;
+3. if the pilot is technically healthy, run full A/B/C development comparison;
+4. freeze prompt + routing policy;
+5. use the unseen 2025 same-format holdout;
+6. adjudicate the holdout without model predictions;
+7. run the frozen grader once on holdout;
+8. decide production readiness from holdout safety, accuracy, token, and cost metrics.
 
 `HOLDOUT_PLAN.md` reserves the 2025 rebuttal-writing item for the unseen same-format holdout. 2019–2023 are reserved for later cross-format generalization work.
 
-## Source files
+## Production impact
 
-The development set is grounded in the current repository's `data.js`, `manual-guides.js`, and `app.js`. The official answer examples used here are already recorded in `manual-guides.js`. The current app still stores manual scores in `S.manual`; this PR does not change production grading or storage behavior.
+These benchmark files do not change `app.js`, the localStorage schema, grading UI, learner history, or progress sync behavior.
