@@ -22,12 +22,14 @@ permissions:
 
 jobs:
   benchmark:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CF_AI_MODEL: ${{ inputs.model }}
+      CF_AI_MAX_TOKENS: '64'
       EVAL_SCOPE: ${{ inputs.scope }}
       GOLD_DIR: tests/ai-grading-goldset-v1
     steps:
@@ -41,7 +43,7 @@ jobs:
         run: |
           if [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ]; then
             echo "Missing repository secrets CLOUDFLARE_ACCOUNT_ID and/or CLOUDFLARE_API_TOKEN." >&2
-            echo "Add them in GitHub repository Settings > Secrets and variables > Actions, then rerun this workflow." >&2
+            echo "Add them in GitHub repository Settings > Secrets and variables > Actions, then rerun this workflow on main." >&2
             exit 1
           fi
 
@@ -51,37 +53,89 @@ jobs:
           node "$GOLD_DIR/smoke.mjs" "$GOLD_DIR"
 
       - name: Run candidate A
-        run: node "$GOLD_DIR/run-cloudflare-eval.mjs" "$GOLD_DIR" A "$EVAL_SCOPE" > eval-A.json
+        id: run_a
+        continue-on-error: true
+        run: node "$GOLD_DIR/run-cloudflare-eval.mjs" "$GOLD_DIR" A "$EVAL_SCOPE" > eval-A.json 2> eval-A.log
 
       - name: Run candidate B
-        run: node "$GOLD_DIR/run-cloudflare-eval.mjs" "$GOLD_DIR" B "$EVAL_SCOPE" > eval-B.json
+        id: run_b
+        continue-on-error: true
+        run: node "$GOLD_DIR/run-cloudflare-eval.mjs" "$GOLD_DIR" B "$EVAL_SCOPE" > eval-B.json 2> eval-B.log
 
       - name: Run candidate C
-        run: node "$GOLD_DIR/run-cloudflare-eval.mjs" "$GOLD_DIR" C "$EVAL_SCOPE" > eval-C.json
+        id: run_c
+        continue-on-error: true
+        run: node "$GOLD_DIR/run-cloudflare-eval.mjs" "$GOLD_DIR" C "$EVAL_SCOPE" > eval-C.json 2> eval-C.log
 
       - name: Validate A/B/C predictions
+        if: always()
+        shell: bash
         run: |
-          node "$GOLD_DIR/validate.mjs" "$GOLD_DIR" eval-A.json > metrics-A.json
-          node "$GOLD_DIR/validate.mjs" "$GOLD_DIR" eval-B.json > metrics-B.json
-          node "$GOLD_DIR/validate.mjs" "$GOLD_DIR" eval-C.json > metrics-C.json
+          for c in A B C; do
+            if [ -s "eval-$c.json" ] && node -e "JSON.parse(require('fs').readFileSync('eval-$c.json','utf8'))"; then
+              node "$GOLD_DIR/validate.mjs" "$GOLD_DIR" "eval-$c.json" > "metrics-$c.json" || true
+            else
+              printf '{"error":"evaluation did not produce valid JSON"}\n' > "metrics-$c.json"
+            fi
+          done
 
       - name: Compare A/B/C
-        run: node "$GOLD_DIR/compare-evals.mjs" "$GOLD_DIR" eval-A.json eval-B.json eval-C.json > comparison.json
+        id: compare
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          ok=1
+          for c in A B C; do
+            if ! [ -s "eval-$c.json" ] || ! node -e "JSON.parse(require('fs').readFileSync('eval-$c.json','utf8'))"; then
+              ok=0
+            fi
+          done
+          if [ "$ok" -eq 1 ]; then
+            node "$GOLD_DIR/compare-evals.mjs" "$GOLD_DIR" eval-A.json eval-B.json eval-C.json > comparison.json
+          else
+            printf '{"status":"incomplete","pilot_technical_pass":false,"development_leader":null,"error":"one or more candidate evaluations failed before producing valid JSON"}\n' > comparison.json
+            exit 1
+          fi
 
       - name: Show comparison
-        run: cat comparison.json
+        if: always()
+        shell: bash
+        run: |
+          if [ -s comparison.json ]; then
+            cat comparison.json
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            cat comparison.json >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Upload benchmark artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ai-grading-benchmark-${{ inputs.scope }}-${{ github.run_id }}
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
           path: |
             eval-A.json
             eval-B.json
             eval-C.json
+            eval-A.log
+            eval-B.log
+            eval-C.log
             metrics-A.json
             metrics-B.json
             metrics-C.json
             comparison.json
+
+      - name: Final benchmark gate
+        if: always()
+        shell: bash
+        run: |
+          if [ "${{ steps.run_a.outcome }}" != "success" ] || \
+             [ "${{ steps.run_b.outcome }}" != "success" ] || \
+             [ "${{ steps.run_c.outcome }}" != "success" ] || \
+             [ "${{ steps.compare.outcome }}" != "success" ]; then
+            echo "Benchmark did not pass. Inspect the uploaded artifact and candidate logs." >&2
+            exit 1
+          fi
