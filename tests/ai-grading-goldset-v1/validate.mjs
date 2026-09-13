@@ -13,64 +13,96 @@ const shardFiles = fs.readdirSync(goldDir)
   .sort();
 if (!shardFiles.length) throw new Error(`No cases-*.json files found in ${goldDir}`);
 
-const cases = shardFiles.flatMap(name => {
-  const shard = JSON.parse(fs.readFileSync(path.join(goldDir, name), 'utf8'));
-  return Array.isArray(shard.cases) ? shard.cases : [];
-});
+const shards = shardFiles.map(name => JSON.parse(fs.readFileSync(path.join(goldDir, name), 'utf8')));
+const cases = shards.flatMap(shard => Array.isArray(shard.cases) ? shard.cases : []);
+const questionById = new Map(shards.map(shard => [shard.question?.question_id, shard.question]).filter(([id]) => id));
 const predictionsRaw = JSON.parse(fs.readFileSync(predPath, 'utf8'));
 const predictions = Array.isArray(predictionsRaw) ? predictionsRaw : predictionsRaw.predictions;
 if (!Array.isArray(predictions)) throw new Error('predictions must be an array or {predictions:[...]}');
 
+const duplicateCaseIds = cases.map(c => c.case_id).filter((id,i,a) => a.indexOf(id) !== i);
+if (duplicateCaseIds.length) throw new Error(`duplicate case ids: ${[...new Set(duplicateCaseIds)].join(', ')}`);
+
 const predById = new Map(predictions.map(x => [x.case_id, x.prediction]));
 const aiCases = cases.filter(c => c.ai_call_expected);
 const missing = aiCases.filter(c => !predById.has(c.case_id)).map(c => c.case_id);
-
-let exact = 0;
-let componentOK = 0;
-let componentTotal = 0;
-let semanticOK = 0;
-let semanticTotal = 0;
-let expectedX = 0;
-let missedX = 0;
-let falseComplete = 0;
-let nonComplete = 0;
-let malformed = 0;
 
 function validPrediction(p) {
   return Array.isArray(p) && p.length === 6 &&
     p.slice(0, 4).every(v => [0,1,2,3].includes(v)) &&
     [0,1].includes(p[4]) && [0,1,2].includes(p[5]);
 }
-function predictedComplete(p) {
+function semanticComplete(p) {
   return p.slice(0,4).every(v => v === 1) && p[4] === 0 && p[5] <= 1;
+}
+function escalationNeeded(p) {
+  return p.slice(0,4).some(v => v === 3) || p[4] === 1 || p[5] === 2;
+}
+function countWords(text) {
+  const s = String(text ?? '').trim();
+  return s ? s.split(/\s+/u).length : 0;
 }
 const denom = n => n || 1;
 const pct = x => `${(x * 100).toFixed(2)}%`;
 
+let exact = 0;
+let validCount = 0;
+let componentOKValid = 0;
+let semanticOKValid = 0;
+let componentOKAll = 0;
+let semanticOKAll = 0;
+let expectedX = 0;
+let missedOrUnresolvedX = 0;
+let expectedNonComplete = 0;
+let falseSemanticComplete = 0;
+let expectedEscalate = 0;
+let missedOrUnresolvedEscalation = 0;
+let malformed = 0;
+let declaredWordCountMismatch = 0;
+let hardWordLimitViolations = 0;
+
+for (const c of cases) {
+  if (countWords(c.answer) !== Number(c.word_count)) declaredWordCountMismatch++;
+  const q = questionById.get(c.question_id);
+  if (q?.word_rule?.type === 'max_words' && Number(c.word_count) > Number(q.word_rule.max)) hardWordLimitViolations++;
+}
+
 for (const c of aiCases) {
+  const e = c.expected_compact;
+  if (!validPrediction(e)) throw new Error(`invalid expected_compact for ${c.case_id}`);
+
+  const expectedIsComplete = semanticComplete(e);
+  if (!expectedIsComplete) expectedNonComplete++;
+  if (e[4] === 1) expectedX++;
+  if (escalationNeeded(e)) expectedEscalate++;
+
   const p = predById.get(c.case_id);
   if (!validPrediction(p)) {
     malformed++;
+    if (e[4] === 1) missedOrUnresolvedX++;
+    if (escalationNeeded(e)) missedOrUnresolvedEscalation++;
     continue;
   }
-  const e = c.expected_compact;
+
+  validCount++;
   if (p.every((v,i) => v === e[i])) exact++;
+
   for (let i=0; i<6; i++) {
-    componentTotal++;
-    if (p[i] === e[i]) componentOK++;
+    if (p[i] === e[i]) {
+      componentOKValid++;
+      componentOKAll++;
+    }
   }
   for (let i=0; i<4; i++) {
-    semanticTotal++;
-    if (p[i] === e[i]) semanticOK++;
+    if (p[i] === e[i]) {
+      semanticOKValid++;
+      semanticOKAll++;
+    }
   }
-  if (e[4] === 1) {
-    expectedX++;
-    if (p[4] === 0) missedX++;
-  }
-  if (c.semantic_class !== 'complete') {
-    nonComplete++;
-    if (predictedComplete(p)) falseComplete++;
-  }
+
+  if (e[4] === 1 && p[4] === 0) missedOrUnresolvedX++;
+  if (!expectedIsComplete && semanticComplete(p)) falseSemanticComplete++;
+  if (escalationNeeded(e) && !escalationNeeded(p)) missedOrUnresolvedEscalation++;
 }
 
 const report = {
@@ -78,14 +110,23 @@ const report = {
   local_precheck_cases: cases.filter(c => !c.ai_call_expected).length,
   ai_cases: aiCases.length,
   predictions_received: aiCases.length - missing.length,
+  valid_predictions: validCount,
+  prediction_coverage: pct(validCount / denom(aiCases.length)),
   missing_case_ids: missing,
   malformed_predictions: malformed,
-  exact_case_match: pct(exact / denom(aiCases.length)),
-  component_accuracy_all_6: pct(componentOK / denom(componentTotal)),
-  semantic_component_accuracy_S1_to_R2: pct(semanticOK / denom(semanticTotal)),
-  major_contradiction_miss_rate: pct(missedX / denom(expectedX)),
-  false_complete_rate_on_noncomplete_cases: pct(falseComplete / denom(nonComplete))
+  exact_case_match_all_ai_cases: pct(exact / denom(aiCases.length)),
+  component_accuracy_all_6_valid_predictions: pct(componentOKValid / denom(validCount * 6)),
+  component_accuracy_all_6_all_ai_cases: pct(componentOKAll / denom(aiCases.length * 6)),
+  semantic_accuracy_S1_to_R2_valid_predictions: pct(semanticOKValid / denom(validCount * 4)),
+  semantic_accuracy_S1_to_R2_all_ai_cases: pct(semanticOKAll / denom(aiCases.length * 4)),
+  expected_major_contradiction_cases: expectedX,
+  major_contradiction_miss_or_unresolved_rate: pct(missedOrUnresolvedX / denom(expectedX)),
+  false_semantic_complete_rate_on_expected_noncomplete: pct(falseSemanticComplete / denom(expectedNonComplete)),
+  expected_level2_escalation_cases: expectedEscalate,
+  missed_or_unresolved_escalation_rate: pct(missedOrUnresolvedEscalation / denom(expectedEscalate)),
+  declared_word_count_mismatches: declaredWordCountMismatch,
+  deterministic_hard_word_limit_violations: hardWordLimitViolations
 };
 
 console.log(JSON.stringify(report, null, 2));
-if (missing.length || malformed) process.exitCode = 1;
+if (missing.length || malformed || declaredWordCountMismatch) process.exitCode = 1;
