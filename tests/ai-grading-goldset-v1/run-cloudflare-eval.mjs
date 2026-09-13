@@ -5,7 +5,9 @@ import { buildPrompt, parsePrediction } from './prompt-candidates.mjs';
 
 const goldDir = process.argv[2] || path.dirname(new URL(import.meta.url).pathname);
 const candidate = String(process.argv[3] || 'B').toUpperCase();
+const scope = String(process.argv[4] || process.env.EVAL_SCOPE || 'full').toLowerCase();
 if (!['A','B','C'].includes(candidate)) throw new Error('candidate must be A, B, or C');
+if (!['pilot','full'].includes(scope)) throw new Error('scope must be pilot or full');
 
 const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
 const token = process.env.CLOUDFLARE_API_TOKEN;
@@ -14,7 +16,14 @@ if (!accountId || !token) throw new Error('Set CLOUDFLARE_ACCOUNT_ID and CLOUDFL
 
 const rubrics = JSON.parse(fs.readFileSync(path.join(goldDir,'rubrics.json'),'utf8'));
 const shards = fs.readdirSync(goldDir).filter(n=>/^cases-.*\.json$/.test(n)).sort().map(n=>JSON.parse(fs.readFileSync(path.join(goldDir,n),'utf8')));
-const cases = shards.flatMap(s=>s.cases||[]).filter(c=>c.ai_call_expected);
+let cases = shards.flatMap(s=>s.cases||[]).filter(c=>c.ai_call_expected);
+if(scope==='pilot'){
+  const pilotPath=path.join(goldDir,'pilot-cases.json');
+  const pilot=JSON.parse(fs.readFileSync(pilotPath,'utf8'));
+  const ids=new Set(pilot.case_ids||[]);
+  cases=cases.filter(c=>ids.has(c.case_id));
+  if(cases.length!==ids.size) throw new Error(`pilot case mismatch: requested ${ids.size}, found ${cases.length}`);
+}
 
 function needsL2(p){return Array.isArray(p)&&(p.slice(0,4).some(v=>v===3)||p[4]===1||p[5]===2);}
 function extractUsage(d){
@@ -99,10 +108,13 @@ for (const [i,c] of cases.entries()) {
   console.error(`[${i+1}/${cases.length}] ${c.case_id} ${l2?'L2':'L1'} -> ${JSON.stringify(prediction)}${l2Error?' MALFORMED':''}`);
 }
 
+const evaluatedCaseIds=cases.map(c=>c.case_id);
 const report={
   provider:'cloudflare-workers-ai',
   model,
   candidate,
+  scope,
+  evaluated_case_ids:evaluatedCaseIds,
   generated_at:new Date().toISOString(),
   cases:cases.length,
   escalated_to_l2:escalated,
