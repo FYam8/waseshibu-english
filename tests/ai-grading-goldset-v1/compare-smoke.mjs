@@ -51,6 +51,18 @@ if(run.status===0) throw new Error('pilot with invalid prediction must fail tech
 result=JSON.parse(run.stdout);
 if(result.pilot_technical_pass!==false) throw new Error('bad pilot must report pilot_technical_pass=false');
 
+// Pilot scope must use exactly the declared pilot manifest; a smaller subset is invalid.
+const shortPilotCases=pilotCases.slice(0,-1);
+const shortPilot=writeReport('C',2200,{scope:'pilot',cases:shortPilotCases});
+run=spawnSync(process.execPath,[compare,goldDir,pa,pb,shortPilot],{encoding:'utf8'});
+if(run.status===0) throw new Error('pilot with incomplete case set must fail');
+
+// Full scope must contain the complete development set; a pilot-sized subset cannot masquerade as full.
+const fakeFull=writeReport('C',2500,{scope:'full',cases:pilotCases});
+const fakeFullB=writeReport('B',2600,{scope:'full',cases:pilotCases});
+run=spawnSync(process.execPath,[compare,goldDir,fakeFullB,fakeFull],{encoding:'utf8'});
+if(run.status===0) throw new Error('scope=full with subset case set must fail');
+
 // Full development comparison may rank equal-accuracy candidates by token use.
 const a=writeReport('A',10000,{scope:'full'});
 const b=writeReport('B',9000,{scope:'full'});
