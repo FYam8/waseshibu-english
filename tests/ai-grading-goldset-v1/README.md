@@ -69,6 +69,30 @@ There are 52 cases total: 26 per question. They include:
 
 Blank cases are expected to be handled locally without an AI call.
 
+## Prompt A/B/C preflight
+
+`prompt-candidates.mjs` defines three semantically equivalent prompt shapes:
+
+- A: safest/readable baseline
+- B: compact natural-language version
+- C: ultra-compact version
+
+On the current 50 AI-call cases, a character-count preflight produced approximately:
+
+| Candidate | L1 average chars | L2 average chars |
+|---|---:|---:|
+| A | 810 | 1,009 |
+| B | 745 | 938 |
+| C | 652 | 845 |
+
+These are **not token counts** and do not select the winner. The production candidate must be chosen using the actual target model's measured input/output tokens plus grading accuracy. The shortest prompt must not be selected if it increases false-complete or contradiction-miss errors.
+
+Generate test prompts with:
+
+```bash
+node tests/ai-grading-goldset-v1/generate-prompts.mjs tests/ai-grading-goldset-v1 B L1
+```
+
 ## Safety/quality metrics
 
 The validation stage should report at least:
