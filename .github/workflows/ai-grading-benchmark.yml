@@ -1,0 +1,87 @@
+name: AI grading benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: Run a small technical pilot first, or the full 50-answer benchmark
+        required: true
+        default: pilot
+        type: choice
+        options:
+          - pilot
+          - full
+      model:
+        description: Cloudflare Workers AI model
+        required: true
+        default: '@cf/openai/gpt-oss-20b'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CF_AI_MODEL: ${{ inputs.model }}
+      EVAL_SCOPE: ${{ inputs.scope }}
+      GOLD_DIR: tests/ai-grading-goldset-v1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Verify required secrets
+        shell: bash
+        run: |
+          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "Missing repository secrets CLOUDFLARE_ACCOUNT_ID and/or CLOUDFLARE_API_TOKEN." >&2
+            echo "Add them in GitHub repository Settings > Secrets and variables > Actions, then rerun this workflow." >&2
+            exit 1
+          fi
+
+      - name: Validate benchmark assets
+        run: |
+          node "$GOLD_DIR/lint.mjs" "$GOLD_DIR"
+          node "$GOLD_DIR/smoke.mjs" "$GOLD_DIR"
+
+      - name: Run candidate A
+        run: node "$GOLD_DIR/run-cloudflare-eval.mjs" "$GOLD_DIR" A "$EVAL_SCOPE" > eval-A.json
+
+      - name: Run candidate B
+        run: node "$GOLD_DIR/run-cloudflare-eval.mjs" "$GOLD_DIR" B "$EVAL_SCOPE" > eval-B.json
+
+      - name: Run candidate C
+        run: node "$GOLD_DIR/run-cloudflare-eval.mjs" "$GOLD_DIR" C "$EVAL_SCOPE" > eval-C.json
+
+      - name: Validate A/B/C predictions
+        run: |
+          node "$GOLD_DIR/validate.mjs" "$GOLD_DIR" eval-A.json > metrics-A.json
+          node "$GOLD_DIR/validate.mjs" "$GOLD_DIR" eval-B.json > metrics-B.json
+          node "$GOLD_DIR/validate.mjs" "$GOLD_DIR" eval-C.json > metrics-C.json
+
+      - name: Compare A/B/C
+        run: node "$GOLD_DIR/compare-evals.mjs" "$GOLD_DIR" eval-A.json eval-B.json eval-C.json > comparison.json
+
+      - name: Show comparison
+        run: cat comparison.json
+
+      - name: Upload benchmark artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-grading-benchmark-${{ inputs.scope }}-${{ github.run_id }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            eval-A.json
+            eval-B.json
+            eval-C.json
+            metrics-A.json
+            metrics-B.json
+            metrics-C.json
+            comparison.json

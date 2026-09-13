@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.1.1",
+  "ai_output": {
+    "shape": "[S1,S2,R1,R2,X,G]",
+    "S1_S2_R1_R2": {
+      "0": "absent",
+      "1": "supported",
+      "2": "contradicted/materially wrong",
+      "3": "unclear/mixed"
+    },
+    "X": {
+      "0": "no major source/self contradiction",
+      "1": "major source distortion or material self-contradiction"
+    },
+    "G": {
+      "0": "English is clear enough; errors do not materially interfere",
+      "1": "minor language/spelling errors; intended meaning remains clear without substantial inference",
+      "2": "English materially impairs interpretation, requires substantial inference, or is materially non-English"
+    }
+  },
+  "not_ai_graded": [
+    "blank-input detection",
+    "technical input limits",
+    "word count",
+    "hard word-limit detection",
+    "numeric score calculation"
+  ],
+  "post_l1_escalation": {
+    "to_level_2_if": [
+      "any of S1,S2,R1,R2 equals 3",
+      "X equals 1",
+      "G equals 2"
+    ]
+  }
+}
