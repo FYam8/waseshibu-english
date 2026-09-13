@@ -53,6 +53,23 @@ for (const {name,data} of shards) {
   for (const c of data.cases || []) if (c.question_id !== qid) errors.push(`${c.case_id}: question_id does not match shard ${qid}`);
 }
 
+const pilotPath=path.join(goldDir,'pilot-cases.json');
+let pilotCount=0;
+if(fs.existsSync(pilotPath)){
+  const pilot=JSON.parse(fs.readFileSync(pilotPath,'utf8'));
+  const ids=Array.isArray(pilot.case_ids)?pilot.case_ids:[];
+  pilotCount=ids.length;
+  if(!ids.length) errors.push('pilot-cases.json: case_ids must be non-empty');
+  const dup=ids.filter((id,i,a)=>a.indexOf(id)!==i);
+  if(dup.length) errors.push(`pilot-cases.json: duplicate ids ${[...new Set(dup)].join(', ')}`);
+  const caseById=new Map(cases.map(c=>[c.case_id,c]));
+  for(const id of ids){
+    const c=caseById.get(id);
+    if(!c) errors.push(`pilot-cases.json: unknown case ${id}`);
+    else if(!c.ai_call_expected) errors.push(`pilot-cases.json: ${id} is not an AI-call case`);
+  }
+}
+
 const byQuestion = Object.fromEntries([...new Set(cases.map(c => c.question_id))].map(q => [q, cases.filter(c => c.question_id === q).length]));
 const report = {
   ok: errors.length === 0,
@@ -62,6 +79,7 @@ const report = {
   cases_by_question: byQuestion,
   ai_cases: cases.filter(c => c.ai_call_expected).length,
   local_cases: cases.filter(c => !c.ai_call_expected).length,
+  pilot_cases: pilotCount,
   errors
 };
 console.log(JSON.stringify(report, null, 2));
