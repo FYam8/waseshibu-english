@@ -1,4 +1,4 @@
-# English AI Grading Gold Set v1
+# English AI Grading Development Set v1
 
 Purpose: develop and validate a low-token semantic grader for the free-response English writing items in the Waseda Shibuya Singapore entrance-exam trainer.
 
