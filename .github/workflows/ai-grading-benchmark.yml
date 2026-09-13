@@ -11,6 +11,11 @@ on:
         options:
           - pilot
           - full
+      full_confirmation:
+        description: For scope=full only, type ADJUDICATED after blind label review is complete
+        required: false
+        default: ''
+        type: string
       model:
         description: Cloudflare Workers AI model
         required: true
@@ -31,16 +36,23 @@ jobs:
       CF_AI_MODEL: ${{ inputs.model }}
       CF_AI_MAX_TOKENS: '64'
       EVAL_SCOPE: ${{ inputs.scope }}
+      FULL_CONFIRMATION: ${{ inputs.full_confirmation }}
       GOLD_DIR: tests/ai-grading-goldset-v1
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
+          package-manager-cache: false
 
-      - name: Verify required secrets
+      - name: Verify run authorization and required secrets
         shell: bash
         run: |
+          if [ "$EVAL_SCOPE" = "full" ] && [ "$FULL_CONFIRMATION" != "ADJUDICATED" ]; then
+            echo "Full benchmark is locked until blind label adjudication is complete." >&2
+            echo "After adjudication, rerun scope=full and type ADJUDICATED in full_confirmation." >&2
+            exit 1
+          fi
           if [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ]; then
             echo "Missing repository secrets CLOUDFLARE_ACCOUNT_ID and/or CLOUDFLARE_API_TOKEN." >&2
             echo "Add them in GitHub repository Settings > Secrets and variables > Actions, then rerun this workflow on main." >&2
