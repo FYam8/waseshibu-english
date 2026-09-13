@@ -33,9 +33,30 @@ if (requestedIds) {
   const unknownRequested = [...requestedIds].filter(id => !allCaseIds.has(id));
   if (unknownRequested.length) throw new Error(`unknown evaluated_case_ids: ${unknownRequested.join(', ')}`);
 }
+
 const aiCasesAll = cases.filter(c => c.ai_call_expected);
+const aiCaseIdSet = new Set(aiCasesAll.map(c => c.case_id));
+const reportedScope = String(predictionsRaw?.scope || (requestedIds ? 'subset' : 'full'));
+const sameSet = (a,b) => a.size === b.size && [...a].every(x => b.has(x));
+
+if (reportedScope === 'full') {
+  if (requestedIds && !sameSet(requestedIds, aiCaseIdSet)) {
+    throw new Error(`scope=full must evaluate all ${aiCaseIdSet.size} AI cases`);
+  }
+} else if (reportedScope === 'pilot') {
+  if (!requestedIds) throw new Error('scope=pilot requires evaluated_case_ids');
+  const pilotPath = path.join(goldDir, 'pilot-cases.json');
+  const pilot = JSON.parse(fs.readFileSync(pilotPath, 'utf8'));
+  const expectedPilotIds = new Set((pilot.case_ids || []).filter(id => aiCaseIdSet.has(id)));
+  if (!sameSet(requestedIds, expectedPilotIds)) {
+    throw new Error(`scope=pilot must evaluate exactly the ${expectedPilotIds.size} pilot cases`);
+  }
+}
+
 const aiCases = requestedIds ? aiCasesAll.filter(c => requestedIds.has(c.case_id)) : aiCasesAll;
-if (requestedIds && aiCases.length !== requestedIds.size) throw new Error(`evaluated_case_ids include non-AI or missing cases`);
+if (requestedIds && aiCases.length !== requestedIds.size) throw new Error('evaluated_case_ids include non-AI or missing cases');
+const evaluatedIdSet = new Set(aiCases.map(c => c.case_id));
+const unexpectedPredictionIds = predictions.map(x => x?.case_id).filter(id => id && !evaluatedIdSet.has(id));
 const missing = aiCases.filter(c => !predById.has(c.case_id)).map(c => c.case_id);
 
 function validPrediction(p) {
@@ -124,7 +145,7 @@ for (const c of aiCases) {
 
 const report = {
   dataset_total_cases: cases.length,
-  evaluated_scope: predictionsRaw?.scope || (requestedIds ? 'subset' : 'full'),
+  evaluated_scope: reportedScope,
   local_precheck_cases: cases.filter(c => !c.ai_call_expected).length,
   ai_cases_total: aiCasesAll.length,
   ai_cases: aiCases.length,
@@ -134,6 +155,7 @@ const report = {
   missing_case_ids: missing,
   malformed_predictions: malformed,
   extra_prediction_ids: extraPredictionIds,
+  unexpected_prediction_ids: unexpectedPredictionIds,
   exact_case_match_all_ai_cases: pct(exact / denom(aiCases.length)),
   component_accuracy_all_6_valid_predictions: pct(componentOKValid / denom(validCount * 6)),
   component_accuracy_all_6_all_ai_cases: pct(componentOKAll / denom(aiCases.length * 6)),
@@ -149,4 +171,4 @@ const report = {
 };
 
 console.log(JSON.stringify(report, null, 2));
-if (missing.length || malformed || extraPredictionIds.length || declaredWordCountMismatch) process.exitCode = 1;
+if (missing.length || malformed || extraPredictionIds.length || unexpectedPredictionIds.length || declaredWordCountMismatch) process.exitCode = 1;

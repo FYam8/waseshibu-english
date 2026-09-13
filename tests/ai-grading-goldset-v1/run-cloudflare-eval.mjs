@@ -12,6 +12,8 @@ if (!['pilot','full'].includes(scope)) throw new Error('scope must be pilot or f
 const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
 const token = process.env.CLOUDFLARE_API_TOKEN;
 const model = process.env.CF_AI_MODEL || '@cf/openai/gpt-oss-20b';
+const maxTokens = Number(process.env.CF_AI_MAX_TOKENS || 64);
+if (!Number.isInteger(maxTokens) || maxTokens < 16 || maxTokens > 256) throw new Error('CF_AI_MAX_TOKENS must be an integer from 16 to 256');
 if (!accountId || !token) throw new Error('Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN. Never commit these values.');
 
 const rubrics = JSON.parse(fs.readFileSync(path.join(goldDir,'rubrics.json'),'utf8'));
@@ -28,10 +30,13 @@ if(scope==='pilot'){
 function needsL2(p){return Array.isArray(p)&&(p.slice(0,4).some(v=>v===3)||p[4]===1||p[5]===2);}
 function extractUsage(d){
   const u=d?.result?.usage||d?.usage||{};
+  const inputTokens=Number(u.prompt_tokens??u.input_tokens??0)||0;
+  const outputTokens=Number(u.completion_tokens??u.output_tokens??0)||0;
+  const statedTotal=Number(u.total_tokens??0)||0;
   return {
-    input_tokens:Number(u.prompt_tokens??u.input_tokens??0)||0,
-    output_tokens:Number(u.completion_tokens??u.output_tokens??0)||0,
-    total_tokens:Number(u.total_tokens??0)||0
+    input_tokens:inputTokens,
+    output_tokens:outputTokens,
+    total_tokens:statedTotal || (inputTokens + outputTokens)
   };
 }
 function textFromResponse(d){
@@ -51,7 +56,7 @@ async function callAI(prompt){
       const res=await fetch(endpoint,{
         method:'POST',
         headers:{authorization:`Bearer ${token}`,'content-type':'application/json'},
-        body:JSON.stringify({messages:[{role:'user',content:prompt}],temperature:0,max_tokens:24,seed:1})
+        body:JSON.stringify({messages:[{role:'user',content:prompt}],temperature:0,max_tokens:maxTokens,seed:1})
       });
       const data=await res.json().catch(()=>({}));
       if(!res.ok||data?.success===false){
@@ -114,6 +119,7 @@ const report={
   model,
   candidate,
   scope,
+  max_tokens:maxTokens,
   evaluated_case_ids:evaluatedCaseIds,
   generated_at:new Date().toISOString(),
   cases:cases.length,
