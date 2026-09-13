@@ -3,6 +3,14 @@ name: AI grading benchmark
 on:
   workflow_dispatch:
     inputs:
+      scope:
+        description: Run a small technical pilot first, or the full 50-answer benchmark
+        required: true
+        default: pilot
+        type: choice
+        options:
+          - pilot
+          - full
       model:
         description: Cloudflare Workers AI model
         required: true
@@ -20,6 +28,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CF_AI_MODEL: ${{ inputs.model }}
+      EVAL_SCOPE: ${{ inputs.scope }}
       GOLD_DIR: tests/ai-grading-goldset-v1
     steps:
       - uses: actions/checkout@v4
@@ -42,13 +51,13 @@ jobs:
           node "$GOLD_DIR/smoke.mjs" "$GOLD_DIR"
 
       - name: Run candidate A
-        run: node "$GOLD_DIR/run-cloudflare-eval.mjs" "$GOLD_DIR" A > eval-A.json
+        run: node "$GOLD_DIR/run-cloudflare-eval.mjs" "$GOLD_DIR" A "$EVAL_SCOPE" > eval-A.json
 
       - name: Run candidate B
-        run: node "$GOLD_DIR/run-cloudflare-eval.mjs" "$GOLD_DIR" B > eval-B.json
+        run: node "$GOLD_DIR/run-cloudflare-eval.mjs" "$GOLD_DIR" B "$EVAL_SCOPE" > eval-B.json
 
       - name: Run candidate C
-        run: node "$GOLD_DIR/run-cloudflare-eval.mjs" "$GOLD_DIR" C > eval-C.json
+        run: node "$GOLD_DIR/run-cloudflare-eval.mjs" "$GOLD_DIR" C "$EVAL_SCOPE" > eval-C.json
 
       - name: Validate A/B/C predictions
         run: |
@@ -65,7 +74,7 @@ jobs:
       - name: Upload benchmark artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ai-grading-benchmark-${{ github.run_id }}
+          name: ai-grading-benchmark-${{ inputs.scope }}-${{ github.run_id }}
           if-no-files-found: error
           retention-days: 30
           path: |
