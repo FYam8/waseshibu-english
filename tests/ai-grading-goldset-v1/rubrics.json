@@ -1,0 +1,10 @@
+{
+  "2024:4": {
+    "compact": "S1:B opposes allowing phones at school; S2:B reason=ring/messages/distraction/games/loss of academic atmosphere; R1:answer counters or qualifies B's opposition; R2:relevant reason/example/rule supports counter-position.",
+    "level2_context": "B is against allowing mobile phones in schools because ringing phones or messages can interrupt lessons and reduce concentration; games during breaks may damage the academic atmosphere."
+  },
+  "2026:6": {
+    "compact": "S1:Ken prefers professional cleaners / less student cleaning; S2:Ken reason=students already busy OR professionals experienced/clean well; R1:answer counters or qualifies Ken by supporting students doing some ordinary cleaning; R2:relevant reason/compromise supports counter-position.",
+    "level2_context": "Ken dislikes school cleaning because students already have homework, club activities, and exams. He thinks professional cleaners are better because they are experienced and know how to clean well."
+  }
+}
