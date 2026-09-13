@@ -1,0 +1,11 @@
+{
+  "snapshot_date": "2026-09-13",
+  "source": "https://developers.cloudflare.com/workers-ai/models/gpt-oss-20b/",
+  "models": {
+    "@cf/openai/gpt-oss-20b": {
+      "input_usd_per_m_tokens": 0.20,
+      "output_usd_per_m_tokens": 0.30,
+      "note": "Cloudflare Workers AI model page pricing snapshot. Re-check current pricing before making budget claims."
+    }
+  }
+}
