@@ -18,6 +18,8 @@ for (const candidate of ['A','B','C']) {
       const p=buildPrompt(candidate,r.compact,c.answer,mode==='L2'?r.level2_context:'');
       if(!p.includes('A_JSON:')) throw new Error(`${candidate}/${mode}/${c.case_id}: missing data boundary`);
       if(!p.includes(JSON.stringify(String(c.answer)))) throw new Error(`${candidate}/${mode}/${c.case_id}: answer not JSON-serialized`);
+      if(!/exactly (six|6) bare JSON integers/i.test(p) && !/exactly six unquoted integers/i.test(p)) throw new Error(`${candidate}/${mode}/${c.case_id}: weak output contract`);
+      if(!p.includes('[1,1,1,1,0,0]')) throw new Error(`${candidate}/${mode}/${c.case_id}: missing output shape example`);
       prompts++;
     }
   }
