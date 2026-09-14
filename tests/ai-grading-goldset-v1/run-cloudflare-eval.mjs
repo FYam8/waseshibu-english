@@ -93,19 +93,23 @@ const predictions=[];
 let aggregate=zeroUsage();
 let escalated=0;
 let malformedAfterL2=0;
+let lengthFinished=0;
+let lengthAfterL2=0;
 for (const [i,c] of cases.entries()) {
   const r=rubrics[c.question_id];
   if(!r) throw new Error(`missing rubric ${c.question_id}`);
   const l1Prompt=buildPrompt(candidate,r.compact,c.answer,'');
   const l1=await callAI(l1Prompt);
+  if(l1.finish_reason==='length') lengthFinished++;
   let prediction=null;
   let l1Error=null;
   try{prediction=parsePrediction(l1.raw.trim());}catch(e){l1Error=String(e?.message||e);}
   let l2=null,l2Error=null;
-  if(l1Error || needsL2(prediction)){
+  if(l1Error || l1.finish_reason==='length' || needsL2(prediction)){
     escalated++;
     const l2Prompt=buildPrompt(candidate,r.compact,c.answer,r.level2_context);
     l2=await callAI(l2Prompt);
+    if(l2.finish_reason==='length'){ lengthFinished++; lengthAfterL2++; }
     try{prediction=parsePrediction(l2.raw.trim());}catch(e){l2Error=String(e?.message||e);prediction=null;malformedAfterL2++;}
   }
   aggregate=addUsage(aggregate,l1.usage);
@@ -142,6 +146,8 @@ const report={
   escalated_to_l2:escalated,
   escalation_rate:escalated/Math.max(1,cases.length),
   malformed_after_l2:malformedAfterL2,
+  length_finished_calls:lengthFinished,
+  length_after_l2:lengthAfterL2,
   usage:aggregate,
   avg_input_tokens:aggregate.input_tokens/Math.max(1,cases.length),
   avg_output_tokens:aggregate.output_tokens/Math.max(1,cases.length),
