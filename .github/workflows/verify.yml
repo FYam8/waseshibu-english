@@ -13,6 +13,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - run: node tests/shared-engine-contract.test.mjs
       - run: node --check progress-sync.js
       - run: node tests/progress-cloud-sync.test.mjs
       - run: node tests/ai-grading-goldset-v1/lint.mjs tests/ai-grading-goldset-v1
