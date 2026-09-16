@@ -25,9 +25,12 @@ assert.deepEqual([...state.manual["2024:4"].components], ["文法・語彙"]);
 
 state.manual["2024:4"].aiFeedback = {
   score: 18,
+  maxScore: 24,
   semantic: [1, 1, 1, 0, 0, 1],
   organization: 1,
   wordCount: 38,
+  lengthPoints: 1,
+  lengthMax: 2,
   answerFingerprint: ctx.aiAnswerFingerprint("A new draft."),
 };
 state.manual["2024:4"].aiFeedbackStale = false;
@@ -38,6 +41,18 @@ assert(state.manual["2024:4"].components.includes("文法・語彙"));
 assert(state.manual["2024:4"].components.includes("理由・具体例"));
 assert.equal(ctx.localStorage.getItem("waseshibu.adaptive.v3") !== null, true);
 
-assert.match(ctx.aiWritingInput(2024, { id: "4" }, "2024:4", state.manual["2024:4"]), /AIで答案を詳しく確認/);
-assert.equal(ctx.aiWritingInput(2023, { id: "4" }, "2023:4", {}), "");
-console.log("ai-writing-ui ok: existing schema/key preserved; AI fields are additive and opt-in");
+const supportedExam=[],examTasks=[];
+for(const [year,rows] of Object.entries(ctx.EXAM_DATA))for(const q of rows){const task=ctx.examWritingTask(Number(year),q);if(task){supportedExam.push(`${year}:${q.id}`);examTasks.push(task)}}
+assert.deepEqual(supportedExam.sort(),["2019:4","2020:4","2021:4","2022:4","2023:4","2024:4","2025:4","2026:6"]);
+assert(examTasks.every(task=>task.prompt.length>100));
+assert.match(ctx.aiWritingInput(2024,ctx.EXAM_DATA[2024].find(q=>q.id==="4"),"2024:4",state.manual["2024:4"]),/AIで答案を詳しく確認/);
+assert.match(ctx.aiWritingInput(2023,ctx.EXAM_DATA[2023].find(q=>q.id==="4"),"2023:4",{}),/12点相当/);
+assert.equal(ctx.aiWritingInput(2024,ctx.EXAM_DATA[2024].find(q=>q.id==="6-4"),"2024:6-4",{}),"");
+
+const supportedDrills=ctx.DRILLS.filter(q=>!q.retired&&ctx.drillWritingTask(q));
+assert.equal(supportedDrills.length,45);
+assert.deepEqual([...new Set(supportedDrills.map(q=>q.skill))].sort(),["rebuttal","summary","writing_completion"]);
+assert([...examTasks,...supportedDrills.map(ctx.drillWritingTask)].every(task=>JSON.stringify({task,answer:"a".repeat(1200)}).length<16000));
+vm.runInContext(`drillState={q:BANK.find(q=>q.id==="lsu26"),selfText:"A short draft summary.",selfParts:[],aiFeedback:null,aiFeedbackStale:false}`,ctx);
+assert.match(ctx.drillInput(ctx.DRILLS.find(q=>q.id==="lsu26")),/AIで具体的な改善点を見る/);
+console.log("ai-writing-ui ok: all 8 free-writing exams and 45 writing drills are opt-in; existing schema/key preserved");
