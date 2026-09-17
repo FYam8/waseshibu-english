@@ -62,7 +62,11 @@ Status: **CHARACTERIZED / CLEAN; selected generic mechanics delegated**
 
 ### Score model
 
-`tests/waseda-score-model-characterization.test.mjs` freezes the Waseda 80+20=100 coupling: every routed written paper totals 80, listening is clamped to 20, total score remains same-attempt written + listening, import ceilings remain 80/20, displays remain /80, /20 and /100, and cloud written-score metadata remains 80.
+The Waseda school config now declares `writtenMaxScore:80`, `listeningMaxScore:20`, and `totalMaxScore:100`. The shared contract validates that the total equals written + listening and that goal tiers fit within the total ceiling.
+
+`app.js` now sources those three maxima from `ENGLISH_ENGINE_ADAPTER.config.exam`, with exact 80/20/100 fallbacks. Import validation, listening clamping, goal-distance wording, exam/result/stats denominators and listening input limits all follow the configured values. A fake-adapter test uses 120+30=150 to prove the delegation; the no-adapter path remains exactly Waseda 80+20=100.
+
+`tests/waseda-score-model-characterization.test.mjs` continues to freeze the real Waseda behavior: every routed written paper totals 80, listening is capped at 20, total score remains same-attempt written + listening, and Waseda displays/validation remain 80/20/100. The guarded one-shot wiring suite and the permanent full verify suite both passed, including real-browser, progress/cloud and AI grading checks.
 
 ### Learning model
 
@@ -87,25 +91,42 @@ Status: **CHARACTERIZED; IDENTITY + PROJECTION CONFIG DELEGATION CLEAN**
 
 `tests/waseda-progress-sync-characterization.test.mjs` freezes the external/local sync contract: API endpoint, app ID, local state key, IndexedDB name/version/stores, control and registration behavior, HTTP endpoints, state/occurrence source IDs and event types, production-only occurrence behavior, timestamp-independent fingerprinting, no raw answer/manual uploads and current written-score metadata.
 
-`progress-sync.js` now sources endpoint/app ID and local storage/IndexedDB identity from `ENGLISH_ENGINE_ADAPTER.config.progress/storage`, with exact Waseda fallbacks. The existing `window.__WASESHIBU_PROGRESS_API__` override remains intact.
+`progress-sync.js` sources endpoint/app ID and local storage/IndexedDB identity from `ENGLISH_ENGINE_ADAPTER.config.progress/storage`, with exact Waseda fallbacks. The existing `window.__WASESHIBU_PROGRESS_API__` override remains intact.
 
-The progress projection now also sources these school-specific values from `config.exam`:
+The progress projection also sources configured exam years, goal tiers/default goal, written maximum score and the baseline progress label from school config. Fake-adapter and no-adapter tests verify that only those school-specific values vary; source-record IDs, event types, registration/control behavior, dedup/revision semantics and HTTP/IndexedDB contracts remain unchanged.
 
-- configured exam years
-- permitted goal tiers
-- default goal
-- written maximum score
-- baseline progress label through the configured app ID
+## Current candidate level
 
-`tests/waseda-progress-projection-config-delegation.test.mjs` injects a fake school configuration and verifies that only those school-specific projection values change. The no-adapter path remains exactly Waseda: 2019–2026, goal tiers 60/70/75, default goal 60 and written max 80.
+`engine/manifest.json` is **0.1.0-alpha.11** with status `candidate-app-score-config-clean`.
 
-Source-record IDs, event types, registration/control behavior, dedup/revision semantics and HTTP/IndexedDB contracts were not generalized or renamed. The guarded one-shot suite and the permanent normal verify suite both passed, including the real-browser, progress/cloud and AI grading suites.
+The current feature branch has passed the full permanent verification suite after app score-model parameterization, including:
 
-`engine/manifest.json` is `0.1.0-alpha.10`. Production wiring remains false because `main` has not changed, and Rikkyo consumption remains blocked.
+- shared contract/bootstrap/core parity
+- policy/runtime config delegation
+- Waseda score-model characterization
+- app score-config fake/no-adapter delegation
+- learning-model fingerprints and learning migration parity
+- persistence/recovery and storage config gates
+- progress-sync/projection characterization and delegation
+- Today/mastery behavior characterization
+- real-browser fresh/resume/legacy/future-retention scenarios
+- progress cloud-sync guards
+- AI writing UI/grader/goldset guards
 
-## Next extraction boundary — app score model
+Production `main` remains unchanged and PR #11 remains Draft.
 
-The next safe gate is the app-side score model. Its current 80+20=100 behavior is already characterized; the next step should source written/listening/total maxima from validated exam config while keeping current Waseda values, import semantics, result/status wording and browser behavior exactly unchanged. This should be performed as another one-shot guarded wiring change with fake-adapter and no-adapter parity tests.
+## Next extraction boundary — remediation mastery transition
+
+The next safe step is to move the deterministic remediation mastery transition out of `app.js` into `engine/core.js` while preserving exact Waseda behavior:
+
+- training correct increments streak
+- training wrong resets streak
+- 3 consecutive correct -> pending next-day confirmation
+- confirmation correct increments confirmation streak
+- 2 consecutive confirmation correct -> mastered
+- confirmation wrong -> active training reset, clears reserved confirmations and requests a new confirmation reserve
+
+The shared helper should return transition flags so the Waseda app can continue to own side effects such as choosing/reserving concrete practice questions. Before runtime wiring, parity fixtures should cover every transition above. After wiring, run the complete browser/sync/AI suite again.
 
 ## Future Rikkyo relationship
 
