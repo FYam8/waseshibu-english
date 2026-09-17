@@ -17,6 +17,8 @@ root.ENGLISH_SCHOOL_CONFIG=Object.freeze({
     goalTiers:Object.freeze([60,70,75]),
     defaultGoal:60,
     writtenMaxScore:80,
+    listeningMaxScore:20,
+    totalMaxScore:100,
     dailyTaskTarget:10
   }),
   storage:Object.freeze({
