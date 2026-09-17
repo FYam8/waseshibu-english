@@ -65,19 +65,43 @@ function normalizeDrillState(value){
 function attemptId(){return `a-${Date.now()}-${Math.random().toString(36).slice(2,8)}`}
 function yearKeys(obj,y){return Object.keys(obj||{}).filter(x=>x.startsWith(`${y}:`))}
 function hasSavedAnswers(y){return yearKeys(S.answers,y).some(x=>S.answers[x]!=="")||yearKeys(S.manual,y).some(x=>S.manual[x]?.score!==""&&S.manual[x]?.score!==undefined)}
-function strategyPriority(q){if(q.priority==="A")return "A";if(q.skill==="insertion")return "C";return "B"}
-function gradeInGoal(grade,goal=S.goal){return grade==="A"||(grade==="B"&&goal>=70)||(grade==="C"&&goal>=75)}
-function goalLabel(goal=S.goal){return goal===60?"A 60点":goal===70?"B 70点":"C 75点"}
-function goalAdvice(goal=S.goal){return goal===60?"A問題を最優先にして60点を守ります。":goal===70?"Aを固め、B問題まで直して70点を狙います。":"A・Bを確実にした後、取れるC問題を選んで75点を狙います。"}
+function strategyPriority(q){
+ const policy=typeof window!=="undefined"&&window.ENGLISH_ENGINE_ADAPTER?.policy;
+ if(policy)return policy.resolveQuestionPriority(q);
+ if(q.priority==="A")return "A";if(q.skill==="insertion")return "C";return "B"
+}
+function gradeInGoal(grade,goal=S.goal){
+ const policy=typeof window!=="undefined"&&window.ENGLISH_ENGINE_ADAPTER?.policy;
+ if(policy)return policy.isPriorityInGoal(grade,goal);
+ return grade==="A"||(grade==="B"&&goal>=70)||(grade==="C"&&goal>=75)
+}
+function goalLabel(goal=S.goal){
+ const policy=typeof window!=="undefined"&&window.ENGLISH_ENGINE_ADAPTER?.policy;
+ if(policy)return policy.goalLabel(goal);
+ return goal===60?"A 60点":goal===70?"B 70点":"C 75点"
+}
+function goalAdvice(goal=S.goal){
+ const policy=typeof window!=="undefined"&&window.ENGLISH_ENGINE_ADAPTER?.policy;
+ if(policy)return policy.goalAdvice(goal);
+ return goal===60?"A問題を最優先にして60点を守ります。":goal===70?"Aを固め、B問題まで直して70点を狙います。":"A・Bを確実にした後、取れるC問題を選んで75点を狙います。"
+}
 function setGoal(goal){goal=Number(goal);if(![60,70,75].includes(goal))return;if(completedDrillCycle())endDrillSession();S.goal=goal;S.dailyPlan=null;save();render()}
-function routeRole(y){return y===2024?"初見診断":y===2025?"実戦確認":y===2026?"最終判定":"弱点補強"}
+function routeRole(y){
+ const policy=typeof window!=="undefined"&&window.ENGLISH_ENGINE_ADAPTER?.policy;
+ if(policy)return policy.routeRole(y);
+ return y===2024?"初見診断":y===2025?"実戦確認":y===2026?"最終判定":"弱点補強"
+}
 function routeRecommendations(y){
  if(y>=2025)return [];
  const targets=new Set(activeWeak().filter(([_,w])=>gradeInGoal(w.priority)).map(([_,w])=>w.targetId));
  return (D[y]||[]).filter(q=>targets.has(q.targetId)&&gradeInGoal(strategyPriority(q))).sort((a,b)=>strategyPriority(a).localeCompare(strategyPriority(b))).slice(0,3);
 }
 function exposureLabel(x){return ({first:"完全初見",partial:"一部見た",done:"解答済み",unknown:"判定不明"})[x]||"未設定"}
-function skillName(s){return skillNames[s]||s}
+function skillName(s){
+ const policy=typeof window!=="undefined"&&window.ENGLISH_ENGINE_ADAPTER?.policy;
+ if(policy)return policy.skillName(s);
+ return skillNames[s]||s
+}
 function goto(v){view=v;document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.v===v));render();scrollTo(0,0)}
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>goto(b.dataset.v));
 document.getElementById("dark").onclick=()=>{document.documentElement.classList.toggle("dark");S.theme=document.documentElement.classList.contains("dark")?"dark":"light";save()}
@@ -87,7 +111,11 @@ function activeWeak(){return Object.entries(S.weak).filter(([_,w])=>w.status!=="
 function mastered(){return Object.values(S.weak).filter(w=>w.status==="mastered").length}
 function latestAttempt(y){return [...S.attempts].reverse().find(a=>a.status==="graded"&&(!y||a.year===Number(y)))}
 function nextRouteYear(){return ROUTE.find(y=>!S.attempts.some(a=>a.year===y&&a.status==="graded"))||null}
-function priorityOrder(w){return ({A:0,B:1,C:2})[w.priority]??3}
+function priorityOrder(w){
+ const policy=typeof window!=="undefined"&&window.ENGLISH_ENGINE_ADAPTER?.policy;
+ if(policy)return policy.priorityOrder(w?.priority);
+ return ({A:0,B:1,C:2})[w.priority]??3
+}
 function eligibleToday([_,w]){return w.status==="active"||(w.status==="pending"&&(!w.next||w.next<=today()))}
 function sortWeakEntries(a,b){
  const aDue=a[1].status==="pending"?0:1,bDue=b[1].status==="pending"?0:1;if(aDue!==bDue)return aDue-bDue;
