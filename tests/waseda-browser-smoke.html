@@ -47,13 +47,14 @@
     base.currentSkill=key;
     base.currentDrill={key,skill:q.skill,targetId:q.targetId,focusTag:q.focusTag,mode:'train',q:{id:q.id},answered:false,choiceOrder:Array(q.options.length).fill(0),used:null,selectedMany:null,order:null,orderIndices:null,textInputs:null,selfParts:null,selfChecks:null};
   }else if(scenario==='drill-legacy-reorder'){
-    const q=(window.DRILLS||[]).find(x=>!x.retired&&x.type==='reorder'&&Array.isArray(x.tokens)&&x.tokens.length>=3&&new Set(x.tokens).size===x.tokens.length);
-    if(!q)throw new Error('no active reorder drill available for normalization fixture');
-    const key='2024:legacy-reorder:main',shuffled=[...q.tokens],order=shuffled.slice(0,2);
+    const rows=window.DRILLS||[],preferred=rows.find(x=>x.id==='ro01'&&!x.retired&&x.type==='reorder');
+    const q=preferred||rows.find(x=>!x.retired&&x.type==='reorder'&&Array.isArray(x.tokens)&&x.tokens.length>=3&&new Set(x.tokens).size===x.tokens.length);
+    if(!q||!Array.isArray(q.tokens)||q.tokens.length<3)throw new Error('no active reorder drill available for normalization fixture');
+    const key='2024:legacy-reorder:main',shuffled=[...q.tokens],order=shuffled.slice(0,2),snapshot=JSON.parse(JSON.stringify(q));
     window.__BROWSER_FIXTURE={qId:q.id,order:[...order]};
     base.weak={[key]:{year:2024,id:'legacy-reorder',label:'旧形式並べ替え再開',status:'active',priority:'A',skill:q.skill,targetId:q.targetId,focusTag:q.focusTag,streak:1,confirmStreak:0}};
     base.currentSkill=key;
-    base.currentDrill={key,skill:q.skill,targetId:q.targetId,focusTag:q.focusTag,mode:'train',q:{id:q.id},answered:false,used:[q.id],order,shuffled,selectedMany:null,textInputs:null,selfParts:null,selfChecks:null};
+    base.currentDrill={key,skill:q.skill,targetId:q.targetId,focusTag:q.focusTag,mode:'train',q:snapshot,answered:false,used:[q.id],order,shuffled,selectedMany:null,textInputs:null,selfParts:null,selfChecks:null};
   }else if(scenario==='future'){
     const d=new Date();d.setDate(d.getDate()+1);const next=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
     const key='2024:future:main';
