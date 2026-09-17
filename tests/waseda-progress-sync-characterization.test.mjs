@@ -10,13 +10,24 @@ const source=read('progress-sync.js');
 const configCtx={};configCtx.window=configCtx;configCtx.globalThis=configCtx;vm.createContext(configCtx);vm.runInContext(read('schools/waseshibu/config.js'),configCtx,{filename:'schools/waseshibu/config.js'});
 const config=plain(configCtx.ENGLISH_SCHOOL_CONFIG);
 
-// External/local identity boundary: these values must not drift during commonization.
+// External/local identity boundary: values must not drift while their source moves to the adapter.
+let endpoint,appId,storageKey,syncDb,syncDbVersion;
+if(source.includes('SCHOOL_PROGRESS_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.progress||null')){
+  assert.match(source,/API_DEFAULT=String\(SCHOOL_PROGRESS_CONFIG\?\.endpoint\|\|'https:\/\/waseshibu-progress-api\.fyam8\.workers\.dev'\)/);
+  assert.match(source,/APP_ID=String\(SCHOOL_PROGRESS_CONFIG\?\.appId\|\|'english'\)/);
+  assert.match(source,/STORAGE_KEY=String\(SCHOOL_STORAGE_CONFIG\?\.key\|\|'waseshibu\.adaptive\.v3'\)/);
+  assert.match(source,/SYNC_DB=String\(SCHOOL_STORAGE_CONFIG\?\.syncDb\|\|'waseshibu-progress-sync'\)/);
+  assert.match(source,/SYNC_DB_VERSION=Number\(SCHOOL_STORAGE_CONFIG\?\.syncDbVersion\)\|\|7/);
+  endpoint=config.progress.endpoint;appId=config.progress.appId;storageKey=config.storage.key;syncDb=config.storage.syncDb;syncDbVersion=config.storage.syncDbVersion;
+}else{
+  endpoint=capture(source,/const API_DEFAULT='([^']+)'/,'API_DEFAULT');
+  appId=capture(source,/const APP_ID='([^']+)'/,'APP_ID');
+  storageKey=capture(source,/const STORAGE_KEY='([^']+)'/,'STORAGE_KEY');
+  syncDb=capture(source,/const SYNC_DB='([^']+)'/,'SYNC_DB');
+  syncDbVersion=Number(capture(source,/const SYNC_DB_VERSION=(\d+)/,'SYNC_DB_VERSION'));
+}
 const identity={
-  endpoint:capture(source,/const API_DEFAULT='([^']+)'/,'API_DEFAULT'),
-  appId:capture(source,/const APP_ID='([^']+)'/,'APP_ID'),
-  storageKey:capture(source,/const STORAGE_KEY='([^']+)'/,'STORAGE_KEY'),
-  syncDb:capture(source,/const SYNC_DB='([^']+)'/,'SYNC_DB'),
-  syncDbVersion:Number(capture(source,/const SYNC_DB_VERSION=(\d+)/,'SYNC_DB_VERSION')),
+  endpoint,appId,storageKey,syncDb,syncDbVersion,
   maxBatch:Number(capture(source,/const MAX_BATCH=(\d+)/,'MAX_BATCH')),
   reconcileMs:Number(capture(source,/const RECONCILE_INTERVAL_MS=([\d_]+)/,'RECONCILE_INTERVAL_MS').replaceAll('_','')),
   controlRefreshMs:capture(source,/const CONTROL_REFRESH_INTERVAL_MS=([^;]+)/,'CONTROL_REFRESH_INTERVAL_MS'),
