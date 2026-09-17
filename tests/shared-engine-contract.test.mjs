@@ -35,10 +35,26 @@ assert.deepEqual([...config.storage.legacyKeys],JSON.parse(`[${capture(app,/LEGA
 assert.equal(config.storage.recoveryPrefix,capture(app,/RECOVERY_PREFIX="([^"]+)"/,'RECOVERY_PREFIX'));
 assert.equal(config.storage.importRecoveryPrefix,capture(app,/IMPORT_RECOVERY_PREFIX="([^"]+)"/,'IMPORT_RECOVERY_PREFIX'));
 assert.equal(config.storage.schemaVersion,Number(capture(app,/SCHEMA_VERSION=(\d+)/,'SCHEMA_VERSION')));
-assert.equal(config.exam.dailyTaskTarget,Number(capture(app,/DAILY_TASK_TARGET=(\d+)/,'DAILY_TASK_TARGET')));
-assert.deepEqual([...config.exam.route],capture(app,/const ROUTE=\[([^\]]+)\]/,'ROUTE').split(',').map(Number));
-assert.equal(config.exam.defaultYear,Number(capture(app,/year:(\d+),answers:/,'default year')));
-assert.equal(config.exam.defaultGoal,Number(capture(app,/goal:(\d+),year:/,'default goal')));
+
+// During the staged migration, low-risk exam runtime values may still be literals or may
+// already be sourced from the validated adapter. In either case the Waseda fallback values
+// must remain visible and equal to the adapter contract.
+if(app.includes('SCHOOL_EXAM_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.exam||null')){
+  assert.match(app,/DAILY_TASK_TARGET=Number\(SCHOOL_EXAM_CONFIG\?\.dailyTaskTarget\)\|\|10/);
+  assert.match(app,/ROUTE=Array\.isArray\(SCHOOL_EXAM_CONFIG\?\.route\)\?\[\.\.\.SCHOOL_EXAM_CONFIG\.route\]:\[2024,2023,2022,2021,2020,2019,2025,2026\]/);
+  assert.match(app,/DEFAULT_GOAL=Number\(SCHOOL_EXAM_CONFIG\?\.defaultGoal\)\|\|60/);
+  assert.match(app,/DEFAULT_YEAR=Number\(SCHOOL_EXAM_CONFIG\?\.defaultYear\)\|\|2024/);
+  assert.match(app,/goal:DEFAULT_GOAL,year:DEFAULT_YEAR/);
+}else{
+  assert.equal(config.exam.dailyTaskTarget,Number(capture(app,/DAILY_TASK_TARGET=(\d+)/,'DAILY_TASK_TARGET')));
+  assert.deepEqual([...config.exam.route],capture(app,/const ROUTE=\[([^\]]+)\]/,'ROUTE').split(',').map(Number));
+  assert.equal(config.exam.defaultYear,Number(capture(app,/year:(\d+),answers:/,'default year')));
+  assert.equal(config.exam.defaultGoal,Number(capture(app,/goal:(\d+),year:/,'default goal')));
+}
+assert.equal(config.exam.dailyTaskTarget,10);
+assert.deepEqual([...config.exam.route],[2024,2023,2022,2021,2020,2019,2025,2026]);
+assert.equal(config.exam.defaultYear,2024);
+assert.equal(config.exam.defaultGoal,60);
 
 assert.equal(config.progress.endpoint,capture(sync,/const API_DEFAULT='([^']+)'/,'API_DEFAULT'));
 assert.equal(config.progress.appId,capture(sync,/const APP_ID='([^']+)'/,'APP_ID'));
