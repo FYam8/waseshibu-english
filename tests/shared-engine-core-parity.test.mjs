@@ -25,13 +25,14 @@ const old=oldCtx.old,core=coreCtx.ENGLISH_ENGINE_CORE;
 assert.ok(core,'shared engine core did not load');
 
 const index=read('index.html');
-const corePos=index.indexOf('<script src="engine/core.js"></script>'),appPos=index.indexOf('<script src="app.js"></script>');
+const coreTag='<script src="engine/core.js"></script>',appTag='<script src="app.js"></script>',compatTag='<script src="engine/waseda-compat.js"></script>',syncTag='<script src="progress-sync.js"></script>';
+const corePos=index.indexOf(coreTag),appPos=index.indexOf(appTag),compatPos=index.indexOf(compatTag),syncPos=index.indexOf(syncTag);
 assert.ok(corePos>=0,'index.html must load engine/core.js in the candidate runtime');
 assert.ok(appPos>=0&&corePos<appPos,'engine/core.js must load before app.js');
+assert.ok(compatPos>appPos,'Waseda compatibility bridge must load after app.js so it replaces the legacy globals');
+assert.ok(syncPos>compatPos,'progress-sync.js must remain after the compatibility bridge');
 
-for(const d of [new Date(2026,0,1),new Date(2026,8,17),new Date(2028,1,29)]){
-  assert.equal(core.localDate(d),old.localDate(d));
-}
+for(const d of [new Date(2026,0,1),new Date(2026,8,17),new Date(2028,1,29)])assert.equal(core.localDate(d),old.localDate(d));
 assert.equal(core.plusDays(1,new Date(2026,8,17)),'2026-09-18');
 assert.equal(core.plusDays(-1,new Date(2026,0,1)),'2025-12-31');
 
@@ -41,10 +42,12 @@ const drillFixtures=[
   {q:{id:'choice',options:['a','b']},choiceOrder:[0,0],order:['one','two'],shuffled:['two','one'],orderIndices:[]},
   {q:{id:'text'},choiceOrder:[9],used:null,selectedMany:null,order:null,orderIndices:null,textInputs:null,selfParts:null,selfChecks:null}
 ];
-for(const fixture of drillFixtures){
-  assert.deepEqual(plain(core.normalizeDrillState(fixture)),plain(old.normalizeDrillState(fixture)));
-}
+for(const fixture of drillFixtures)assert.deepEqual(plain(core.normalizeDrillState(fixture)),plain(old.normalizeDrillState(fixture)));
 for(const value of ['', '   ', 'one', 'one two', ' one\n two\tthree '])assert.equal(core.wordCount(value),old.wordCount(value));
 for(const items of [[],[{familyId:'a'}],[{familyId:'a'},{familyId:'a'},{familyId:'b'}]])assert.equal(core.familyCount(items),old.familyCount(items));
 
-console.log('shared engine shadow core parity: CLEAN');
+const bridgeCtx={ENGLISH_ENGINE_CORE:core,wordCount:old.wordCount,familyCount:old.familyCount};bridgeCtx.globalThis=bridgeCtx;bridgeCtx.window=bridgeCtx;vm.createContext(bridgeCtx);vm.runInContext(read('engine/waseda-compat.js'),bridgeCtx,{filename:'engine/waseda-compat.js'});
+assert.equal(bridgeCtx.wordCount,core.wordCount);assert.equal(bridgeCtx.familyCount,core.familyCount);
+assert.deepEqual(plain(bridgeCtx.ENGLISH_ENGINE_COMPAT.delegated),['wordCount','familyCount']);
+
+console.log('shared engine core/delegation parity: CLEAN');
