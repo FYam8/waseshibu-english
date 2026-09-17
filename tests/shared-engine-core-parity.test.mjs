@@ -17,7 +17,7 @@ function plain(value){return JSON.parse(JSON.stringify(value))}
 
 const app=read('app.js');
 const oldCtx={};oldCtx.globalThis=oldCtx;vm.createContext(oldCtx);
-const oldNames=['localDate','normalizeDrillState','wordCount','familyCount'];
+const oldNames=['localDate','plusDays','normalizeDrillState','wordCount','familyCount'];
 vm.runInContext(`${oldNames.map(n=>functionSource(app,n)).join('\n')}\nglobalThis.old={${oldNames.join(',')}}`,oldCtx);
 
 const coreCtx={};coreCtx.globalThis=coreCtx;coreCtx.window=coreCtx;vm.createContext(coreCtx);vm.runInContext(read('engine/core.js'),coreCtx,{filename:'engine/core.js'});
@@ -33,8 +33,7 @@ assert.ok(compatPos>appPos,'Waseda compatibility bridge must load after app.js s
 assert.ok(syncPos>compatPos,'progress-sync.js must remain after the compatibility bridge');
 
 for(const d of [new Date(2026,0,1),new Date(2026,8,17),new Date(2028,1,29)])assert.equal(core.localDate(d),old.localDate(d));
-assert.equal(core.plusDays(1,new Date(2026,8,17)),'2026-09-18');
-assert.equal(core.plusDays(-1,new Date(2026,0,1)),'2025-12-31');
+for(const [n,d] of [[1,new Date(2026,8,17)],[-1,new Date(2026,0,1)],[2,new Date(2028,1,28)]])assert.equal(core.plusDays(n,d),old.plusDays.call({Date},n,d));
 
 const drillFixtures=[
   null,
@@ -46,8 +45,9 @@ for(const fixture of drillFixtures)assert.deepEqual(plain(core.normalizeDrillSta
 for(const value of ['', '   ', 'one', 'one two', ' one\n two\tthree '])assert.equal(core.wordCount(value),old.wordCount(value));
 for(const items of [[],[{familyId:'a'}],[{familyId:'a'},{familyId:'a'},{familyId:'b'}]])assert.equal(core.familyCount(items),old.familyCount(items));
 
-const bridgeCtx={ENGLISH_ENGINE_CORE:core,wordCount:old.wordCount,familyCount:old.familyCount};bridgeCtx.globalThis=bridgeCtx;bridgeCtx.window=bridgeCtx;vm.createContext(bridgeCtx);vm.runInContext(read('engine/waseda-compat.js'),bridgeCtx,{filename:'engine/waseda-compat.js'});
-assert.equal(bridgeCtx.wordCount,core.wordCount);assert.equal(bridgeCtx.familyCount,core.familyCount);
-assert.deepEqual(plain(bridgeCtx.ENGLISH_ENGINE_COMPAT.delegated),['wordCount','familyCount']);
+const bridgeCtx={ENGLISH_ENGINE_CORE:core,wordCount:old.wordCount,familyCount:old.familyCount,localDate:old.localDate,plusDays:old.plusDays};bridgeCtx.globalThis=bridgeCtx;bridgeCtx.window=bridgeCtx;vm.createContext(bridgeCtx);vm.runInContext(read('engine/waseda-compat.js'),bridgeCtx,{filename:'engine/waseda-compat.js'});
+for(const name of ['wordCount','familyCount','localDate','plusDays'])assert.equal(bridgeCtx[name],core[name],`${name} was not delegated`);
+assert.deepEqual(plain(bridgeCtx.ENGLISH_ENGINE_COMPAT.delegated),['wordCount','familyCount','localDate','plusDays']);
+assert.equal(bridgeCtx.ENGLISH_ENGINE_COMPAT.stage,'gate2-pure-helper-delegation-2');
 
 console.log('shared engine core/delegation parity: CLEAN');
