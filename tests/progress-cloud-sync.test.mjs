@@ -63,7 +63,12 @@ const appScriptPos=index.indexOf('<script src="app.js"></script>');
 const syncScriptPos=index.indexOf('<script src="progress-sync.js"></script>');
 assert.ok(appScriptPos>=0,'app.js must be loaded');
 assert.ok(syncScriptPos>appScriptPos,'progress-sync.js must load after app.js and any compatibility bridge');
-assert.match(app,/const STORAGE_KEY="waseshibu\.adaptive\.v3"/);
-assert.match(app,/SCHEMA_VERSION=8/);
+if(app.includes('SCHOOL_STORAGE_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.storage||null')){
+  assert.match(app,/STORAGE_KEY=String\(SCHOOL_STORAGE_CONFIG\?\.key\|\|"waseshibu\.adaptive\.v3"\)/);
+  assert.match(app,/SCHEMA_VERSION=Number\(SCHOOL_STORAGE_CONFIG\?\.schemaVersion\)\|\|8/);
+}else{
+  assert.match(app,/const STORAGE_KEY="waseshibu\.adaptive\.v3"/);
+  assert.match(app,/SCHEMA_VERSION=8/);
+}
 
 console.log('English cloud progress sync guards: CLEAN');
