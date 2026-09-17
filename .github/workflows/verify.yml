@@ -16,6 +16,7 @@ jobs:
       - run: node tests/shared-engine-contract.test.mjs
       - run: node tests/shared-engine-bootstrap.test.mjs
       - run: node tests/shared-engine-core-parity.test.mjs
+      - run: node tests/shared-engine-remediation-mastery-parity.test.mjs
       - run: node tests/waseda-policy-delegation.test.mjs
       - run: node tests/waseda-runtime-config-delegation.test.mjs
       - run: node tests/waseda-score-model-characterization.test.mjs
