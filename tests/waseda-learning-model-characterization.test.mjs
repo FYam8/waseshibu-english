@@ -8,6 +8,7 @@ function hash(rows){return crypto.createHash('sha256').update(rows.join('\n')).d
 function plain(value){return JSON.parse(JSON.stringify(value))}
 
 const index=read('index.html');
+const app=read('app.js');
 const scripts=[...index.matchAll(/<script\s+src="([^"]+)"/g)].map(x=>x[1]);
 const preApp=scripts.slice(0,scripts.indexOf('app.js')).filter(x=>!x.startsWith('engine/')&&!x.startsWith('schools/'));
 const ctx={console};ctx.window=ctx;ctx.globalThis=ctx;vm.createContext(ctx);
@@ -44,9 +45,16 @@ for(const q of active){
   assert.ok(q.targetId,`${q.id}: active drill targetId missing`);
   assert.ok(q.focusTag,`${q.id}: active drill focusTag missing`);
   assert.ok(q.examFormat,`${q.id}: active drill examFormat missing`);
-  assert.ok(q.familyId,`${q.id}: active drill familyId missing`);
   assert.ok(Number.isFinite(Number(q.level)),`${q.id}: active drill level missing`);
 }
+
+// Some later-loaded drill records intentionally reach app.js without familyId. Current Waseda
+// completes those IDs in its startup hotfix before mastery selection. Characterize that boundary
+// rather than incorrectly requiring learning-model.js to own data added after it executes.
+const missingFamilyIds=active.filter(q=>!q.familyId).map(q=>String(q.id)).sort();
+assert.ok(missingFamilyIds.length>0,'expected later-loaded active drills to require app startup familyId completion');
+assert.ok(missingFamilyIds.includes('lrb12'),'known later-loaded familyId boundary moved unexpectedly');
+assert.match(app,/BANK\.forEach\(\(q,i\)=>\{ if\(!q\.familyId\) q\.familyId=String\(q\.id\|\|`\$\{q\.skill\|\|"skill"\}:\$\{q\.targetId\|\|"target"\}:\$\{i\}`\); \}\);/,'app startup familyId completion guard changed');
 
 // Freeze representative migration behavior without changing any production state.
 const source=examRows.find(({q})=>active.filter(x=>x.targetId===q.targetId).length>=3);
@@ -69,11 +77,13 @@ assert.equal(manualState.weak.w.focusTag,`manual:${source.q.skill}:文法・語�
 assert.equal(manualState.weak.w.trap,'文法・語彙');
 
 const examFingerprint=examRows.map(({year,q})=>[year,q.id,q.skill,q.targetId,q.focusTag,q.examFormat,q.trap].join('|')).sort();
-const bankFingerprint=active.map(q=>[q.id,q.skill,q.targetId,q.focusTag,q.examFormat,q.familyId,q.level,q.type].join('|')).sort();
+const bankFingerprint=active.map(q=>[q.id,q.skill,q.targetId,q.focusTag,q.examFormat,q.familyId||'',q.level,q.type].join('|')).sort();
 console.log(JSON.stringify({
   ok:true,
   examMappingCount:examFingerprint.length,
   examMappingSha256:hash(examFingerprint),
   activeBankCount:bankFingerprint.length,
-  activeBankMappingSha256:hash(bankFingerprint)
+  activeBankMappingSha256:hash(bankFingerprint),
+  preAppMissingFamilyIdCount:missingFamilyIds.length,
+  preAppMissingFamilyIdSha256:hash(missingFamilyIds)
 },null,2));
