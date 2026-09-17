@@ -8,29 +8,20 @@ Last updated: 2026-09-17
 - Baseline production commit for this branch: `44154a777b2d6c584a1eba4a38bb782c6b70d0bb`
 - Shared-engine branch: `feat/shared-engine-v1`
 - Production `main` wiring changed: **No**
-- Candidate branch loads `engine/core.js` and delegates only four pure helpers through `engine/waseda-compat.js`.
-- `learning-model.js`, `progress-sync.js`, exam data, drill data, storage keys and cloud identities are unchanged.
+- Candidate branch loads `engine/core.js`; production data, storage keys, Cloud Sync identities and school data remain unchanged.
 - PR #11 remains Draft and must not merge until the later Waseda parity gates are complete.
 
 ## Gate 0 — contract / identity baseline
 
 Status: **CLEAN**
 
-Guards cover the current Waseda:
-
-- localStorage key and legacy/recovery namespaces
-- schema version
-- route/default year/goals/daily target/written score ceiling
-- progress API app ID/endpoint and IndexedDB identity
-- Waseda-specific priority/goal/route/skill policy shape
-- exam year set vs `EXAM_DATA`
-- malformed adapter validation and namespace collision checks
+Guards cover the current Waseda localStorage/recovery namespaces, schema, route/default year/goals, score limits, progress API/IndexedDB identity, Waseda policy shape, exam years, malformed adapter validation and namespace collision checks.
 
 ## Gate 1 — behavior characterization
 
-Status: **CLEAN for the characterized baseline; retained as a permanent regression gate**
+Status: **CLEAN and retained as a permanent regression gate**
 
-`tests/waseda-behavior-characterization.test.mjs`, `tests/waseda-learning-flow-characterization.test.mjs` and the real-browser smoke suite freeze the current Waseda behavior for fresh Today, route selection, active exam resume, active drill resume, future retention blocking, 3-consecutive + next-day 2-consecutive mastery, failed confirmation fallback, migration/recovery/import invariants and stable IDs.
+The source/runtime, executable learning-flow and real-browser suites freeze current Waseda behavior for Today ordering, route selection, active exam/drill resume, future retention blocking, 3-consecutive + next-day 2-consecutive mastery, failed confirmation fallback, migration/recovery/import and stable IDs.
 
 Frozen data identity:
 
@@ -39,13 +30,13 @@ Frozen data identity:
 - active drill IDs: **283**
 - active-drill-ID SHA-256: `bbb7939ceefa3b82578604c508d58aa5dd5182c86670ed7a940b192bf1c38e8f`
 
-The real-browser suite runs isolated Chrome profiles for `fresh`, `attempt`, `drill` and `future`; it never touches production user storage or cloud progress.
+The browser suite uses isolated localhost Chrome profiles and never touches production user storage or cloud progress.
 
 ## Gate 2 — pure shared logic extraction
 
-Status: **IN PROGRESS — delegation stage 2 CLEAN**
+Status: **IN PROGRESS — delegation stage 3 candidate**
 
-`engine/core.js` currently contains:
+`engine/core.js` contains:
 
 - `localDate`
 - `plusDays`
@@ -53,27 +44,28 @@ Status: **IN PROGRESS — delegation stage 2 CLEAN**
 - `wordCount`
 - `familyCount`
 
-The candidate runtime loads `engine/core.js` before `app.js`, then `engine/waseda-compat.js` after `app.js`. The compatibility bridge delegates these four pure helpers:
+The candidate runtime loads `engine/core.js` before `app.js`. Waseda then uses a deliberately small compatibility surface:
 
 - `wordCount`
 - `familyCount`
 - `localDate`
 - `plusDays`
+- `normalizeDrillState`
 
-`normalizeDrillState` remains on the legacy Waseda implementation because it participates in startup/resume state handling and requires stronger startup/reload characterization before delegation.
+`normalizeDrillState` required extra handling because it executes while `app.js` is still starting. `app.js` now contains a guarded wrapper: when the shared core is loaded it calls `ENGLISH_ENGINE_CORE.normalizeDrillState`; when the core is absent it preserves the previous Waseda implementation as an exact fallback. After `app.js` finishes loading, `engine/waseda-compat.js` delegates the global helper directly to the shared core.
 
-The current helper-delegation stage passed both push-triggered and pull-request-triggered verification, including direct old-vs-engine parity, executable Today/mastery characterization, real-browser `fresh/attempt/drill/future` scenarios, Cloud progress-sync guards, AI writing tests and grading-goldset checks.
+Before wiring this helper, parity coverage was expanded for the two-pass startup path: normalization of the saved drill snapshot and normalization again after replacing the saved question with the current bank record. Invalid legacy choice order repair and legacy reorder `orderIndices` recovery are compared directly against the previous Waseda behavior. A production-valid legacy choice resume is also covered in the real browser.
 
-During the first compatibility-bridge insertion, the existing progress-sync test correctly exposed an assumption that `app.js` and `progress-sync.js` were adjacent script tags. The test was updated to preserve the actual invariant—progress sync loads after the app and compatibility bridge—and the complete suite then passed.
+A synthetic reorder-resume browser fixture was rejected by current production startup semantics, so it was not used to redefine Waseda behavior. The reorder normalization rule remains covered at pure-function parity level instead of changing production to satisfy an artificial fixture.
 
-`engine/manifest.json` is `0.1.0-alpha.3`, marks candidate behavior delegation, keeps production wiring false, and blocks Rikkyo consumption until Waseda parity/release gates complete.
+`engine/manifest.json` is now `0.1.0-alpha.4`. `productionWiring` remains false because `main` has not changed, and Rikkyo consumption remains blocked until Waseda parity/release gates complete.
 
-**Next Gate 2 action:** characterize startup/resume drill-state normalization more deeply before delegating `normalizeDrillState`. Stop on any unexplained visible or persisted-state difference.
+**Next Gate 2 action:** continue extracting the next low-risk pure/state helper group in small increments, preserving the same contract, characterization and browser gates after every delegation.
 
 ## Future Rikkyo relationship
 
-Rikkyo must consume a pinned vendored engine artifact, never a live script from Waseda `main`. An engine update may create or update a Rikkyo sync PR only after Rikkyo compatibility tests pass. Waseda-specific config, policy and data are never copied by that sync.
+Rikkyo must consume a pinned vendored engine artifact, never a live script from Waseda `main`. Engine updates may create/update a Rikkyo sync PR only after Rikkyo compatibility tests pass. Waseda-specific config, policy and data are never copied by that sync.
 
 ## Merge rule
 
-No production merge is allowed merely because the current sub-stage is clean. Runtime extraction must proceed in small commits, with full CI and real-browser parity after each runtime wiring change. Final Waseda commonization requires two consecutive CLEAN review/test loops before merge to `main`.
+No production merge is allowed merely because the current sub-stage is clean. Runtime extraction must proceed in small commits with full CI and browser parity after each runtime wiring change. Final Waseda commonization requires two consecutive CLEAN review/test loops before merge to `main`.
