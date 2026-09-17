@@ -85,7 +85,7 @@ Status: **STARTED — shadow only, not production-wired**
 - `wordCount`
 - `familyCount`
 
-`tests/shared-engine-core-parity.test.mjs` compares these helpers with the current Waseda runtime. `engine/manifest.json` identifies this stage as `shadow-core-parity`, keeps `productionWiring: false`, and sets consumer policy to `pinned-vendor-pr-only`.
+`tests/shared-engine-core-parity.test.mjs` compares these helpers with the current Waseda runtime. `engine/manifest.json` identifies this stage as `shadow-core-parity`, keeps `productionWiring: false`, uses consumer policy `pinned-vendor-pr-only`, and requires `waseda-parity-before-consumer-sync`.
 
 No script tag has been added to production `index.html`, and `app.js` does not call `engine/core.js` yet. Therefore this stage cannot change Waseda user behavior. The next Gate 2 step is to wire one small helper group behind Waseda compatibility wrappers, rerun all characterization/browser tests, and stop on any unexplained difference.
 
