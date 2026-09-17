@@ -1,8 +1,8 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.9",
+  "engineVersion": "0.1.0-alpha.10",
   "contractVersion": 1,
-  "status": "candidate-progress-sync-config-clean",
+  "status": "candidate-progress-projection-config-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": ["engine/"],
   "runtimeLoaded": true,
@@ -19,6 +19,8 @@
   "progressSyncCharacterized": true,
   "progressSyncConfigDelegated": true,
   "delegatedProgressSyncConfig": ["endpoint", "appId", "storage.key", "storage.syncDb", "storage.syncDbVersion"],
+  "progressProjectionConfigDelegated": true,
+  "delegatedProgressProjectionConfig": ["exam.years", "exam.goalTiers", "exam.defaultGoal", "exam.writtenMaxScore", "progress.appId label"],
   "scoreModelCharacterized": true,
   "learningModelCharacterized": true,
   "persistenceCharacterized": true,
@@ -27,6 +29,6 @@
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "The candidate branch validates the Waseda adapter, delegates generic core helpers and learning-state migration, routes Waseda policy through the school adapter, and sources exam, persistence and progress-sync identity/config from validated school config with exact Waseda fallbacks. The progress-sync HTTP/IndexedDB/source-record/event semantics are characterized and unchanged; full browser, sync and AI regression suites are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "parameterize-progress-projection-school-semantics-under-frozen-sync-contract"
+  "notes": "The candidate branch validates the Waseda adapter, delegates generic core helpers and learning-state migration, routes Waseda policy through the school adapter, and sources exam, persistence, progress-sync identity and progress-projection school values from validated config with exact Waseda fallbacks. Source-record IDs, event types, HTTP/IndexedDB contracts, dedup/revision semantics and the Waseda app score model remain unchanged. The one-shot wiring and permanent full browser/sync/AI verification suites are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
+  "nextGate": "parameterize-app-score-model-under-existing-waseda-score-characterization"
 }
