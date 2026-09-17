@@ -1,0 +1,9 @@
+{
+  "name": "shared-english-engine",
+  "engineVersion": "0.1.0-alpha.0",
+  "contractVersion": 1,
+  "status": "contract-baseline",
+  "sourceRepository": "FYam8/waseshibu-english",
+  "artifactRoots": ["engine/"],
+  "productionWiring": false
+}
