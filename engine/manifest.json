@@ -7,5 +7,6 @@
   "artifactRoots": ["engine/"],
   "productionWiring": false,
   "consumerPolicy": "pinned-vendor-pr-only",
-  "releaseGate": "waseda-parity-before-consumer-sync"
+  "releaseGate": "waseda-parity-before-consumer-sync",
+  "schoolSpecificFilesExcluded": true
 }
