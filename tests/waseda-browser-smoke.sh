@@ -28,7 +28,7 @@ if [[ -z "$CHROME" ]]; then
   exit 1
 fi
 
-for scenario in fresh attempt drill drill-legacy-choice drill-legacy-reorder future; do
+for scenario in fresh attempt drill drill-legacy-choice future; do
   DOM="$TMP/dom-$scenario.html"
   LOG="$TMP/chrome-$scenario.log"
   PROFILE="$TMP/profile-$scenario"
