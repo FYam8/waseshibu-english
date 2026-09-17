@@ -7,6 +7,21 @@ function read(path){return fs.readFileSync(new URL(`../${path}`,import.meta.url)
 function hash(rows){return crypto.createHash('sha256').update(rows.join('\n')).digest('hex')}
 function plain(value){return JSON.parse(JSON.stringify(value))}
 
+const BASELINE=Object.freeze({
+  examMappingCount:167,
+  examMappingSha256:'e11d73163f804c8639748a9e66c5853e078846842812152f30c33bf39fbe3db4',
+  activeBankCount:283,
+  activeBankMappingSha256:'eddfded9fc21d06b79d7b0ae9765104fb1520211f0951fa4ddf281c4de16c7e0',
+  preAppMissingFamilyIdCount:60,
+  preAppMissingFamilyIdSha256:'c1d5c29582039d1590b22b7ceda67a958268b3c34a3bf4f26ef0f636dcdf359c',
+  preAppMissingFocusTagCount:14,
+  preAppMissingFocusTagSha256:'508748a861ecf59ed55c5a5918df31baa59826a3f541215b902c52d56ad91bcf',
+  preAppMissingExamFormatCount:32,
+  preAppMissingExamFormatSha256:'010d82e535e67ee74ff338e76b6af21694efdbbb272d0b1d71f6c66c73faa15e',
+  preAppMissingLevelCount:14,
+  preAppMissingLevelSha256:'508748a861ecf59ed55c5a5918df31baa59826a3f541215b902c52d56ad91bcf'
+});
+
 const index=read('index.html');
 const app=read('app.js');
 const scripts=[...index.matchAll(/<script\s+src="([^"]+)"/g)].map(x=>x[1]);
@@ -40,9 +55,8 @@ assert.equal(detail2024.targetId,'detail-paraphrase-evidence');
 assert.equal(detail2024.focusTag,'paraphrase-scope');
 
 const active=model.activeBank();
-assert.equal(active.length,283,'active practice bank count changed');
+assert.equal(active.length,BASELINE.activeBankCount,'active practice bank count changed');
 for(const q of active){
-  // targetId is required by the current weakness/drill matching path even for later-loaded drills.
   assert.ok(q.targetId,`${q.id}: active drill targetId missing`);
 }
 
@@ -51,20 +65,16 @@ for(const q of active){
 // populate. Characterize these actual boundaries instead of changing production data to satisfy
 // the test.
 const missingFamilyIds=active.filter(q=>!q.familyId).map(q=>String(q.id)).sort();
-assert.ok(missingFamilyIds.length>0,'expected later-loaded active drills to require app startup familyId completion');
 assert.ok(missingFamilyIds.includes('lrb12'),'known later-loaded familyId boundary moved unexpectedly');
 assert.match(app,/BANK\.forEach\(\(q,i\)=>\{ if\(!q\.familyId\) q\.familyId=String\(q\.id\|\|`\$\{q\.skill\|\|"skill"\}:\$\{q\.targetId\|\|"target"\}:\$\{i\}`\); \}\);/,'app startup familyId completion guard changed');
 
 const missingFocusTagIds=active.filter(q=>!q.focusTag).map(q=>String(q.id)).sort();
-assert.ok(missingFocusTagIds.length>0,'expected later-loaded active drills with optional pre-app focusTag');
 assert.ok(missingFocusTagIds.includes('lwc29'),'known later-loaded focusTag boundary moved unexpectedly');
 
 const missingExamFormatIds=active.filter(q=>!q.examFormat).map(q=>String(q.id)).sort();
-assert.ok(missingExamFormatIds.length>0,'expected later-loaded active drills with optional pre-app examFormat');
 assert.ok(missingExamFormatIds.includes('lcx01'),'known later-loaded examFormat boundary moved unexpectedly');
 
 const missingLevelIds=active.filter(q=>!Number.isFinite(Number(q.level))).map(q=>String(q.id)).sort();
-assert.ok(missingLevelIds.length>0,'expected later-loaded active drills with optional pre-app level');
 assert.ok(missingLevelIds.includes('lwc29'),'known later-loaded level boundary moved unexpectedly');
 
 // Current Waseda does not normalize every missing focusTag/examFormat/level at startup. Selection
@@ -93,8 +103,7 @@ assert.equal(manualState.weak.w.trap,'文法・語彙');
 
 const examFingerprint=examRows.map(({year,q})=>[year,q.id,q.skill,q.targetId,q.focusTag,q.examFormat,q.trap].join('|')).sort();
 const bankFingerprint=active.map(q=>[q.id,q.skill,q.targetId,q.focusTag||'',q.examFormat||'',q.familyId||'',Number.isFinite(Number(q.level))?q.level:'',q.type].join('|')).sort();
-console.log(JSON.stringify({
-  ok:true,
+const observed={
   examMappingCount:examFingerprint.length,
   examMappingSha256:hash(examFingerprint),
   activeBankCount:bankFingerprint.length,
@@ -107,4 +116,6 @@ console.log(JSON.stringify({
   preAppMissingExamFormatSha256:hash(missingExamFormatIds),
   preAppMissingLevelCount:missingLevelIds.length,
   preAppMissingLevelSha256:hash(missingLevelIds)
-},null,2));
+};
+assert.deepEqual(observed,BASELINE,'Waseda learning-model/data boundary fingerprint changed');
+console.log(JSON.stringify({ok:true,...observed},null,2));
