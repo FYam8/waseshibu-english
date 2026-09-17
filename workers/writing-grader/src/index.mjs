@@ -9,7 +9,7 @@ const DRILL_TASKS = new Map([...Array.from({length:16},(_,i)=>[`lrb${String(i+1)
 const CATEGORY_NAMES = new Set(["課題達成","本文の正確さ","反論の明確さ","理由・具体例","論理・構成","情報の選択","文法","綴り","語彙","語順","語数"]);
 
 function json(data,status=200,headers={}){return new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8",...headers}})}
-function corsHeaders(origin){return{"access-control-allow-origin":origin,"access-control-allow-methods":"POST, OPTIONS","access-control-allow-headers":"content-type","access-control-max-age":"86400",vary:"Origin"}}
+function corsHeaders(origin){return{"access-control-allow-origin":origin,"access-control-allow-methods":"POST, OPTIONS","access-control-allow-headers":"content-type, x-client-id","access-control-max-age":"86400",vary:"Origin"}}
 function wordCount(text){return String(text||"").trim().split(/\s+/).filter(Boolean).length}
 function clampText(value,max){if(typeof value!=="string")return"";const clean=value.trim();if(clean.length<=max)return clean;const clipped=clean.slice(0,max+1),boundary=clipped.lastIndexOf(" ");return`${clipped.slice(0,boundary>max*.7?boundary:max).trim()}…`}
 function normalizeLimits(task){const partLimits=Array.isArray(task?.partLimits)?task.partLimits.slice(0,4).map(Number).filter(n=>Number.isInteger(n)&&n>0&&n<=100):[],valid=n=>Number.isInteger(Number(n))&&Number(n)>0&&Number(n)<=100;return{partLimits,maxWords:valid(task?.maxWords)?Number(task.maxWords):0,approxWords:valid(task?.approxWords)?Number(task.approxWords):0}}

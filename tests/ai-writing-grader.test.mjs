@@ -33,6 +33,7 @@ assert.equal(scoreAssessment(resolveTask(completionTask),"(1) animals can notice
 let aiCalls=0;
 const env={GLOBAL_LIMITER:{limit:async()=>{throw new Error("application rate limiter must not be called")}},CLIENT_LIMITER:{limit:async()=>{throw new Error("application rate limiter must not be called")}},AI:{run:async(_model,input)=>{aiCalls++;assert.equal(input.max_tokens,900);assert.equal(input.reasoning_effort,"low");return{response:JSON.stringify(rawAssessment),usage:{prompt_tokens:612,completion_tokens:338}}}}};
 function request(body,options={}){return new Request("https://worker.example/v1/grade-writing",{method:"POST",headers:{origin,"content-type":"application/json",...(options.headers||{})},body:JSON.stringify(body)})}
+const preflight=await worker.fetch(new Request("https://worker.example/v1/grade-writing",{method:"OPTIONS",headers:{origin,"access-control-request-headers":"content-type, x-client-id"}}),env);assert.equal(preflight.status,204);assert.match(preflight.headers.get("access-control-allow-headers"),/x-client-id/,"cached app versions remain compatible while the legacy header is ignored");
 
 const response=await worker.fetch(request({task:rebuttalTask,answer}),env),payload=await response.json();
 assert.equal(response.status,200);assert.equal(payload.score,24);assert.equal(payload.maxScore,24);assert.deepEqual(payload.modelSemantic,[3,1,0,1,0,0]);assert.deepEqual(payload.semantic,[1,1,1,1,0,0]);assert.equal(payload.localAdjustments.length,2);assert.deepEqual(payload.usage,{inputTokens:612,outputTokens:338});assert.equal(aiCalls,1);
