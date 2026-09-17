@@ -22,6 +22,13 @@ function before(haystack,a,b,label){
 function compact(s){return s.replace(/\s+/g,'')}
 function hash(values){return crypto.createHash('sha256').update(values.join('\n')).digest('hex')}
 
+const BASELINE=Object.freeze({
+  examIdCount:167,
+  examIdSha256:'f4d22a1214fe3415f964835c747aba4acf0dbfb1b3181f1b5e9675b0adf5d809',
+  activeDrillCount:283,
+  activeDrillIdSha256:'bbb7939ceefa3b82578604c508d58aa5dd5182c86670ed7a940b192bf1c38e8f'
+});
+
 const app=read('app.js');
 
 // Fresh-state and route baseline. These are user-visible current behavior, not a proposed design.
@@ -97,7 +104,7 @@ const preImport=functionSource(app,'savePreImportRecovery');assert.match(preImpo
 const mergeImport=functionSource(app,'mergeImportedState');
 assert.match(mergeImport,/currentAttempt\.id!==incoming\.currentAttempt\.id/);assert.match(mergeImport,/recoveredFromImport:true/);assert.match(mergeImport,/recoveredDrills\.push/);
 
-// Load the same pre-app data scripts as index.html to fingerprint stable IDs without running the UI.
+// Load the same pre-app data scripts as index.html to freeze stable IDs before extraction.
 const index=read('index.html');
 const scripts=[...index.matchAll(/<script\s+src="([^"]+)"/g)].map(x=>x[1]);
 const dataScripts=scripts.slice(0,scripts.indexOf('app.js')).filter(x=>!x.startsWith('schools/')&&!x.startsWith('engine/'));
@@ -110,13 +117,9 @@ const examIds=Object.entries(ctx.EXAM_DATA||{}).flatMap(([year,rows])=>rows.map(
 const activeDrillIds=(ctx.DRILLS||[]).filter(q=>!q.retired).map(q=>String(q.id)).sort();
 assert.equal(new Set(examIds).size,examIds.length,'exam stable IDs must be unique');
 assert.equal(new Set(activeDrillIds).size,activeDrillIds.length,'active drill IDs must be unique');
-assert.equal(activeDrillIds.length,283,'current active drill count is part of the Waseda baseline');
-assert.ok(examIds.length>0,'exam IDs must be discoverable');
+assert.equal(examIds.length,BASELINE.examIdCount,'exam stable-ID count changed');
+assert.equal(hash(examIds),BASELINE.examIdSha256,'exam stable-ID set changed');
+assert.equal(activeDrillIds.length,BASELINE.activeDrillCount,'active drill count changed');
+assert.equal(hash(activeDrillIds),BASELINE.activeDrillIdSha256,'active drill stable-ID set changed');
 
-console.log(JSON.stringify({
-  ok:true,
-  examIdCount:examIds.length,
-  examIdSha256:hash(examIds),
-  activeDrillCount:activeDrillIds.length,
-  activeDrillIdSha256:hash(activeDrillIds)
-},null,2));
+console.log(JSON.stringify({ok:true,...BASELINE},null,2));
