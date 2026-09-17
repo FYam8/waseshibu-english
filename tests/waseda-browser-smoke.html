@@ -24,27 +24,65 @@
 <script src="../data.js"></script><script src="../paper-underlines.js"></script><script src="../manual-guides.js"></script><script src="../extra-drills.js"></script><script src="../detail-drills-v2.js"></script><script src="../learning-model.js"></script>
 <script src="../original-drills-loop3.js"></script><script src="../original-drills-loop4.js"></script><script src="../detail20-fix-loop1.js"></script><script src="../rebuttal16-loop2.js"></script><script src="../rebuttal16-loop3-afterturn.js"></script>
 <script src="../summary15-loop2.js"></script><script src="../summary15-loop4.js"></script><script src="../reason10-loop2.js"></script><script src="../reason10-loop3.js"></script><script src="../emotion10-loop2.js"></script><script src="../context10-loop2.js"></script><script src="../connector11-loop2.js"></script><script src="../reading50-loop2.js"></script><script src="../reading50-loop3.js"></script><script src="../vocab-expression45-loop2.js"></script><script src="../vocab-expression45-loop3.js"></script><script src="../vocab45-correction-loop4.js"></script><script src="../grammar-completion77-loop2.js"></script><script src="../grammar-completion77-loop3.js"></script><script src="../grammar-completion77-loop5.js"></script><script src="../sound30-loop2.js"></script><script src="../sound30-loop3.js"></script><script src="../detail-placeholder-fix-loop3.js"></script>
+<script>
+(function seed(){
+  const scenario=new URLSearchParams(location.search).get('case')||'fresh';
+  if(scenario==='fresh')return;
+  const base={schemaVersion:8,goal:60,year:2024};
+  if(scenario==='attempt'){
+    base.currentAttempt={id:'browser-attempt',year:2024,status:'active',mode:'untimed',exposure:'first',startedAt:new Date().toISOString()};
+  }else if(scenario==='drill'){
+    const q=(window.DRILLS||[]).find(x=>!x.retired);
+    if(!q)throw new Error('no active drill available for browser fixture');
+    const key='2024:browser:main';
+    base.weak={[key]:{year:2024,id:'browser',label:'ブラウザ再開確認',status:'active',priority:'A',skill:q.skill,targetId:q.targetId,focusTag:q.focusTag,streak:1,confirmStreak:0}};
+    base.currentSkill=key;
+    base.currentDrill={key,skill:q.skill,targetId:q.targetId,focusTag:q.focusTag,mode:'train',used:[q.id],q:{id:q.id},answered:false,selected:null,selectedMany:[],order:[],orderIndices:[],textInputs:[],selfText:'',selfParts:[],selfChecks:[]};
+  }else if(scenario==='future'){
+    const d=new Date();d.setDate(d.getDate()+1);const next=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
+    const key='2024:future:main';
+    base.weak={[key]:{year:2024,id:'future',label:'翌日確認待ち',status:'pending',priority:'A',skill:'reason',targetId:'reason-evidence',focusTag:'reason-motive',streak:3,confirmStreak:0,next}};
+  }
+  localStorage.setItem('waseshibu.adaptive.v3',JSON.stringify(base));
+})();
+</script>
 <script src="../app.js"></script>
 <script>
 (function(){
-  const result=document.getElementById('test-result');
-  function check(value,message){if(!value)throw new Error(message)}
+  const result=document.getElementById('test-result'),scenario=new URLSearchParams(location.search).get('case')||'fresh';
+  function check(value,message){if(!value)throw new Error(`${scenario}: ${message}`)}
   try{
-    check(document.getElementById('app').innerText.includes('今日やること'),'fresh home did not render');
-    check(document.getElementById('app').innerText.includes('2024年度の過去問を見る'),'fresh Today did not recommend the 2024 diagnostic');
-    let saved=JSON.parse(localStorage.getItem('waseshibu.adaptive.v3')||'null');
-    check(saved&&saved.goal===60&&saved.year===2024,'fresh persisted defaults changed');
-    setGoal(70);
-    saved=JSON.parse(localStorage.getItem('waseshibu.adaptive.v3')||'null');
-    check(saved.goal===70,'goal change was not persisted');
-    check(document.getElementById('app').innerText.includes('B 70点'),'goal change was not rendered');
-    goto('route');
-    check(document.querySelector('nav button[data-v="route"]').classList.contains('active'),'route navigation did not activate');
-    check(document.getElementById('app').innerText.includes('2024'),'route view did not render exam route');
-    goto('home');
-    check(document.querySelector('nav button[data-v="home"]').classList.contains('active'),'home navigation did not reactivate');
+    const appText=()=>document.getElementById('app').innerText;
+    if(scenario==='fresh'){
+      check(appText().includes('今日やること'),'home did not render');
+      check(appText().includes('2024年度の過去問を見る'),'Today did not recommend the 2024 diagnostic');
+      let saved=JSON.parse(localStorage.getItem('waseshibu.adaptive.v3')||'null');
+      check(saved&&saved.goal===60&&saved.year===2024,'persisted defaults changed');
+      setGoal(70);
+      saved=JSON.parse(localStorage.getItem('waseshibu.adaptive.v3')||'null');
+      check(saved.goal===70,'goal change was not persisted');
+      check(appText().includes('B 70点'),'goal change was not rendered');
+      goto('route');
+      check(document.querySelector('nav button[data-v="route"]').classList.contains('active'),'route navigation did not activate');
+      check(appText().includes('2024'),'route view did not render exam route');
+      goto('home');
+      check(document.querySelector('nav button[data-v="home"]').classList.contains('active'),'home navigation did not reactivate');
+    }else if(scenario==='attempt'){
+      check(appText().includes('2024年度の続きへ'),'active exam was not offered for resume');
+      const saved=JSON.parse(localStorage.getItem('waseshibu.adaptive.v3'));
+      check(saved.currentAttempt?.id==='browser-attempt'&&saved.currentAttempt?.status==='active','active attempt did not survive reload');
+    }else if(scenario==='drill'){
+      check(appText().includes('途中の1問を再開'),'active drill was not offered before other work');
+      const saved=JSON.parse(localStorage.getItem('waseshibu.adaptive.v3'));
+      check(saved.currentDrill?.key==='2024:browser:main','active drill did not survive reload');
+    }else if(scenario==='future'){
+      goto('review');
+      const waiting=[...document.querySelectorAll('#app button[disabled]')].find(b=>b.textContent.includes('まで待つ'));
+      check(!!waiting,'future retention check was not blocked');
+      check(appText().includes('翌日確認待ち'),'future pending weakness did not render');
+    }else throw new Error(`unknown scenario ${scenario}`);
     result.dataset.testResult='CLEAN';
-    result.textContent='Waseda browser baseline: CLEAN';
+    result.textContent=`Waseda browser baseline ${scenario}: CLEAN`;
   }catch(error){
     result.dataset.testResult='FAIL';
     result.textContent=`Waseda browser baseline: FAIL: ${error.message}`;
