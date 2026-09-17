@@ -81,37 +81,31 @@ Those optional-field gaps are current load-order behavior; production problem da
 
 `tests/waseda-persistence-characterization.test.mjs` freezes primary/legacy/recovery lookup precedence, corrupt-primary recovery, v2/v7 migrations, raw pre-migration snapshots, targeted-attempt repair, future-schema no-downgrade behavior, same-key schema upgrades and newest-three import recovery retention.
 
-## Gate 5 — progress-sync adapter boundary
+## Gate 5 — progress-sync adapter and projection boundary
 
-Status: **CHARACTERIZED, IDENTITY/CONFIG DELEGATION CLEAN**
+Status: **CHARACTERIZED; IDENTITY + PROJECTION CONFIG DELEGATION CLEAN**
 
-`tests/waseda-progress-sync-characterization.test.mjs` now executes representative state and occurrence projections with a fixed clock and freezes the external/local sync contract:
+`tests/waseda-progress-sync-characterization.test.mjs` freezes the external/local sync contract: API endpoint, app ID, local state key, IndexedDB name/version/stores, control and registration behavior, HTTP endpoints, state/occurrence source IDs and event types, production-only occurrence behavior, timestamp-independent fingerprinting, no raw answer/manual uploads and current written-score metadata.
 
-- API endpoint: `https://waseshibu-progress-api.fyam8.workers.dev`
-- app ID: `english`
-- local state key: `waseshibu.adaptive.v3`
-- IndexedDB: `waseshibu-progress-sync`, version `7`
-- stores: `control`, `outbox`, `deadletter`, `seen_v2`
-- control keys and registration/revocation/collection-disabled behavior
-- registration/control/baseline/batch endpoints
-- state source IDs (`state:summary`, `state:latest-exam`, yearly rows, weakness, retention, drill)
-- occurrence source IDs (`history:exam:*`, `history:drill:*`) and event types
-- production-only occurrence behavior
-- timestamp-independent record fingerprinting
-- no raw `answers` or `manual` map upload
-- written-score metadata of 80
+`progress-sync.js` now sources endpoint/app ID and local storage/IndexedDB identity from `ENGLISH_ENGINE_ADAPTER.config.progress/storage`, with exact Waseda fallbacks. The existing `window.__WASESHIBU_PROGRESS_API__` override remains intact.
 
-`progress-sync.js` now sources API endpoint/app ID and its local storage/IndexedDB identity from `ENGLISH_ENGINE_ADAPTER.config.progress/storage`, with exact Waseda fallback literals. The existing `window.__WASESHIBU_PROGRESS_API__` override remains intact. This changed where the values come from, not the Waseda values or sync event semantics.
+The progress projection now also sources these school-specific values from `config.exam`:
 
-The guarded one-shot migration suite and the subsequent permanent normal verify suite both passed, including real-browser scenarios, progress/cloud guards and AI grading guards.
+- configured exam years
+- permitted goal tiers
+- default goal
+- written maximum score
+- baseline progress label through the configured app ID
 
-`engine/manifest.json` is `0.1.0-alpha.9`. Production wiring remains false because `main` has not changed, and Rikkyo consumption remains blocked.
+`tests/waseda-progress-projection-config-delegation.test.mjs` injects a fake school configuration and verifies that only those school-specific projection values change. The no-adapter path remains exactly Waseda: 2019–2026, goal tiers 60/70/75, default goal 60 and written max 80.
 
-## Next extraction boundary — school-specific progress projection values
+Source-record IDs, event types, registration/control behavior, dedup/revision semantics and HTTP/IndexedDB contracts were not generalized or renamed. The guarded one-shot suite and the permanent normal verify suite both passed, including the real-browser, progress/cloud and AI grading suites.
 
-The next safe step is to parameterize only the school-specific projection values already frozen above—configured exam years, permitted goal tiers/default goal, written max score and school/app label—while leaving source-record IDs, event types, registration/control behavior, dedup/revision semantics and HTTP/IndexedDB contracts unchanged. This must remain behind fake-adapter + no-adapter tests and the complete browser/sync/AI suite.
+`engine/manifest.json` is `0.1.0-alpha.10`. Production wiring remains false because `main` has not changed, and Rikkyo consumption remains blocked.
 
-The app-side 80+20=100 score model is still a separate coupled boundary and must not be generalized merely because cloud written-score metadata becomes adapter-backed.
+## Next extraction boundary — app score model
+
+The next safe gate is the app-side score model. Its current 80+20=100 behavior is already characterized; the next step should source written/listening/total maxima from validated exam config while keeping current Waseda values, import semantics, result/status wording and browser behavior exactly unchanged. This should be performed as another one-shot guarded wiring change with fake-adapter and no-adapter parity tests.
 
 ## Future Rikkyo relationship
 
