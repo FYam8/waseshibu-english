@@ -44,17 +44,23 @@ assert.equal(active.length,283,'active practice bank count changed');
 for(const q of active){
   assert.ok(q.targetId,`${q.id}: active drill targetId missing`);
   assert.ok(q.focusTag,`${q.id}: active drill focusTag missing`);
-  assert.ok(q.examFormat,`${q.id}: active drill examFormat missing`);
   assert.ok(Number.isFinite(Number(q.level)),`${q.id}: active drill level missing`);
 }
 
-// Some later-loaded drill records intentionally reach app.js without familyId. Current Waseda
-// completes those IDs in its startup hotfix before mastery selection. Characterize that boundary
-// rather than incorrectly requiring learning-model.js to own data added after it executes.
+// learning-model.js executes before several later drill scripts. Those later records may reach
+// app.js without fields that the model's earlier B-loop would otherwise populate. Characterize
+// these real boundaries instead of changing production data to satisfy the test.
 const missingFamilyIds=active.filter(q=>!q.familyId).map(q=>String(q.id)).sort();
 assert.ok(missingFamilyIds.length>0,'expected later-loaded active drills to require app startup familyId completion');
 assert.ok(missingFamilyIds.includes('lrb12'),'known later-loaded familyId boundary moved unexpectedly');
 assert.match(app,/BANK\.forEach\(\(q,i\)=>\{ if\(!q\.familyId\) q\.familyId=String\(q\.id\|\|`\$\{q\.skill\|\|"skill"\}:\$\{q\.targetId\|\|"target"\}:\$\{i\}`\); \}\);/,'app startup familyId completion guard changed');
+
+const missingExamFormatIds=active.filter(q=>!q.examFormat).map(q=>String(q.id)).sort();
+assert.ok(missingExamFormatIds.length>0,'expected later-loaded active drills with optional pre-app examFormat');
+assert.ok(missingExamFormatIds.includes('lcx01'),'known later-loaded examFormat boundary moved unexpectedly');
+// Unlike familyId, current Waseda does not normalize every missing examFormat at startup.
+// The selector only uses exact equality as a ranking bonus, so undefined remains an accepted value.
+assert.doesNotMatch(app,/BANK\.forEach\([^\n]*examFormat/,'app unexpectedly started normalizing every examFormat');
 
 // Freeze representative migration behavior without changing any production state.
 const source=examRows.find(({q})=>active.filter(x=>x.targetId===q.targetId).length>=3);
@@ -77,7 +83,7 @@ assert.equal(manualState.weak.w.focusTag,`manual:${source.q.skill}:文法・語�
 assert.equal(manualState.weak.w.trap,'文法・語彙');
 
 const examFingerprint=examRows.map(({year,q})=>[year,q.id,q.skill,q.targetId,q.focusTag,q.examFormat,q.trap].join('|')).sort();
-const bankFingerprint=active.map(q=>[q.id,q.skill,q.targetId,q.focusTag,q.examFormat,q.familyId||'',q.level,q.type].join('|')).sort();
+const bankFingerprint=active.map(q=>[q.id,q.skill,q.targetId,q.focusTag,q.examFormat||'',q.familyId||'',q.level,q.type].join('|')).sort();
 console.log(JSON.stringify({
   ok:true,
   examMappingCount:examFingerprint.length,
@@ -85,5 +91,7 @@ console.log(JSON.stringify({
   activeBankCount:bankFingerprint.length,
   activeBankMappingSha256:hash(bankFingerprint),
   preAppMissingFamilyIdCount:missingFamilyIds.length,
-  preAppMissingFamilyIdSha256:hash(missingFamilyIds)
+  preAppMissingFamilyIdSha256:hash(missingFamilyIds),
+  preAppMissingExamFormatCount:missingExamFormatIds.length,
+  preAppMissingExamFormatSha256:hash(missingExamFormatIds)
 },null,2));
