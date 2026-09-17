@@ -42,9 +42,8 @@ assert.equal(detail2024.focusTag,'paraphrase-scope');
 const active=model.activeBank();
 assert.equal(active.length,283,'active practice bank count changed');
 for(const q of active){
-  // targetId and level are required by current selection/migration logic even for later-loaded drills.
+  // targetId is required by the current weakness/drill matching path even for later-loaded drills.
   assert.ok(q.targetId,`${q.id}: active drill targetId missing`);
-  assert.ok(Number.isFinite(Number(q.level)),`${q.id}: active drill level missing`);
 }
 
 // learning-model.js executes before several later drill scripts. Those later records may reach
@@ -63,9 +62,14 @@ assert.ok(missingFocusTagIds.includes('lwc29'),'known later-loaded focusTag boun
 const missingExamFormatIds=active.filter(q=>!q.examFormat).map(q=>String(q.id)).sort();
 assert.ok(missingExamFormatIds.length>0,'expected later-loaded active drills with optional pre-app examFormat');
 assert.ok(missingExamFormatIds.includes('lcx01'),'known later-loaded examFormat boundary moved unexpectedly');
-// Current Waseda does not normalize every missing focusTag/examFormat at startup. Selection uses
-// these fields only as ranking bonuses, so undefined remains an accepted value for those records.
-assert.doesNotMatch(app,/BANK\.forEach\([^\n]*(?:focusTag|examFormat)/,'app unexpectedly started normalizing every optional ranking field');
+
+const missingLevelIds=active.filter(q=>!Number.isFinite(Number(q.level))).map(q=>String(q.id)).sort();
+assert.ok(missingLevelIds.length>0,'expected later-loaded active drills with optional pre-app level');
+assert.ok(missingLevelIds.includes('lwc29'),'known later-loaded level boundary moved unexpectedly');
+
+// Current Waseda does not normalize every missing focusTag/examFormat/level at startup. Selection
+// treats these as ranking/difficulty hints, so undefined remains accepted for later-loaded records.
+assert.doesNotMatch(app,/BANK\.forEach\([^\n]*(?:focusTag|examFormat|\.level)/,'app unexpectedly started normalizing every optional ranking field');
 
 // Freeze representative migration behavior without changing any production state.
 const source=examRows.find(({q})=>active.filter(x=>x.targetId===q.targetId).length>=3);
@@ -88,7 +92,7 @@ assert.equal(manualState.weak.w.focusTag,`manual:${source.q.skill}:文法・語�
 assert.equal(manualState.weak.w.trap,'文法・語彙');
 
 const examFingerprint=examRows.map(({year,q})=>[year,q.id,q.skill,q.targetId,q.focusTag,q.examFormat,q.trap].join('|')).sort();
-const bankFingerprint=active.map(q=>[q.id,q.skill,q.targetId,q.focusTag||'',q.examFormat||'',q.familyId||'',q.level,q.type].join('|')).sort();
+const bankFingerprint=active.map(q=>[q.id,q.skill,q.targetId,q.focusTag||'',q.examFormat||'',q.familyId||'',Number.isFinite(Number(q.level))?q.level:'',q.type].join('|')).sort();
 console.log(JSON.stringify({
   ok:true,
   examMappingCount:examFingerprint.length,
@@ -100,5 +104,7 @@ console.log(JSON.stringify({
   preAppMissingFocusTagCount:missingFocusTagIds.length,
   preAppMissingFocusTagSha256:hash(missingFocusTagIds),
   preAppMissingExamFormatCount:missingExamFormatIds.length,
-  preAppMissingExamFormatSha256:hash(missingExamFormatIds)
+  preAppMissingExamFormatSha256:hash(missingExamFormatIds),
+  preAppMissingLevelCount:missingLevelIds.length,
+  preAppMissingLevelSha256:hash(missingLevelIds)
 },null,2));
