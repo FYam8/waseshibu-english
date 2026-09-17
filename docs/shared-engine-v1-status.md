@@ -8,14 +8,15 @@ Last updated: 2026-09-17
 - Baseline production commit for this branch: `44154a777b2d6c584a1eba4a38bb782c6b70d0bb`
 - Shared-engine branch: `feat/shared-engine-v1`
 - Production `main` wiring changed: **No**
-- Candidate branch loads `engine/core.js`; production data, storage keys, Cloud Sync identities and school data remain unchanged.
+- Candidate branch loads and validates the Waseda school adapter, then loads the shared core.
+- Exam/drill data, `learning-model.js`, `progress-sync.js`, Waseda storage identities and Cloud Sync identities remain unchanged.
 - PR #11 remains Draft and must not merge until the later Waseda parity gates are complete.
 
 ## Gate 0 — contract / identity baseline
 
 Status: **CLEAN**
 
-Guards cover the current Waseda localStorage/recovery namespaces, schema, route/default year/goals, score limits, progress API/IndexedDB identity, Waseda policy shape, exam years, malformed adapter validation and namespace collision checks.
+The contract guards the current Waseda localStorage/recovery namespaces, schema, route/default year/goals, score limits, progress API/IndexedDB identity, school policy shape, exam years, malformed adapter validation and namespace collision checks.
 
 ## Gate 1 — behavior characterization
 
@@ -32,35 +33,48 @@ Frozen data identity:
 
 The browser suite uses isolated localhost Chrome profiles and never touches production user storage or cloud progress.
 
-## Gate 2 — pure shared logic extraction
+## Gate 2 — shared pure/state helpers
 
-Status: **IN PROGRESS — delegation stage 3 candidate**
+Status: **CLEAN through helper delegation stage 3**
 
-`engine/core.js` contains:
+`engine/core.js` contains `localDate`, `plusDays`, `normalizeDrillState`, `wordCount` and `familyCount`.
 
-- `localDate`
-- `plusDays`
-- `normalizeDrillState`
-- `wordCount`
-- `familyCount`
+The candidate runtime loads `engine/core.js` before `app.js`. Waseda delegates all five helpers to the shared core. `normalizeDrillState` is additionally delegated during startup through a guarded `app.js` wrapper because it executes before the post-app compatibility bridge. If the shared core is absent, the exact legacy Waseda implementation remains as fallback.
 
-The candidate runtime loads `engine/core.js` before `app.js`. Waseda then uses a deliberately small compatibility surface:
+Parity coverage includes the two-pass startup path (stored drill snapshot, then current bank question), invalid legacy choice-order repair, legacy reorder `orderIndices` recovery, and production-valid browser resume of an old-format choice drill. The full Waseda verify suite passed after delegation.
 
-- `wordCount`
-- `familyCount`
-- `localDate`
-- `plusDays`
-- `normalizeDrillState`
+## Gate 3 — school adapter / Waseda policy separation
 
-`normalizeDrillState` required extra handling because it executes while `app.js` is still starting. `app.js` now contains a guarded wrapper: when the shared core is loaded it calls `ENGLISH_ENGINE_CORE.normalizeDrillState`; when the core is absent it preserves the previous Waseda implementation as an exact fallback. After `app.js` finishes loading, `engine/waseda-compat.js` delegates the global helper directly to the shared core.
+Status: **STARTED — adapter bootstrap and policy delegation CLEAN**
 
-Before wiring this helper, parity coverage was expanded for the two-pass startup path: normalization of the saved drill snapshot and normalization again after replacing the saved question with the current bank record. Invalid legacy choice order repair and legacy reorder `orderIndices` recovery are compared directly against the previous Waseda behavior. A production-valid legacy choice resume is also covered in the real browser.
+The candidate page now loads, in order:
 
-A synthetic reorder-resume browser fixture was rejected by current production startup semantics, so it was not used to redefine Waseda behavior. The reorder normalization rule remains covered at pure-function parity level instead of changing production to satisfy an artificial fixture.
+1. `engine/contract.js`
+2. `schools/waseshibu/config.js`
+3. `schools/waseshibu/policy.js`
+4. `engine/bootstrap.js`
+5. `engine/core.js`
+6. `app.js`
+7. `engine/waseda-compat.js`
+8. `progress-sync.js`
 
-`engine/manifest.json` is now `0.1.0-alpha.4`. `productionWiring` remains false because `main` has not changed, and Rikkyo consumption remains blocked until Waseda parity/release gates complete.
+`engine/bootstrap.js` validates the Waseda config and policy and exposes `ENGLISH_ENGINE_ADAPTER`. Browser tests verify that the loaded adapter is `waseshibu`, keeps `waseshibu.adaptive.v3`, and exposes the expected Waseda route policy.
 
-**Next Gate 2 action:** continue extracting the next low-risk pure/state helper group in small increments, preserving the same contract, characterization and browser gates after every delegation.
+Seven school-specific decisions in `app.js` now delegate through `ENGLISH_ENGINE_ADAPTER.policy` while retaining their exact previous Waseda logic as fallback:
+
+- question priority
+- goal eligibility
+- priority ordering
+- route role
+- goal label
+- goal advice
+- skill display name
+
+A dedicated delegation test injects a fake school policy and confirms that each wrapper actually calls the adapter method. The full push and pull-request verification suites, including real-browser, progress-sync and AI-grading guards, passed after this change.
+
+`engine/manifest.json` is `0.1.0-alpha.5`. Production wiring remains false because `main` has not changed, and Rikkyo consumption remains blocked until Waseda parity/release gates complete.
+
+**Next action:** parameterize low-risk runtime constants (route, default goal/year, daily target and written score ceiling) from the validated school config, preserving exact Waseda fallbacks and rerunning the complete characterization/browser suite. Storage and Cloud Sync identities stay frozen until a later, separately gated step.
 
 ## Future Rikkyo relationship
 
