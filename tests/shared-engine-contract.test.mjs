@@ -30,11 +30,27 @@ assert.deepEqual([...config.exam.years],Object.keys(dataCtx.EXAM_DATA).map(Numbe
 const app=read('app.js');
 const sync=read('progress-sync.js');
 
-assert.equal(config.storage.key,capture(app,/const STORAGE_KEY="([^"]+)"/,'STORAGE_KEY'));
-assert.deepEqual([...config.storage.legacyKeys],JSON.parse(`[${capture(app,/LEGACY_KEYS=\[([^\]]*)\]/,'LEGACY_KEYS')}]`.replaceAll("'",'"')));
-assert.equal(config.storage.recoveryPrefix,capture(app,/RECOVERY_PREFIX="([^"]+)"/,'RECOVERY_PREFIX'));
-assert.equal(config.storage.importRecoveryPrefix,capture(app,/IMPORT_RECOVERY_PREFIX="([^"]+)"/,'IMPORT_RECOVERY_PREFIX'));
-assert.equal(config.storage.schemaVersion,Number(capture(app,/SCHEMA_VERSION=(\d+)/,'SCHEMA_VERSION')));
+// Storage identity is migration-sensitive. During staged commonization it may still be literal
+// or may be sourced from the validated school adapter, but the exact Waseda fallbacks must remain
+// visible and equal to the contract until production parity gates are complete.
+if(app.includes('SCHOOL_STORAGE_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.storage||null')){
+  assert.match(app,/STORAGE_KEY=String\(SCHOOL_STORAGE_CONFIG\?\.key\|\|"waseshibu\.adaptive\.v3"\)/);
+  assert.match(app,/LEGACY_KEYS=Array\.isArray\(SCHOOL_STORAGE_CONFIG\?\.legacyKeys\)\?\[\.\.\.SCHOOL_STORAGE_CONFIG\.legacyKeys\]:\["waseshibu\.adaptive\.v2"\]/);
+  assert.match(app,/RECOVERY_PREFIX=String\(SCHOOL_STORAGE_CONFIG\?\.recoveryPrefix\|\|"waseshibu\.adaptive\.pre-migration"\)/);
+  assert.match(app,/IMPORT_RECOVERY_PREFIX=String\(SCHOOL_STORAGE_CONFIG\?\.importRecoveryPrefix\|\|"waseshibu\.adaptive\.pre-import"\)/);
+  assert.match(app,/SCHEMA_VERSION=Number\(SCHOOL_STORAGE_CONFIG\?\.schemaVersion\)\|\|8/);
+}else{
+  assert.equal(config.storage.key,capture(app,/const STORAGE_KEY="([^"]+)"/,'STORAGE_KEY'));
+  assert.deepEqual([...config.storage.legacyKeys],JSON.parse(`[${capture(app,/LEGACY_KEYS=\[([^\]]*)\]/,'LEGACY_KEYS')}]`.replaceAll("'",'"')));
+  assert.equal(config.storage.recoveryPrefix,capture(app,/RECOVERY_PREFIX="([^"]+)"/,'RECOVERY_PREFIX'));
+  assert.equal(config.storage.importRecoveryPrefix,capture(app,/IMPORT_RECOVERY_PREFIX="([^"]+)"/,'IMPORT_RECOVERY_PREFIX'));
+  assert.equal(config.storage.schemaVersion,Number(capture(app,/SCHEMA_VERSION=(\d+)/,'SCHEMA_VERSION')));
+}
+assert.equal(config.storage.key,'waseshibu.adaptive.v3');
+assert.deepEqual([...config.storage.legacyKeys],['waseshibu.adaptive.v2']);
+assert.equal(config.storage.recoveryPrefix,'waseshibu.adaptive.pre-migration');
+assert.equal(config.storage.importRecoveryPrefix,'waseshibu.adaptive.pre-import');
+assert.equal(config.storage.schemaVersion,8);
 
 // During the staged migration, low-risk exam runtime values may still be literals or may
 // already be sourced from the validated adapter. In either case the Waseda fallback values
@@ -61,7 +77,7 @@ assert.equal(config.progress.appId,capture(sync,/const APP_ID='([^']+)'/,'APP_ID
 assert.equal(config.storage.syncDb,capture(sync,/const SYNC_DB='([^']+)'/,'SYNC_DB'));
 assert.equal(config.storage.syncDbVersion,Number(capture(sync,/const SYNC_DB_VERSION=(\d+)/,'SYNC_DB_VERSION')));
 assert.equal(config.storage.key,capture(sync,/const STORAGE_KEY='([^']+)'/,'sync STORAGE_KEY'));
-assert.equal(config.exam.writtenMaxScore,Number(capture(sync,/maxScore:(\d+)/,'written max score')));
+assert.equal(config.exam.writtenMaxScore,Number(capture(sync,/maxScore:(\d+)/,'written max score'));
 
 assert.equal(policy.resolveQuestionPriority({priority:'A',skill:'detail'}),'A');
 assert.equal(policy.resolveQuestionPriority({skill:'insertion'}),'C');
