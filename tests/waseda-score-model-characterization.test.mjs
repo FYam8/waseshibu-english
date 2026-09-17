@@ -61,6 +61,9 @@ assert.match(stats,/writtenScore\}\/80/,'stats written score denominator changed
 assert.match(stats,/totalScore\}\/100/,'stats total score denominator changed');
 
 const sync=read('progress-sync.js');
-assert.match(sync,/maxScore:80/,'cloud progress written max score changed');
+if(sync.includes('const SYNC_WRITTEN_MAX=')){
+  assert.match(sync,/SYNC_WRITTEN_MAX=Number\(SCHOOL_EXAM_CONFIG\?\.writtenMaxScore\)\|\|80/,'cloud progress written max fallback changed');
+  assert.match(sync,/maxScore:SYNC_WRITTEN_MAX/,'cloud progress must use configured written max');
+}else assert.match(sync,/maxScore:80/,'cloud progress written max score changed');
 
 console.log('Waseda 80+20=100 score-model characterization: CLEAN');
