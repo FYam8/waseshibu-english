@@ -16,7 +16,13 @@ function functionSource(source,name){
 function plain(value){return JSON.parse(JSON.stringify(value))}
 
 const app=read('app.js');
-const oldCtx={};oldCtx.globalThis=oldCtx;vm.createContext(oldCtx);
+const RealDate=Date;
+const fixedBase=new RealDate(2026,8,17,12,0,0);
+class FixedDate extends RealDate{
+  constructor(...args){super(...(args.length?args:[fixedBase.getTime()]))}
+  static now(){return fixedBase.getTime()}
+}
+const oldCtx={Date:FixedDate};oldCtx.globalThis=oldCtx;vm.createContext(oldCtx);
 const oldNames=['localDate','plusDays','normalizeDrillState','wordCount','familyCount'];
 vm.runInContext(`${oldNames.map(n=>functionSource(app,n)).join('\n')}\nglobalThis.old={${oldNames.join(',')}}`,oldCtx);
 
@@ -32,8 +38,8 @@ assert.ok(appPos>=0&&corePos<appPos,'engine/core.js must load before app.js');
 assert.ok(compatPos>appPos,'Waseda compatibility bridge must load after app.js so it replaces the legacy globals');
 assert.ok(syncPos>compatPos,'progress-sync.js must remain after the compatibility bridge');
 
-for(const d of [new Date(2026,0,1),new Date(2026,8,17),new Date(2028,1,29)])assert.equal(core.localDate(d),old.localDate(d));
-for(const [n,d] of [[1,new Date(2026,8,17)],[-1,new Date(2026,0,1)],[2,new Date(2028,1,28)]])assert.equal(core.plusDays(n,d),old.plusDays.call({Date},n,d));
+for(const d of [new RealDate(2026,0,1),new RealDate(2026,8,17),new RealDate(2028,1,29)])assert.equal(core.localDate(d),old.localDate(d));
+for(const n of [1,-1,2,30])assert.equal(core.plusDays(n,fixedBase),old.plusDays(n));
 
 const drillFixtures=[
   null,
