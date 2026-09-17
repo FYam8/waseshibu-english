@@ -18,6 +18,7 @@ jobs:
       - run: node tests/shared-engine-core-parity.test.mjs
       - run: node tests/waseda-policy-delegation.test.mjs
       - run: node tests/waseda-runtime-config-delegation.test.mjs
+      - run: node tests/waseda-score-model-characterization.test.mjs
       - run: node tests/waseda-behavior-characterization.test.mjs
       - run: node tests/waseda-learning-flow-characterization.test.mjs
       - run: bash tests/waseda-browser-smoke.sh
