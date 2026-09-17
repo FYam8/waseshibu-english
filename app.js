@@ -3,7 +3,9 @@ const D=window.EXAM_DATA, P=window.PAPERS, BANK=window.DRILLS, FALLBACK=window.F
 // Hotfix v0.18.2-hf1: legacy/new drill records without familyId must still be usable.
 // The mastery flow needs at least five distinct "family" values for the immediate 3 + next-day 2 confirmation plan.
 // Some active pronunciation/stress/connector/writing_completion records were missing familyId, which collapsed them to one family.
-BANK.forEach((q,i)=>{ if(!q.familyId) q.familyId=String(q.id||`${q.skill||"skill"}:${q.targetId||"target"}:${i}`); });
+const sharedEnsureFamilyIds=window.ENGLISH_ENGINE_CORE?.ensureFamilyIds;
+if(sharedEnsureFamilyIds)sharedEnsureFamilyIds(BANK);
+else BANK.forEach((q,i)=>{ if(!q.familyId) q.familyId=String(q.id||`${q.skill||"skill"}:${q.targetId||"target"}:${i}`); });
 // STORAGE_KEY is permanent. Future releases migrate schemaVersion in place and must not rename this key.
 const STORAGE_KEY="waseshibu.adaptive.v3", LEGACY_KEYS=["waseshibu.adaptive.v2"], RECOVERY_PREFIX="waseshibu.adaptive.pre-migration", IMPORT_RECOVERY_PREFIX="waseshibu.adaptive.pre-import", SCHEMA_VERSION=8;
 const SCHOOL_EXAM_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.exam||null;
