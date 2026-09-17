@@ -13,6 +13,7 @@ function functionSource(source,name){
   }
   throw new Error(`unterminated function ${name}`);
 }
+function plain(value){return JSON.parse(JSON.stringify(value))}
 
 const app=read('app.js');
 
@@ -37,7 +38,7 @@ function buildTodayHarness(){
   };
   ctx.S.currentAttempt={status:'active',year:2020};
   const actions=ctx.api.availableLearningActions();
-  assert.deepEqual(actions.slice(0,4).map(x=>[x.kind,x.key||x.year]),[
+  assert.deepEqual(plain(actions.slice(0,4).map(x=>[x.kind,x.key||x.year])),[
     ['weak','due'],['weak','progressed'],['attempt',2020],['weak','other']
   ]);
   assert.equal(actions.at(-1).kind,'goal');
@@ -96,7 +97,7 @@ function seed(ctx,{status='active',streak=0,confirmStreak=0,mode='train'}={}){
   const ctx=buildMasteryHarness();seed(ctx,{status:'pending',streak:3,confirmStreak:1,mode:'confirm'});ctx.api.finishDrill(false);
   const w=ctx.S.weak.w;
   assert.equal(w.status,'active');assert.equal(w.streak,0);assert.equal(w.confirmStreak,0);assert.equal(w.next,ctx.api.today());
-  assert.equal(ctx.drillState.mode,'train');assert.equal(ctx.drillState.failedConfirmation,true);assert.deepEqual(ctx.drillState.used,[]);
+  assert.equal(ctx.drillState.mode,'train');assert.equal(ctx.drillState.failedConfirmation,true);assert.deepEqual(plain(ctx.drillState.used),[]);
 }
 {
   const ctx=buildMasteryHarness();seed(ctx,{status:'pending',streak:3,confirmStreak:1,mode:'confirm'});ctx.api.finishDrill(true);
