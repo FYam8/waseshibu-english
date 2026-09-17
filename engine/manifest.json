@@ -1,16 +1,18 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.2",
+  "engineVersion": "0.1.0-alpha.3",
   "contractVersion": 1,
-  "status": "candidate-runtime-loaded",
+  "status": "candidate-helper-delegation-2-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": ["engine/"],
   "runtimeLoaded": true,
+  "candidateBehaviorDelegation": true,
+  "delegatedHelpers": ["wordCount", "familyCount", "localDate", "plusDays"],
   "productionWiring": false,
   "consumerPolicy": "pinned-vendor-pr-only",
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "engine/core.js is loaded by the candidate index but app.js has not delegated behavior to it yet. Do not consume from another repository until Waseda runtime wiring and parity gates are complete.",
-  "nextGate": "delegate-small-pure-helper-group"
+  "notes": "The feature branch delegates four pure helpers through the Waseda compatibility bridge. Push and pull-request verification, including real-browser scenarios, are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
+  "nextGate": "extract-next-deterministic-state-helper"
 }
