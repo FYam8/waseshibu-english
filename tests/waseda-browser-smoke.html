@@ -55,11 +55,13 @@
   function check(value,message){if(!value)throw new Error(`${scenario}: ${message}`)}
   try{
     check(!!window.ENGLISH_ENGINE_CORE,'shared engine core did not load before app');
-    check(window.ENGLISH_ENGINE_COMPAT?.stage==='gate2-pure-helper-delegation-1','compatibility bridge did not load');
-    check(window.wordCount===window.ENGLISH_ENGINE_CORE.wordCount,'wordCount was not delegated to shared core');
-    check(window.familyCount===window.ENGLISH_ENGINE_CORE.familyCount,'familyCount was not delegated to shared core');
+    check(window.ENGLISH_ENGINE_COMPAT?.stage==='gate2-pure-helper-delegation-2','compatibility bridge did not load at delegation stage 2');
+    for(const name of ['wordCount','familyCount','localDate','plusDays'])check(window[name]===window.ENGLISH_ENGINE_CORE[name],`${name} was not delegated to shared core`);
     check(window.wordCount('one two three')===3,'delegated wordCount behavior changed');
     check(window.familyCount([{familyId:'a'},{familyId:'a'},{familyId:'b'}])===2,'delegated familyCount behavior changed');
+    const knownDate=new Date(2026,8,17,12,0,0);
+    check(window.localDate(knownDate)==='2026-09-17','delegated localDate behavior changed');
+    check(window.ENGLISH_ENGINE_CORE.plusDays(1,knownDate)==='2026-09-18','shared plusDays behavior changed');
     const appText=()=>document.getElementById('app').innerText;
     if(scenario==='fresh'){
       check(appText().includes('今日やること'),'home did not render');
