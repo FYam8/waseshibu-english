@@ -48,6 +48,23 @@ const drillFixtures=[
   {q:{id:'text'},choiceOrder:[9],used:null,selectedMany:null,order:null,orderIndices:null,textInputs:null,selfParts:null,selfChecks:null}
 ];
 for(const fixture of drillFixtures)assert.deepEqual(plain(core.normalizeDrillState(fixture)),plain(old.normalizeDrillState(fixture)));
+
+// Startup performs normalization once on the stored snapshot and again after replacing q
+// with the current bank record. Freeze both legacy repair paths before delegation.
+const storedChoice={q:{id:'choice'},choiceOrder:[0,0,0],used:null,selectedMany:null,order:null,orderIndices:null,textInputs:null,selfParts:null,selfChecks:null};
+const currentChoice={id:'choice',options:['a','b','c']};
+const oldChoice1=old.normalizeDrillState(storedChoice),coreChoice1=core.normalizeDrillState(storedChoice);
+assert.deepEqual(plain(coreChoice1),plain(oldChoice1));
+const oldChoice2=old.normalizeDrillState({...oldChoice1,q:currentChoice}),coreChoice2=core.normalizeDrillState({...coreChoice1,q:currentChoice});
+assert.deepEqual(plain(coreChoice2),plain(oldChoice2));
+assert.deepEqual(plain(coreChoice2.choiceOrder),[0,1,2],'invalid stored choice order must be repaired after bank record replacement');
+assert.deepEqual(plain(coreChoice2.used),[]);assert.deepEqual(plain(coreChoice2.selectedMany),[]);assert.deepEqual(plain(coreChoice2.textInputs),[]);
+
+const storedReorder={q:{id:'reorder'},order:['two','one'],shuffled:['one','two','three'],used:null,selectedMany:null,textInputs:null,selfParts:null,selfChecks:null};
+const oldReorder=old.normalizeDrillState(storedReorder),coreReorder=core.normalizeDrillState(storedReorder);
+assert.deepEqual(plain(coreReorder),plain(oldReorder));
+assert.deepEqual(plain(coreReorder.orderIndices),[1,0],'legacy reorder selections must recover token indices from shuffled tokens');
+
 for(const value of ['', '   ', 'one', 'one two', ' one\n two\tthree '])assert.equal(core.wordCount(value),old.wordCount(value));
 for(const items of [[],[{familyId:'a'}],[{familyId:'a'},{familyId:'a'},{familyId:'b'}]])assert.equal(core.familyCount(items),old.familyCount(items));
 
