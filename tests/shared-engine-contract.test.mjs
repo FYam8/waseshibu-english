@@ -77,7 +77,7 @@ assert.equal(config.progress.appId,capture(sync,/const APP_ID='([^']+)'/,'APP_ID
 assert.equal(config.storage.syncDb,capture(sync,/const SYNC_DB='([^']+)'/,'SYNC_DB'));
 assert.equal(config.storage.syncDbVersion,Number(capture(sync,/const SYNC_DB_VERSION=(\d+)/,'SYNC_DB_VERSION')));
 assert.equal(config.storage.key,capture(sync,/const STORAGE_KEY='([^']+)'/,'sync STORAGE_KEY'));
-assert.equal(config.exam.writtenMaxScore,Number(capture(sync,/maxScore:(\d+)/,'written max score'));
+assert.equal(config.exam.writtenMaxScore,Number(capture(sync,/maxScore:(\d+)/,'written max score')));
 
 assert.equal(policy.resolveQuestionPriority({priority:'A',skill:'detail'}),'A');
 assert.equal(policy.resolveQuestionPriority({skill:'insertion'}),'C');
