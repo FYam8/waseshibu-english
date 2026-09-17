@@ -1,18 +1,18 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.3",
+  "engineVersion": "0.1.0-alpha.4",
   "contractVersion": 1,
-  "status": "candidate-helper-delegation-2-clean",
+  "status": "candidate-helper-delegation-3",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": ["engine/"],
   "runtimeLoaded": true,
   "candidateBehaviorDelegation": true,
-  "delegatedHelpers": ["wordCount", "familyCount", "localDate", "plusDays"],
+  "delegatedHelpers": ["wordCount", "familyCount", "localDate", "plusDays", "normalizeDrillState"],
   "productionWiring": false,
   "consumerPolicy": "pinned-vendor-pr-only",
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "The feature branch delegates four pure helpers through the Waseda compatibility bridge. Push and pull-request verification, including real-browser scenarios, are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "characterize-startup-resume-normalization-before-delegation"
+  "notes": "The feature branch now delegates startup/resume drill-state normalization through a guarded app.js wrapper and delegates the same helper directly after app load through the Waseda compatibility bridge. Legacy fallback behavior is retained when the shared core is unavailable. Production main remains unchanged and Rikkyo consumption is still blocked.",
+  "nextGate": "extract-next-pure-state-helper-group"
 }
