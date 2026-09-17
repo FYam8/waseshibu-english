@@ -29,6 +29,7 @@ vm.runInContext(`${oldNames.map(n=>functionSource(app,n)).join('\n')}\nglobalThi
 const coreCtx={};coreCtx.globalThis=coreCtx;coreCtx.window=coreCtx;vm.createContext(coreCtx);vm.runInContext(read('engine/core.js'),coreCtx,{filename:'engine/core.js'});
 const old=oldCtx.old,core=coreCtx.ENGLISH_ENGINE_CORE;
 assert.ok(core,'shared engine core did not load');
+assert.equal(typeof core.ensureFamilyIds,'function','shared family-ID helper missing');
 assert.match(functionSource(app,'normalizeDrillState'),/ENGLISH_ENGINE_CORE\?\.normalizeDrillState/,'startup normalization wrapper must delegate when shared core is loaded');
 
 const index=read('index.html');
@@ -68,6 +69,18 @@ assert.deepEqual(plain(coreReorder.orderIndices),[1,0],'legacy reorder selection
 
 for(const value of ['', '   ', 'one', 'one two', ' one\n two\tthree '])assert.equal(core.wordCount(value),old.wordCount(value));
 for(const items of [[],[{familyId:'a'}],[{familyId:'a'},{familyId:'a'},{familyId:'b'}]])assert.equal(core.familyCount(items),old.familyCount(items));
+
+const familyFixture=[
+  {id:'known',skill:'reason',targetId:'reason-evidence'},
+  {id:'keep',skill:'context',targetId:'context-word',familyId:'existing-family'},
+  {skill:'summary',targetId:'summary-main'},
+  {}
+];
+const legacyFamily=plain(familyFixture),sharedFamily=plain(familyFixture);
+legacyFamily.forEach((q,i)=>{if(!q.familyId)q.familyId=String(q.id||`${q.skill||'skill'}:${q.targetId||'target'}:${i}`)});
+assert.equal(core.ensureFamilyIds(sharedFamily),sharedFamily,'family-ID helper must mutate and return the original bank');
+assert.deepEqual(sharedFamily,legacyFamily,'shared family-ID completion must match the Waseda startup hotfix exactly');
+assert.equal(sharedFamily[1].familyId,'existing-family','existing family IDs must never be replaced');
 
 const bridgeCtx={ENGLISH_ENGINE_CORE:core,wordCount:old.wordCount,familyCount:old.familyCount,localDate:old.localDate,plusDays:old.plusDays,normalizeDrillState:old.normalizeDrillState};bridgeCtx.globalThis=bridgeCtx;bridgeCtx.window=bridgeCtx;vm.createContext(bridgeCtx);vm.runInContext(read('engine/waseda-compat.js'),bridgeCtx,{filename:'engine/waseda-compat.js'});
 for(const name of ['wordCount','familyCount','localDate','plusDays','normalizeDrillState'])assert.equal(bridgeCtx[name],core[name],`${name} was not delegated`);
