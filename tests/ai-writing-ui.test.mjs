@@ -55,4 +55,10 @@ assert.deepEqual([...new Set(supportedDrills.map(q=>q.skill))].sort(),["rebuttal
 assert([...examTasks,...supportedDrills.map(ctx.drillWritingTask)].every(task=>JSON.stringify({task,answer:"a".repeat(1200)}).length<16000));
 vm.runInContext(`drillState={q:BANK.find(q=>q.id==="lsu26"),selfText:"A short draft summary.",selfParts:[],aiFeedback:null,aiFeedbackStale:false}`,ctx);
 assert.match(ctx.drillInput(ctx.DRILLS.find(q=>q.id==="lsu26")),/AIで具体的な改善点を見る/);
-console.log("ai-writing-ui ok: all 8 free-writing exams and 45 writing drills are opt-in; existing schema/key preserved");
+let sentOptions;
+ctx.fetch=async(_url,options)=>{sentOptions=options;return{ok:false,status:429,text:async()=>JSON.stringify({error:"usage_limit_reached",cloudflareCode:3036,message:"AI採点の利用上限に達しました。"})}};
+await assert.rejects(ctx.requestWritingFeedback(examTasks[0],"A complete answer."),/AI採点の利用上限に達しました/);
+assert.equal("x-client-id" in sentOptions.headers,false,"the removed per-client limiter must not leave a tracking header");
+ctx.fetch=async()=>({ok:false,status:429,text:async()=>JSON.stringify({error:"ai_capacity_unavailable",cloudflareCode:3040,message:"CloudflareのAI処理が現在混み合っています。"})});
+await assert.rejects(ctx.requestWritingFeedback(examTasks[0],"A complete answer."),/現在混み合っています/);
+console.log("ai-writing-ui ok: all 8 free-writing exams and 45 writing drills are opt-in; Cloudflare limit errors are distinct; existing schema/key preserved");

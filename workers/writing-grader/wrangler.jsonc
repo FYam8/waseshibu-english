@@ -6,24 +6,6 @@
   "ai": {
     "binding": "AI"
   },
-  "ratelimits": [
-    {
-      "name": "GLOBAL_LIMITER",
-      "namespace_id": "41001",
-      "simple": {
-        "limit": 3,
-        "period": 60
-      }
-    },
-    {
-      "name": "CLIENT_LIMITER",
-      "namespace_id": "41002",
-      "simple": {
-        "limit": 2,
-        "period": 60
-      }
-    }
-  ],
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1
