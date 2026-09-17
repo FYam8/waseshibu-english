@@ -24,6 +24,11 @@ const coreCtx={};coreCtx.globalThis=coreCtx;coreCtx.window=coreCtx;vm.createCont
 const old=oldCtx.old,core=coreCtx.ENGLISH_ENGINE_CORE;
 assert.ok(core,'shared engine core did not load');
 
+const index=read('index.html');
+const corePos=index.indexOf('<script src="engine/core.js"></script>'),appPos=index.indexOf('<script src="app.js"></script>');
+assert.ok(corePos>=0,'index.html must load engine/core.js in the candidate runtime');
+assert.ok(appPos>=0&&corePos<appPos,'engine/core.js must load before app.js');
+
 for(const d of [new Date(2026,0,1),new Date(2026,8,17),new Date(2028,1,29)]){
   assert.equal(core.localDate(d),old.localDate(d));
 }
