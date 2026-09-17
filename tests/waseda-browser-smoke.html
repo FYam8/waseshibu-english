@@ -46,12 +46,14 @@
   localStorage.setItem('waseshibu.adaptive.v3',JSON.stringify(base));
 })();
 </script>
+<script src="../engine/core.js"></script>
 <script src="../app.js"></script>
 <script>
 (function(){
   const result=document.getElementById('test-result'),scenario=new URLSearchParams(location.search).get('case')||'fresh';
   function check(value,message){if(!value)throw new Error(`${scenario}: ${message}`)}
   try{
+    check(!!window.ENGLISH_ENGINE_CORE,'shared engine core did not load before app');
     const appText=()=>document.getElementById('app').innerText;
     if(scenario==='fresh'){
       check(appText().includes('今日やること'),'home did not render');
