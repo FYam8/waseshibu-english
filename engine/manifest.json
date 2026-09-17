@@ -1,8 +1,8 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.5",
+  "engineVersion": "0.1.0-alpha.6",
   "contractVersion": 1,
-  "status": "candidate-school-policy-delegation-clean",
+  "status": "candidate-low-risk-runtime-config-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": ["engine/"],
   "runtimeLoaded": true,
@@ -11,11 +11,13 @@
   "delegatedHelpers": ["wordCount", "familyCount", "localDate", "plusDays", "normalizeDrillState"],
   "schoolPolicyDelegated": true,
   "delegatedPolicyFunctions": ["resolveQuestionPriority", "isPriorityInGoal", "priorityOrder", "routeRole", "goalLabel", "goalAdvice", "skillName"],
+  "runtimeExamConfigDelegated": true,
+  "delegatedExamConfig": ["route", "defaultYear", "defaultGoal", "dailyTaskTarget", "goalTiers"],
   "productionWiring": false,
   "consumerPolicy": "pinned-vendor-pr-only",
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "The candidate branch validates the Waseda config/policy through engine/bootstrap.js, delegates five generic helpers to the shared core, and routes seven Waseda policy decisions through the school adapter while retaining exact legacy fallbacks. Push and pull-request verification are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "parameterize-low-risk-runtime-config-constants"
+  "notes": "The candidate branch validates the Waseda adapter, delegates five generic helpers, routes seven Waseda policy decisions through the school adapter, and sources route/default year/default goal/daily target/goal tiers from validated exam config with exact Waseda fallbacks. Storage/schema/cloud identities and school data remain frozen. Push and pull-request verification are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
+  "nextGate": "characterize-score-model-and-learning-model-boundaries"
 }
