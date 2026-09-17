@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Waseda browser characterization</title>
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<header><div><div class="eyebrow">WASEDA SHIBUYA ENGLISH</div><h1>過去問 × 弱点克服</h1></div><button id="dark">◐</button></header>
+<nav>
+<button data-v="home" class="active">今日やること</button>
+<button data-v="route">学習ルート</button>
+<button data-v="exam">過去問</button>
+<button data-v="review">間違い対策</button>
+<button data-v="drill">克服ドリル</button>
+<button data-v="stats">成績・到達度</button>
+<button data-v="guide">使い方</button>
+</nav>
+<main id="app"></main>
+<footer>browser characterization only</footer>
+<div id="test-result" data-test-result="PENDING"></div>
+
+<script>localStorage.clear();</script>
+<script src="../data.js"></script><script src="../paper-underlines.js"></script><script src="../manual-guides.js"></script><script src="../extra-drills.js"></script><script src="../detail-drills-v2.js"></script><script src="../learning-model.js"></script>
+<script src="../original-drills-loop3.js"></script><script src="../original-drills-loop4.js"></script><script src="../detail20-fix-loop1.js"></script><script src="../rebuttal16-loop2.js"></script><script src="../rebuttal16-loop3-afterturn.js"></script>
+<script src="../summary15-loop2.js"></script><script src="../summary15-loop4.js"></script><script src="../reason10-loop2.js"></script><script src="../reason10-loop3.js"></script><script src="../emotion10-loop2.js"></script><script src="../context10-loop2.js"></script><script src="../connector11-loop2.js"></script><script src="../reading50-loop2.js"></script><script src="../reading50-loop3.js"></script><script src="../vocab-expression45-loop2.js"></script><script src="../vocab-expression45-loop3.js"></script><script src="../vocab45-correction-loop4.js"></script><script src="../grammar-completion77-loop2.js"></script><script src="../grammar-completion77-loop3.js"></script><script src="../grammar-completion77-loop5.js"></script><script src="../sound30-loop2.js"></script><script src="../sound30-loop3.js"></script><script src="../detail-placeholder-fix-loop3.js"></script>
+<script src="../app.js"></script>
+<script>
+(function(){
+  const result=document.getElementById('test-result');
+  function check(value,message){if(!value)throw new Error(message)}
+  try{
+    check(document.getElementById('app').innerText.includes('今日やること'),'fresh home did not render');
+    check(document.getElementById('app').innerText.includes('2024年度の過去問を見る'),'fresh Today did not recommend the 2024 diagnostic');
+    let saved=JSON.parse(localStorage.getItem('waseshibu.adaptive.v3')||'null');
+    check(saved&&saved.goal===60&&saved.year===2024,'fresh persisted defaults changed');
+    setGoal(70);
+    saved=JSON.parse(localStorage.getItem('waseshibu.adaptive.v3')||'null');
+    check(saved.goal===70,'goal change was not persisted');
+    check(document.getElementById('app').innerText.includes('B 70点'),'goal change was not rendered');
+    goto('route');
+    check(document.querySelector('nav button[data-v="route"]').classList.contains('active'),'route navigation did not activate');
+    check(document.getElementById('app').innerText.includes('2024'),'route view did not render exam route');
+    goto('home');
+    check(document.querySelector('nav button[data-v="home"]').classList.contains('active'),'home navigation did not reactivate');
+    result.dataset.testResult='CLEAN';
+    result.textContent='Waseda browser baseline: CLEAN';
+  }catch(error){
+    result.dataset.testResult='FAIL';
+    result.textContent=`Waseda browser baseline: FAIL: ${error.message}`;
+    document.body.dataset.testError=error.message;
+  }
+})();
+</script>
+</body>
+</html>
