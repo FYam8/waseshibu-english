@@ -23,7 +23,10 @@ assert.match(sync,/state:year:/);
 assert.match(sync,/state:weakness/);
 assert.match(sync,/state:retention/);
 assert.match(sync,/state:drill/);
-assert.match(sync,/maxScore:80/);
+if(sync.includes('const SYNC_WRITTEN_MAX=')){
+  assert.match(sync,/SYNC_WRITTEN_MAX=Number\(SCHOOL_EXAM_CONFIG\?\.writtenMaxScore\)\|\|80/);
+  assert.match(sync,/maxScore:SYNC_WRITTEN_MAX/);
+}else assert.match(sync,/maxScore:80/);
 assert.match(sync,/progress\/snapshot/);
 assert.match(sync,/events\/batch/);
 assert.match(sync,/v1\/control/);
