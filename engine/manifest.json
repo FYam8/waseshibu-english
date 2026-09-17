@@ -1,8 +1,8 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.10",
+  "engineVersion": "0.1.0-alpha.11",
   "contractVersion": 1,
-  "status": "candidate-progress-projection-config-clean",
+  "status": "candidate-app-score-config-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": ["engine/"],
   "runtimeLoaded": true,
@@ -21,6 +21,8 @@
   "delegatedProgressSyncConfig": ["endpoint", "appId", "storage.key", "storage.syncDb", "storage.syncDbVersion"],
   "progressProjectionConfigDelegated": true,
   "delegatedProgressProjectionConfig": ["exam.years", "exam.goalTiers", "exam.defaultGoal", "exam.writtenMaxScore", "progress.appId label"],
+  "appScoreConfigDelegated": true,
+  "delegatedAppScoreConfig": ["exam.writtenMaxScore", "exam.listeningMaxScore", "exam.totalMaxScore"],
   "scoreModelCharacterized": true,
   "learningModelCharacterized": true,
   "persistenceCharacterized": true,
@@ -29,6 +31,6 @@
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "The candidate branch validates the Waseda adapter, delegates generic core helpers and learning-state migration, routes Waseda policy through the school adapter, and sources exam, persistence, progress-sync identity and progress-projection school values from validated config with exact Waseda fallbacks. Source-record IDs, event types, HTTP/IndexedDB contracts, dedup/revision semantics and the Waseda app score model remain unchanged. The one-shot wiring and permanent full browser/sync/AI verification suites are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "parameterize-app-score-model-under-existing-waseda-score-characterization"
+  "notes": "The candidate branch now sources Waseda exam, persistence, progress-sync and app score maxima from the validated school adapter while preserving exact Waseda values and behavior. Generic core helpers plus learning-state migration are delegated; policy remains school-owned. Guarded one-shot and permanent full browser/sync/AI verification are clean after the app score-model wiring. Production main remains unchanged and Rikkyo consumption is still blocked.",
+  "nextGate": "extract-generic-remediation-mastery-transition-under-waseda-parity"
 }
