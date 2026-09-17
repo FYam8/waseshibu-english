@@ -72,11 +72,24 @@ assert.deepEqual([...config.exam.route],[2024,2023,2022,2021,2020,2019,2025,2026
 assert.equal(config.exam.defaultYear,2024);
 assert.equal(config.exam.defaultGoal,60);
 
-assert.equal(config.progress.endpoint,capture(sync,/const API_DEFAULT='([^']+)'/,'API_DEFAULT'));
-assert.equal(config.progress.appId,capture(sync,/const APP_ID='([^']+)'/,'APP_ID'));
-assert.equal(config.storage.syncDb,capture(sync,/const SYNC_DB='([^']+)'/,'SYNC_DB'));
-assert.equal(config.storage.syncDbVersion,Number(capture(sync,/const SYNC_DB_VERSION=(\d+)/,'SYNC_DB_VERSION')));
-assert.equal(config.storage.key,capture(sync,/const STORAGE_KEY='([^']+)'/,'sync STORAGE_KEY'));
+if(sync.includes('SCHOOL_PROGRESS_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.progress||null')){
+  assert.match(sync,/API_DEFAULT=String\(SCHOOL_PROGRESS_CONFIG\?\.endpoint\|\|'https:\/\/waseshibu-progress-api\.fyam8\.workers\.dev'\)/);
+  assert.match(sync,/APP_ID=String\(SCHOOL_PROGRESS_CONFIG\?\.appId\|\|'english'\)/);
+  assert.match(sync,/STORAGE_KEY=String\(SCHOOL_STORAGE_CONFIG\?\.key\|\|'waseshibu\.adaptive\.v3'\)/);
+  assert.match(sync,/SYNC_DB=String\(SCHOOL_STORAGE_CONFIG\?\.syncDb\|\|'waseshibu-progress-sync'\)/);
+  assert.match(sync,/SYNC_DB_VERSION=Number\(SCHOOL_STORAGE_CONFIG\?\.syncDbVersion\)\|\|7/);
+}else{
+  assert.equal(config.progress.endpoint,capture(sync,/const API_DEFAULT='([^']+)'/,'API_DEFAULT'));
+  assert.equal(config.progress.appId,capture(sync,/const APP_ID='([^']+)'/,'APP_ID'));
+  assert.equal(config.storage.syncDb,capture(sync,/const SYNC_DB='([^']+)'/,'SYNC_DB'));
+  assert.equal(config.storage.syncDbVersion,Number(capture(sync,/const SYNC_DB_VERSION=(\d+)/,'SYNC_DB_VERSION')));
+  assert.equal(config.storage.key,capture(sync,/const STORAGE_KEY='([^']+)'/,'sync STORAGE_KEY'));
+}
+assert.equal(config.progress.endpoint,'https://waseshibu-progress-api.fyam8.workers.dev');
+assert.equal(config.progress.appId,'english');
+assert.equal(config.storage.syncDb,'waseshibu-progress-sync');
+assert.equal(config.storage.syncDbVersion,7);
+assert.equal(config.storage.key,'waseshibu.adaptive.v3');
 assert.equal(config.exam.writtenMaxScore,Number(capture(sync,/maxScore:(\d+)/,'written max score')));
 
 assert.equal(policy.resolveQuestionPriority({priority:'A',skill:'detail'}),'A');
