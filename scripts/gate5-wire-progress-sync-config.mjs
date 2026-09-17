@@ -1,0 +1,22 @@
+import fs from 'node:fs';
+
+const path=new URL('../progress-sync.js',import.meta.url);
+let source=fs.readFileSync(path,'utf8');
+const old=`const API_DEFAULT='https://waseshibu-progress-api.fyam8.workers.dev';
+const APP_ID='english';
+const STORAGE_KEY='waseshibu.adaptive.v3';
+const SYNC_DB='waseshibu-progress-sync';
+const SYNC_DB_VERSION=7;`;
+if(!source.includes(old))throw new Error('Waseda progress-sync identity declaration changed unexpectedly');
+if(source.includes('const SCHOOL_PROGRESS_CONFIG='))throw new Error('progress-sync config is already delegated');
+const replacement=`const SCHOOL_PROGRESS_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.progress||null;
+const SCHOOL_STORAGE_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.storage||null;
+const API_DEFAULT=String(SCHOOL_PROGRESS_CONFIG?.endpoint||'https://waseshibu-progress-api.fyam8.workers.dev');
+const APP_ID=String(SCHOOL_PROGRESS_CONFIG?.appId||'english');
+const STORAGE_KEY=String(SCHOOL_STORAGE_CONFIG?.key||'waseshibu.adaptive.v3');
+const SYNC_DB=String(SCHOOL_STORAGE_CONFIG?.syncDb||'waseshibu-progress-sync');
+const SYNC_DB_VERSION=Number(SCHOOL_STORAGE_CONFIG?.syncDbVersion)||7;`;
+source=source.replace(old,replacement);
+for(const token of ['SCHOOL_PROGRESS_CONFIG?.endpoint','SCHOOL_PROGRESS_CONFIG?.appId','SCHOOL_STORAGE_CONFIG?.key','SCHOOL_STORAGE_CONFIG?.syncDb','SCHOOL_STORAGE_CONFIG?.syncDbVersion'])if(!source.includes(token))throw new Error(`missing delegated progress-sync token ${token}`);
+fs.writeFileSync(path,source);
+console.log('Waseda progress-sync config delegation prepared');
