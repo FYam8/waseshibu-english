@@ -54,6 +54,8 @@ function localDate(d=new Date()){const y=d.getFullYear(),m=String(d.getMonth()+1
 function today(){return localDate()}
 function plusDays(n){let d=new Date();d.setDate(d.getDate()+n);return localDate(d)}
 function normalizeDrillState(value){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.normalizeDrillState;
+ if(shared)return shared(value);
  if(!value||typeof value!=="object")return null;
  const q=value.q||null,expected=q?.options?q.options.map((_,i)=>i):[],candidate=Array.isArray(value.choiceOrder)?value.choiceOrder:[],choiceOrder=candidate.length===expected.length&&new Set(candidate).size===expected.length&&candidate.every(i=>expected.includes(i))?candidate:expected,order=Array.isArray(value.order)?value.order:[];
  let orderIndices=Array.isArray(value.orderIndices)?value.orderIndices.filter(i=>Number.isInteger(i)):[];
