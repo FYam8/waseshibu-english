@@ -1,10 +1,12 @@
 (()=>{
 'use strict';
-const API_DEFAULT='https://waseshibu-progress-api.fyam8.workers.dev';
-const APP_ID='english';
-const STORAGE_KEY='waseshibu.adaptive.v3';
-const SYNC_DB='waseshibu-progress-sync';
-const SYNC_DB_VERSION=7;
+const SCHOOL_PROGRESS_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.progress||null;
+const SCHOOL_STORAGE_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.storage||null;
+const API_DEFAULT=String(SCHOOL_PROGRESS_CONFIG?.endpoint||'https://waseshibu-progress-api.fyam8.workers.dev');
+const APP_ID=String(SCHOOL_PROGRESS_CONFIG?.appId||'english');
+const STORAGE_KEY=String(SCHOOL_STORAGE_CONFIG?.key||'waseshibu.adaptive.v3');
+const SYNC_DB=String(SCHOOL_STORAGE_CONFIG?.syncDb||'waseshibu-progress-sync');
+const SYNC_DB_VERSION=Number(SCHOOL_STORAGE_CONFIG?.syncDbVersion)||7;
 const MAX_BATCH=10;
 const RECONCILE_INTERVAL_MS=60_000;
 const CONTROL_REFRESH_INTERVAL_MS=5*60_000;
