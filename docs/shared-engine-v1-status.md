@@ -53,22 +53,22 @@ Status: **IN PROGRESS — delegation stage 2 CLEAN**
 - `wordCount`
 - `familyCount`
 
-The candidate runtime now loads `engine/core.js` before `app.js`, then loads `engine/waseda-compat.js` after `app.js`. The compatibility bridge delegates these four pure helpers to the shared core:
+The candidate runtime loads `engine/core.js` before `app.js`, then `engine/waseda-compat.js` after `app.js`. The compatibility bridge delegates these four pure helpers:
 
 - `wordCount`
 - `familyCount`
 - `localDate`
 - `plusDays`
 
-`normalizeDrillState` remains on the legacy Waseda implementation for now because it participates in startup/resume state handling and will be migrated separately with stronger state fixtures.
+`normalizeDrillState` remains on the legacy Waseda implementation because it participates in startup/resume state handling and requires stronger startup/reload characterization before delegation.
 
-The second delegation stage passed both push-triggered and pull-request-triggered verification. Both runs included contract validation, direct old-vs-engine core parity, executable Today/mastery characterization, real-browser `fresh/attempt/drill/future` scenarios, Cloud progress-sync guards, AI writing tests and the existing grading-goldset checks.
+The current helper-delegation stage passed both push-triggered and pull-request-triggered verification, including direct old-vs-engine parity, executable Today/mastery characterization, real-browser `fresh/attempt/drill/future` scenarios, Cloud progress-sync guards, AI writing tests and grading-goldset checks.
 
-One expected regression guard failed during the first delegation attempt because `tests/progress-cloud-sync.test.mjs` required `app.js` and `progress-sync.js` to be adjacent script tags. The candidate intentionally inserts the compatibility bridge between them. The guard was corrected to preserve its semantic requirement—`progress-sync.js` must load after `app.js` and the compatibility bridge—and the complete suite then passed.
+During the first compatibility-bridge insertion, the existing progress-sync test correctly exposed an assumption that `app.js` and `progress-sync.js` were adjacent script tags. The test was updated to preserve the actual invariant—progress sync loads after the app and compatibility bridge—and the complete suite then passed.
 
-`engine/manifest.json` is now `0.1.0-alpha.3`, marks `candidateBehaviorDelegation: true`, keeps `productionWiring: false`, and blocks Rikkyo consumption until the Waseda parity/release gates are complete.
+`engine/manifest.json` is `0.1.0-alpha.3`, marks candidate behavior delegation, keeps production wiring false, and blocks Rikkyo consumption until Waseda parity/release gates complete.
 
-**Next Gate 2 action:** characterize startup/resume normalization more deeply, then migrate `normalizeDrillState` or another deterministic state helper as a separate small step. Stop on any unexplained visible or persisted-state difference.
+**Next Gate 2 action:** characterize startup/resume drill-state normalization more deeply before delegating `normalizeDrillState`. Stop on any unexplained visible or persisted-state difference.
 
 ## Future Rikkyo relationship
 
@@ -76,4 +76,4 @@ Rikkyo must consume a pinned vendored engine artifact, never a live script from 
 
 ## Merge rule
 
-No production merge is allowed merely because Gate 0/1 or the current Gate 2 sub-stage are clean. Runtime extraction must proceed in small commits, with full CI and real-browser parity after each runtime wiring change. Final Waseda commonization requires two consecutive CLEAN review/test loops before merge to `main`.
+No production merge is allowed merely because the current sub-stage is clean. Runtime extraction must proceed in small commits, with full CI and real-browser parity after each runtime wiring change. Final Waseda commonization requires two consecutive CLEAN review/test loops before merge to `main`.
