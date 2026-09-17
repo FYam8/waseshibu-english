@@ -85,7 +85,7 @@ assert.equal(config.storage.syncDb,'waseshibu-progress-sync');
 assert.equal(config.storage.syncDbVersion,7);
 assert.equal(config.storage.key,'waseshibu.adaptive.v3');
 if(sync.includes('const SYNC_WRITTEN_MAX=')){
-  assert.match(sync,/SYNC_WRITTEN_MAX=Number\(SCHOOL_EXAM_CONFIG\?\.writtenMaxScore\)\|\|80/);
+  assert.match(sync,/SYNC_WRITTEN_MAX=typeof SCHOOL_EXAM_CONFIG!=='undefined'\?Number\(SCHOOL_EXAM_CONFIG\?\.writtenMaxScore\)\|\|80:80/);
   assert.match(sync,/maxScore:SYNC_WRITTEN_MAX/);
   assert.equal(config.exam.writtenMaxScore,80);
 }else assert.equal(config.exam.writtenMaxScore,Number(capture(sync,/maxScore:(\d+)/,'written max score')));
