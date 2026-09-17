@@ -44,8 +44,26 @@ function ensureFamilyIds(items){
   items.forEach((q,i)=>{if(!q.familyId)q.familyId=String(q.id||`${q.skill||'skill'}:${q.targetId||'target'}:${i}`)});
   return items;
 }
+function migrateLearningState(state,{goalTiers,defaultGoal,resolveWeakMeta,validDrillIdsForTarget}={}){
+  if(!state||typeof state!=='object')throw new TypeError('state must be an object');
+  const tiers=Array.isArray(goalTiers)?goalTiers.map(Number).filter(Number.isFinite):[];
+  const fallbackGoal=Number(defaultGoal);
+  if(!tiers.length||!Number.isFinite(fallbackGoal)||!tiers.includes(fallbackGoal))throw new TypeError('valid goalTiers/defaultGoal are required');
+  if(typeof resolveWeakMeta!=='function')throw new TypeError('resolveWeakMeta must be a function');
+  if(typeof validDrillIdsForTarget!=='function')throw new TypeError('validDrillIdsForTarget must be a function');
+  state.goal=tiers.includes(Number(state.goal))?Number(state.goal):fallbackGoal;
+  state.currentDrill=state.currentDrill&&typeof state.currentDrill==='object'?state.currentDrill:null;
+  for(const w of Object.values(state.weak||{})){
+    const meta=resolveWeakMeta(w);
+    if(meta&&typeof meta==='object')Object.assign(w,meta);
+    const ids=validDrillIdsForTarget(w.targetId);
+    const valid=new Set(Array.isArray(ids)?ids:ids?Array.from(ids):[]);
+    w.reservedConfirm=[...new Set(Array.isArray(w.reservedConfirm)?w.reservedConfirm:[])].filter(id=>valid.has(id)).slice(0,2);
+  }
+  return state;
+}
 
-const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds});
+const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.ENGLISH_ENGINE_CORE=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
