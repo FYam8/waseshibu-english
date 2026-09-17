@@ -7,7 +7,8 @@ const sharedEnsureFamilyIds=window.ENGLISH_ENGINE_CORE?.ensureFamilyIds;
 if(sharedEnsureFamilyIds)sharedEnsureFamilyIds(BANK);
 else BANK.forEach((q,i)=>{ if(!q.familyId) q.familyId=String(q.id||`${q.skill||"skill"}:${q.targetId||"target"}:${i}`); });
 // STORAGE_KEY is permanent. Future releases migrate schemaVersion in place and must not rename this key.
-const STORAGE_KEY="waseshibu.adaptive.v3", LEGACY_KEYS=["waseshibu.adaptive.v2"], RECOVERY_PREFIX="waseshibu.adaptive.pre-migration", IMPORT_RECOVERY_PREFIX="waseshibu.adaptive.pre-import", SCHEMA_VERSION=8;
+const SCHOOL_STORAGE_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.storage||null;
+const STORAGE_KEY=String(SCHOOL_STORAGE_CONFIG?.key||"waseshibu.adaptive.v3"), LEGACY_KEYS=Array.isArray(SCHOOL_STORAGE_CONFIG?.legacyKeys)?[...SCHOOL_STORAGE_CONFIG.legacyKeys]:["waseshibu.adaptive.v2"], RECOVERY_PREFIX=String(SCHOOL_STORAGE_CONFIG?.recoveryPrefix||"waseshibu.adaptive.pre-migration"), IMPORT_RECOVERY_PREFIX=String(SCHOOL_STORAGE_CONFIG?.importRecoveryPrefix||"waseshibu.adaptive.pre-import"), SCHEMA_VERSION=Number(SCHOOL_STORAGE_CONFIG?.schemaVersion)||8;
 const SCHOOL_EXAM_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.exam||null;
 const DAILY_TASK_TARGET=Number(SCHOOL_EXAM_CONFIG?.dailyTaskTarget)||10;
 const GOAL_TIERS=Array.isArray(SCHOOL_EXAM_CONFIG?.goalTiers)?[...SCHOOL_EXAM_CONFIG.goalTiers]:[60,70,75];
