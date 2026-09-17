@@ -85,9 +85,13 @@ Status: **STARTED — shadow only, not production-wired**
 - `wordCount`
 - `familyCount`
 
-`tests/shared-engine-core-parity.test.mjs` compares these helpers with the current Waseda runtime. `engine/manifest.json` identifies this stage as `shadow-core-parity` and explicitly keeps `productionWiring: false`.
+`tests/shared-engine-core-parity.test.mjs` compares these helpers with the current Waseda runtime. `engine/manifest.json` identifies this stage as `shadow-core-parity`, keeps `productionWiring: false`, and sets consumer policy to `pinned-vendor-pr-only`.
 
 No script tag has been added to production `index.html`, and `app.js` does not call `engine/core.js` yet. Therefore this stage cannot change Waseda user behavior. The next Gate 2 step is to wire one small helper group behind Waseda compatibility wrappers, rerun all characterization/browser tests, and stop on any unexplained difference.
+
+## Future Rikkyo relationship
+
+Rikkyo must consume a pinned vendored engine artifact, never a live script from Waseda `main`. An engine update may create or update a Rikkyo sync PR only after Rikkyo compatibility tests pass. Waseda-specific config, policy and data are never copied by that sync.
 
 ## Merge rule
 
