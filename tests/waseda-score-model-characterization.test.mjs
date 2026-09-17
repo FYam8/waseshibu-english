@@ -62,7 +62,7 @@ assert.match(stats,/totalScore\}\/100/,'stats total score denominator changed');
 
 const sync=read('progress-sync.js');
 if(sync.includes('const SYNC_WRITTEN_MAX=')){
-  assert.match(sync,/SYNC_WRITTEN_MAX=Number\(SCHOOL_EXAM_CONFIG\?\.writtenMaxScore\)\|\|80/,'cloud progress written max fallback changed');
+  assert.match(sync,/SYNC_WRITTEN_MAX=typeof SCHOOL_EXAM_CONFIG!=='undefined'\?Number\(SCHOOL_EXAM_CONFIG\?\.writtenMaxScore\)\|\|80:80/,'cloud progress written max fallback changed');
   assert.match(sync,/maxScore:SYNC_WRITTEN_MAX/,'cloud progress must use configured written max');
 }else assert.match(sync,/maxScore:80/,'cloud progress written max score changed');
 
