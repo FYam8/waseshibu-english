@@ -22,6 +22,7 @@ jobs:
       - run: node tests/waseda-learning-model-characterization.test.mjs
       - run: node tests/shared-engine-learning-migration-parity.test.mjs
       - run: node tests/waseda-learning-migration-delegation.test.mjs
+      - run: node tests/waseda-persistence-characterization.test.mjs
       - run: node tests/waseda-behavior-characterization.test.mjs
       - run: node tests/waseda-learning-flow-characterization.test.mjs
       - run: bash tests/waseda-browser-smoke.sh
