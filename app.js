@@ -5,11 +5,14 @@ const D=window.EXAM_DATA, P=window.PAPERS, BANK=window.DRILLS, FALLBACK=window.F
 // Some active pronunciation/stress/connector/writing_completion records were missing familyId, which collapsed them to one family.
 BANK.forEach((q,i)=>{ if(!q.familyId) q.familyId=String(q.id||`${q.skill||"skill"}:${q.targetId||"target"}:${i}`); });
 // STORAGE_KEY is permanent. Future releases migrate schemaVersion in place and must not rename this key.
-const STORAGE_KEY="waseshibu.adaptive.v3", LEGACY_KEYS=["waseshibu.adaptive.v2"], RECOVERY_PREFIX="waseshibu.adaptive.pre-migration", IMPORT_RECOVERY_PREFIX="waseshibu.adaptive.pre-import", SCHEMA_VERSION=8, DAILY_TASK_TARGET=10;
+const STORAGE_KEY="waseshibu.adaptive.v3", LEGACY_KEYS=["waseshibu.adaptive.v2"], RECOVERY_PREFIX="waseshibu.adaptive.pre-migration", IMPORT_RECOVERY_PREFIX="waseshibu.adaptive.pre-import", SCHEMA_VERSION=8;
+const SCHOOL_EXAM_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.exam||null;
+const DAILY_TASK_TARGET=Number(SCHOOL_EXAM_CONFIG?.dailyTaskTarget)||10;
 const AI_GRADING_API="https://waseshibu-writing-grader.fyam8.workers.dev";
 const AI_GRADING_SKILLS=new Set(["writing_completion","summary","rebuttal"]);
-const ROUTE=[2024,2023,2022,2021,2020,2019,2025,2026];
-const INIT={schemaVersion:SCHEMA_VERSION,goal:60,year:2024,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentDrill:null,currentAttempt:null,lastResultId:null,lastStartedWeakKey:null,dailyPlan:null,dailyProgress:null,recoveredDrills:[],exposure:{},theme:"light",answerSheetOpen:true,answerSheetExpanded:false,examInfoCompact:false,recoveryNotice:null};
+const ROUTE=Array.isArray(SCHOOL_EXAM_CONFIG?.route)?[...SCHOOL_EXAM_CONFIG.route]:[2024,2023,2022,2021,2020,2019,2025,2026];
+const DEFAULT_GOAL=Number(SCHOOL_EXAM_CONFIG?.defaultGoal)||60, DEFAULT_YEAR=Number(SCHOOL_EXAM_CONFIG?.defaultYear)||2024;
+const INIT={schemaVersion:SCHEMA_VERSION,goal:DEFAULT_GOAL,year:DEFAULT_YEAR,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentDrill:null,currentAttempt:null,lastResultId:null,lastStartedWeakKey:null,dailyPlan:null,dailyProgress:null,recoveredDrills:[],exposure:{},theme:"light",answerSheetOpen:true,answerSheetExpanded:false,examInfoCompact:false,recoveryNotice:null};
 function storageKeys(prefix){const keys=[];try{for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key?.startsWith(prefix))keys.push(key)}}catch(e){}return keys}
 function recoveryCandidates(){const imports=storageKeys(`${IMPORT_RECOVERY_PREFIX}.`).sort().reverse(),migrations=storageKeys(`${RECOVERY_PREFIX}.v`).sort((a,b)=>(Number(b.split(".v").pop())||0)-(Number(a.split(".v").pop())||0));return [...imports,...migrations]}
 function parseStored(key){try{const text=localStorage.getItem(key),value=text&&JSON.parse(text);return value&&typeof value==="object"?{value,text,key}:null}catch(e){return null}}
