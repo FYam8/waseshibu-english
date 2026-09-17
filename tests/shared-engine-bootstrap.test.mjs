@@ -19,7 +19,12 @@ assert.equal(adapter.policy.isPriorityInGoal('B',70),true);
 assert.equal(adapter.policy.isPriorityInGoal('C',70),false);
 
 const index=read('index.html');
-const tags=['engine/contract.js','schools/waseshibu/config.js','schools/waseshibu/policy.js','engine/bootstrap.js','engine/core.js','app.js','engine/waseda-compat.js','progress-sync.js'];
+const tagPos=path=>index.indexOf(`<script src="${path}"></script>`);
+const adapterTags=['engine/contract.js','schools/waseshibu/config.js','schools/waseshibu/policy.js','engine/bootstrap.js','app.js','engine/waseda-compat.js','progress-sync.js'];
 let previous=-1;
-for(const path of tags){const pos=index.indexOf(`<script src="${path}"></script>`);assert.ok(pos>=0,`missing runtime script ${path}`);assert.ok(pos>previous,`runtime script order changed at ${path}`);previous=pos;}
+for(const path of adapterTags){const pos=tagPos(path);assert.ok(pos>=0,`missing runtime script ${path}`);assert.ok(pos>previous,`adapter/runtime script order changed at ${path}`);previous=pos;}
+const corePos=tagPos('engine/core.js'),modelPos=tagPos('learning-model.js'),appPos=tagPos('app.js');
+assert.ok(corePos>=0,'missing runtime script engine/core.js');
+assert.equal(index.split('<script src="engine/core.js"></script>').length-1,1,'engine/core.js must load exactly once');
+assert.ok(corePos<modelPos&&modelPos<appPos,'shared core must load before learning-model.js and app.js');
 console.log('shared engine Waseda adapter bootstrap: CLEAN');
