@@ -1,8 +1,8 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.8",
+  "engineVersion": "0.1.0-alpha.9",
   "contractVersion": 1,
-  "status": "candidate-storage-config-clean",
+  "status": "candidate-progress-sync-config-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": ["engine/"],
   "runtimeLoaded": true,
@@ -16,6 +16,9 @@
   "learningMigrationDelegated": true,
   "runtimeStorageConfigDelegated": true,
   "delegatedStorageConfig": ["key", "legacyKeys", "recoveryPrefix", "importRecoveryPrefix", "schemaVersion"],
+  "progressSyncCharacterized": true,
+  "progressSyncConfigDelegated": true,
+  "delegatedProgressSyncConfig": ["endpoint", "appId", "storage.key", "storage.syncDb", "storage.syncDbVersion"],
   "scoreModelCharacterized": true,
   "learningModelCharacterized": true,
   "persistenceCharacterized": true,
@@ -24,6 +27,6 @@
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "The candidate branch validates the Waseda adapter, delegates generic core helpers including family-ID completion and learning-state migration, routes seven Waseda policy decisions through the school adapter, and sources low-risk exam plus persistence identity/config from the validated adapter with exact Waseda fallbacks. Score, learning-model, persistence/recovery, browser, progress-sync and AI regression gates are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "characterize-progress-sync-boundary-before-parameterization"
+  "notes": "The candidate branch validates the Waseda adapter, delegates generic core helpers and learning-state migration, routes Waseda policy through the school adapter, and sources exam, persistence and progress-sync identity/config from validated school config with exact Waseda fallbacks. The progress-sync HTTP/IndexedDB/source-record/event semantics are characterized and unchanged; full browser, sync and AI regression suites are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
+  "nextGate": "parameterize-progress-projection-school-semantics-under-frozen-sync-contract"
 }
