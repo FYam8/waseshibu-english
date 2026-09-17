@@ -14,5 +14,5 @@
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
   "notes": "The feature branch delegates four pure helpers through the Waseda compatibility bridge. Push and pull-request verification, including real-browser scenarios, are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "characterize-and-delegate-normalizeDrillState"
+  "nextGate": "characterize-startup-resume-normalization-before-delegation"
 }
