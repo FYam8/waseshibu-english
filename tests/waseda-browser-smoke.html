@@ -38,6 +38,22 @@
     base.weak={[key]:{year:2024,id:'browser',label:'ブラウザ再開確認',status:'active',priority:'A',skill:q.skill,targetId:q.targetId,focusTag:q.focusTag,streak:1,confirmStreak:0}};
     base.currentSkill=key;
     base.currentDrill={key,skill:q.skill,targetId:q.targetId,focusTag:q.focusTag,mode:'train',used:[q.id],q:{id:q.id},answered:false,selected:null,selectedMany:[],order:[],orderIndices:[],textInputs:[],selfText:'',selfParts:[],selfChecks:[]};
+  }else if(scenario==='drill-legacy-choice'){
+    const q=(window.DRILLS||[]).find(x=>!x.retired&&x.type==='choice'&&Array.isArray(x.options)&&x.options.length>=2);
+    if(!q)throw new Error('no active choice drill available for normalization fixture');
+    const key='2024:legacy-choice:main';
+    window.__BROWSER_FIXTURE={qId:q.id,optionCount:q.options.length};
+    base.weak={[key]:{year:2024,id:'legacy-choice',label:'旧形式選択肢再開',status:'active',priority:'A',skill:q.skill,targetId:q.targetId,focusTag:q.focusTag,streak:1,confirmStreak:0}};
+    base.currentSkill=key;
+    base.currentDrill={key,skill:q.skill,targetId:q.targetId,focusTag:q.focusTag,mode:'train',q:{id:q.id},answered:false,choiceOrder:Array(q.options.length).fill(0),used:null,selectedMany:null,order:null,orderIndices:null,textInputs:null,selfParts:null,selfChecks:null};
+  }else if(scenario==='drill-legacy-reorder'){
+    const q=(window.DRILLS||[]).find(x=>!x.retired&&x.type==='reorder'&&Array.isArray(x.tokens)&&x.tokens.length>=3&&new Set(x.tokens).size===x.tokens.length);
+    if(!q)throw new Error('no active reorder drill available for normalization fixture');
+    const key='2024:legacy-reorder:main',shuffled=[...q.tokens],order=shuffled.slice(0,2);
+    window.__BROWSER_FIXTURE={qId:q.id,order:[...order]};
+    base.weak={[key]:{year:2024,id:'legacy-reorder',label:'旧形式並べ替え再開',status:'active',priority:'A',skill:q.skill,targetId:q.targetId,focusTag:q.focusTag,streak:1,confirmStreak:0}};
+    base.currentSkill=key;
+    base.currentDrill={key,skill:q.skill,targetId:q.targetId,focusTag:q.focusTag,mode:'train',q:{id:q.id},answered:false,used:[q.id],order,shuffled,selectedMany:null,textInputs:null,selfParts:null,selfChecks:null};
   }else if(scenario==='future'){
     const d=new Date();d.setDate(d.getDate()+1);const next=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
     const key='2024:future:main';
@@ -85,6 +101,18 @@
       check(appText().includes('途中の1問を再開'),'active drill was not offered before other work');
       const saved=JSON.parse(localStorage.getItem('waseshibu.adaptive.v3'));
       check(saved.currentDrill?.key==='2024:browser:main','active drill did not survive reload');
+    }else if(scenario==='drill-legacy-choice'){
+      check(appText().includes('途中の1問を再開'),'legacy choice drill was not resumable after startup normalization');
+      resumeCurrentDrill();
+      const buttons=[...document.querySelectorAll('#app .choices .choice')],fixture=window.__BROWSER_FIXTURE;
+      check(buttons.length===fixture.optionCount,'normalized choice order changed option count');
+      check(new Set(buttons.map(b=>b.getAttribute('onclick'))).size===fixture.optionCount,'invalid legacy choice order was not repaired into a permutation');
+    }else if(scenario==='drill-legacy-reorder'){
+      check(appText().includes('途中の1問を再開'),'legacy reorder drill was not resumable after startup normalization');
+      resumeCurrentDrill();
+      const fixture=window.__BROWSER_FIXTURE,disabled=[...document.querySelectorAll('#app .tokens .token.disabled')];
+      check(disabled.length===fixture.order.length,'legacy reorder token indices were not recovered');
+      check(document.getElementById('orderBox')?.textContent.trim()===fixture.order.join(' '),'legacy reorder answer sequence changed during normalization');
     }else if(scenario==='future'){
       goto('review');
       const waiting=[...document.querySelectorAll('#app button[disabled]')].find(b=>b.textContent.includes('まで待つ'));
