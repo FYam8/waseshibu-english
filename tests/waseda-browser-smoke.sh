@@ -5,7 +5,6 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PORT="${WASEDA_TEST_PORT:-8765}"
 TMP="$(mktemp -d)"
 SERVER_LOG="$TMP/server.log"
-DOM="$TMP/dom.html"
 
 cleanup(){
   if [[ -n "${SERVER_PID:-}" ]]; then kill "$SERVER_PID" 2>/dev/null || true; fi
@@ -29,15 +28,20 @@ if [[ -z "$CHROME" ]]; then
   exit 1
 fi
 
-"$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
-  --user-data-dir="$TMP/profile" --virtual-time-budget=5000 --dump-dom \
-  "http://127.0.0.1:$PORT/tests/waseda-browser-smoke.html" >"$DOM" 2>"$TMP/chrome.log"
-
-if ! grep -q 'data-test-result="CLEAN"' "$DOM"; then
-  echo "Waseda browser characterization failed" >&2
-  grep -o 'Waseda browser baseline: FAIL:[^<]*' "$DOM" >&2 || true
-  cat "$TMP/chrome.log" >&2 || true
-  exit 1
-fi
+for scenario in fresh attempt drill future; do
+  DOM="$TMP/dom-$scenario.html"
+  LOG="$TMP/chrome-$scenario.log"
+  PROFILE="$TMP/profile-$scenario"
+  "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage \
+    --user-data-dir="$PROFILE" --virtual-time-budget=5000 --dump-dom \
+    "http://127.0.0.1:$PORT/tests/waseda-browser-smoke.html?case=$scenario" >"$DOM" 2>"$LOG"
+  if ! grep -q 'data-test-result="CLEAN"' "$DOM"; then
+    echo "Waseda browser characterization failed: $scenario" >&2
+    grep -o 'Waseda browser baseline: FAIL:[^<]*' "$DOM" >&2 || true
+    cat "$LOG" >&2 || true
+    exit 1
+  fi
+  echo "Waseda browser baseline $scenario: CLEAN"
+done
 
 echo "Waseda real-browser baseline: CLEAN"
