@@ -62,8 +62,29 @@ function migrateLearningState(state,{goalTiers,defaultGoal,resolveWeakMeta,valid
   }
   return state;
 }
+function advanceRemediationMastery(weak,drill,correct,{today,nextDay,nowIso,trainTarget=3,confirmTarget=2}={}){
+  if(!weak||typeof weak!=='object')throw new TypeError('weak must be an object');
+  if(!drill||typeof drill!=='object')throw new TypeError('drill must be an object');
+  const result={needsConfirmationReserve:false,completedTraining:false,mastered:false};
+  if(drill.mode==='train'){
+    if(correct)weak.streak=(weak.streak||0)+1;else weak.streak=0;
+    if(weak.streak>=trainTarget){
+      weak.status='pending';weak.next=nextDay;weak.confirmStreak=0;result.completedTraining=true;
+    }
+  }else{
+    if(correct)weak.confirmStreak=(weak.confirmStreak||0)+1;
+    else{
+      weak.confirmStreak=0;weak.status='active';weak.streak=0;weak.next=today;weak.reservedConfirm=[];
+      drill.mode='train';drill.used=[];drill.failedConfirmation=true;result.needsConfirmationReserve=true;
+    }
+    if(weak.confirmStreak>=confirmTarget){
+      weak.status='mastered';weak.masteredAt=nowIso;weak.last='correct';result.mastered=true;
+    }
+  }
+  return result;
+}
 
-const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState});
+const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.ENGLISH_ENGINE_CORE=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
