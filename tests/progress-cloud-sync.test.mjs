@@ -5,10 +5,18 @@ const sync=fs.readFileSync(new URL('../progress-sync.js',import.meta.url),'utf8'
 const index=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const app=fs.readFileSync(new URL('../app.js',import.meta.url),'utf8');
 
-assert.match(sync,/APP_ID='english'/);
-assert.match(sync,/STORAGE_KEY='waseshibu\.adaptive\.v3'/);
-assert.match(sync,/SYNC_DB='waseshibu-progress-sync'/);
-assert.match(sync,/SYNC_DB_VERSION=7/);
+if(sync.includes('SCHOOL_PROGRESS_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.progress||null')){
+  assert.match(sync,/API_DEFAULT=String\(SCHOOL_PROGRESS_CONFIG\?\.endpoint\|\|'https:\/\/waseshibu-progress-api\.fyam8\.workers\.dev'\)/);
+  assert.match(sync,/APP_ID=String\(SCHOOL_PROGRESS_CONFIG\?\.appId\|\|'english'\)/);
+  assert.match(sync,/STORAGE_KEY=String\(SCHOOL_STORAGE_CONFIG\?\.key\|\|'waseshibu\.adaptive\.v3'\)/);
+  assert.match(sync,/SYNC_DB=String\(SCHOOL_STORAGE_CONFIG\?\.syncDb\|\|'waseshibu-progress-sync'\)/);
+  assert.match(sync,/SYNC_DB_VERSION=Number\(SCHOOL_STORAGE_CONFIG\?\.syncDbVersion\)\|\|7/);
+}else{
+  assert.match(sync,/APP_ID='english'/);
+  assert.match(sync,/STORAGE_KEY='waseshibu\.adaptive\.v3'/);
+  assert.match(sync,/SYNC_DB='waseshibu-progress-sync'/);
+  assert.match(sync,/SYNC_DB_VERSION=7/);
+}
 assert.match(sync,/state:summary/);
 assert.match(sync,/state:latest-exam/);
 assert.match(sync,/state:year:/);
