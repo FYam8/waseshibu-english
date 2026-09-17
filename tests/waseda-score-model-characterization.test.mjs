@@ -14,9 +14,16 @@ function functionSource(source,name){
   }
   throw new Error(`unterminated function ${name}`);
 }
+function plain(value){return JSON.parse(JSON.stringify(value))}
 
 const app=read('app.js');
 const index=read('index.html');
+const configCtx={};configCtx.window=configCtx;configCtx.globalThis=configCtx;vm.createContext(configCtx);vm.runInContext(read('schools/waseshibu/config.js'),configCtx);
+const examConfig=plain(configCtx.ENGLISH_SCHOOL_CONFIG.exam);
+assert.equal(examConfig.writtenMaxScore,80);
+assert.equal(examConfig.listeningMaxScore,20);
+assert.equal(examConfig.totalMaxScore,100);
+assert.equal(examConfig.writtenMaxScore+examConfig.listeningMaxScore,examConfig.totalMaxScore);
 
 // The existing Waseda written paper is an 80-point component for every routed year.
 const scripts=[...index.matchAll(/<script\s+src="([^"]+)"/g)].map(x=>x[1]);
@@ -30,13 +37,13 @@ for(const year of route){
   const rows=dataCtx.EXAM_DATA?.[year]||[];
   assert.ok(rows.length,`${year}: missing exam rows`);
   const total=rows.reduce((sum,q)=>sum+(Number(q.points)||0),0);
-  assert.equal(total,80,`${year}: written points no longer total 80`);
+  assert.equal(total,examConfig.writtenMaxScore,`${year}: written points no longer total Waseda written max`);
 }
 
 // Listening is a 20-point component and total score is the same attempt's written + listening.
 const setListening=functionSource(app,'setListeningScore');
 const goalStatus=functionSource(app,'goalStatus');
-const ctx={S:{attempts:[{id:'a',writtenScore:72,listeningScore:null,totalScore:null}]},save(){},render(){}};ctx.globalThis=ctx;vm.createContext(ctx);
+const ctx={S:{attempts:[{id:'a',writtenScore:72,listeningScore:null,totalScore:null}]},save(){},render(){},LISTENING_MAX_SCORE:20,TOTAL_MAX_SCORE:100};ctx.globalThis=ctx;vm.createContext(ctx);
 vm.runInContext(`${setListening}\n${goalStatus}\nglobalThis.api={setListeningScore,goalStatus}`,ctx);
 ctx.api.setListeningScore('a','15');
 assert.equal(ctx.S.attempts[0].listeningScore,15);assert.equal(ctx.S.attempts[0].totalScore,87);
@@ -48,17 +55,34 @@ assert.equal(ctx.api.goalStatus({writtenScore:50,listeningScore:15},60),'到達�
 assert.equal(ctx.api.goalStatus({writtenScore:50,listeningScore:null},60),'リスニング10/20以上が必要');
 assert.equal(ctx.api.goalStatus({writtenScore:30,listeningScore:null},60),'現在の筆記点では到達不可');
 
-// Import validation and user-visible score labels are intentionally frozen before extraction.
+// Import validation and user-visible score labels are intentionally frozen while their source moves to config.
 const validateImport=functionSource(app,'validateImport');
-assert.match(validateImport,/written>80/,'import written-score ceiling changed');
-assert.match(validateImport,/Number\(listening\)>20/,'import listening-score ceiling changed');
+if(app.includes('const WRITTEN_MAX_SCORE=')){
+  assert.match(validateImport,/written>WRITTEN_MAX_SCORE/,'import written-score ceiling must use config');
+  assert.match(validateImport,/Number\(listening\)>LISTENING_MAX_SCORE/,'import listening-score ceiling must use config');
+  assert.match(app,/WRITTEN_MAX_SCORE=Number\(SCHOOL_EXAM_CONFIG\?\.writtenMaxScore\)\|\|80/);
+  assert.match(app,/LISTENING_MAX_SCORE=Number\.isFinite\(Number\(SCHOOL_EXAM_CONFIG\?\.listeningMaxScore\)\)/);
+  assert.match(app,/TOTAL_MAX_SCORE=Number\(SCHOOL_EXAM_CONFIG\?\.totalMaxScore\)\|\|WRITTEN_MAX_SCORE\+LISTENING_MAX_SCORE/);
+}else{
+  assert.match(validateImport,/written>80/,'import written-score ceiling changed');
+  assert.match(validateImport,/Number\(listening\)>20/,'import listening-score ceiling changed');
+}
 const result=functionSource(app,'result');
-assert.match(result,/writtenScore\}\/80/,'result written score denominator changed');
-assert.match(result,/リスニング得点[\s\S]*?\/20/,'result listening denominator changed');
-assert.match(result,/total\}\/100/,'result total score denominator changed');
 const stats=functionSource(app,'stats');
-assert.match(stats,/writtenScore\}\/80/,'stats written score denominator changed');
-assert.match(stats,/totalScore\}\/100/,'stats total score denominator changed');
+if(app.includes('const WRITTEN_MAX_SCORE=')){
+  assert.match(result,/writtenScore\}\/\$\{WRITTEN_MAX_SCORE\}/,'result written score denominator must use config');
+  assert.match(result,/total\}\/\$\{TOTAL_MAX_SCORE\}/,'result total score denominator must use config');
+  assert.match(result,/max=\$\{LISTENING_MAX_SCORE\}/,'result listening input max must use config');
+  assert.match(result,/\/\$\{LISTENING_MAX_SCORE\}<\/label>/,'result listening denominator must use config');
+  assert.match(stats,/writtenScore\}\/\$\{WRITTEN_MAX_SCORE\}/,'stats written score denominator must use config');
+  assert.match(stats,/totalScore\}\/\$\{TOTAL_MAX_SCORE\}/,'stats total score denominator must use config');
+}else{
+  assert.match(result,/writtenScore\}\/80/,'result written score denominator changed');
+  assert.match(result,/リスニング得点[\s\S]*?\/20/,'result listening denominator changed');
+  assert.match(result,/total\}\/100/,'result total score denominator changed');
+  assert.match(stats,/writtenScore\}\/80/,'stats written score denominator changed');
+  assert.match(stats,/totalScore\}\/100/,'stats total score denominator changed');
+}
 
 const sync=read('progress-sync.js');
 if(sync.includes('const SYNC_WRITTEN_MAX=')){
