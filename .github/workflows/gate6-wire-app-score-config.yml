@@ -1,0 +1,63 @@
+name: gate6-wire-app-score-config
+on:
+  push:
+    branches: [feat/shared-engine-v1]
+    paths: ['.gate6-wire-app-score-config']
+
+permissions:
+  contents: write
+
+jobs:
+  wire:
+    if: github.ref == 'refs/heads/feat/shared-engine-v1'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/shared-engine-v1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/gate6-wire-app-score-config.mjs
+      - run: git diff --check
+      - run: node tests/shared-engine-contract.test.mjs
+      - run: node tests/shared-engine-bootstrap.test.mjs
+      - run: node tests/shared-engine-core-parity.test.mjs
+      - run: node tests/waseda-policy-delegation.test.mjs
+      - run: node tests/waseda-runtime-config-delegation.test.mjs
+      - run: node tests/waseda-score-model-characterization.test.mjs
+      - run: node tests/waseda-app-score-config-delegation.test.mjs
+      - run: node tests/waseda-learning-model-characterization.test.mjs
+      - run: node tests/shared-engine-learning-migration-parity.test.mjs
+      - run: node tests/waseda-learning-migration-delegation.test.mjs
+      - run: node tests/waseda-persistence-characterization.test.mjs
+      - run: node tests/waseda-storage-config-delegation.test.mjs
+      - run: node tests/waseda-progress-sync-characterization.test.mjs
+      - run: node tests/waseda-progress-sync-config-delegation.test.mjs
+      - run: node tests/waseda-progress-projection-config-delegation.test.mjs
+      - run: node tests/waseda-behavior-characterization.test.mjs
+      - run: node tests/waseda-learning-flow-characterization.test.mjs
+      - run: bash tests/waseda-browser-smoke.sh
+      - run: node --check progress-sync.js
+      - run: node tests/progress-cloud-sync.test.mjs
+      - run: node tests/ai-writing-grader.test.mjs
+      - run: node tests/ai-writing-ui.test.mjs
+      - run: node --check workers/writing-grader/src/index.mjs
+      - run: node tests/ai-grading-goldset-v1/lint.mjs tests/ai-grading-goldset-v1
+      - run: node tests/ai-grading-goldset-v1/smoke.mjs tests/ai-grading-goldset-v1
+      - run: node --check tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs
+      - run: node --check tests/ai-grading-goldset-v1/reconcile-adjudication.mjs
+      - run: node --check tests/ai-grading-goldset-v1/compare-evals.mjs
+      - run: node tests/ai-grading-goldset-v1/compare-smoke.mjs tests/ai-grading-goldset-v1
+      - run: node tests/ai-grading-goldset-v1/generate-adjudication-packet.mjs tests/ai-grading-goldset-v1 > /tmp/adjudication.json
+      - name: Commit guarded app score-model wiring
+        run: |
+          if git diff --quiet -- app.js; then
+            echo 'app.js was not changed' >&2
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.js
+          git commit -m 'refactor: source Waseda app score maxima from adapter'
+          git push origin HEAD:feat/shared-engine-v1
