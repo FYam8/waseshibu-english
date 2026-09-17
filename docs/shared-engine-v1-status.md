@@ -38,17 +38,9 @@ The browser suite uses isolated localhost Chrome profiles and never touches prod
 
 Status: **CLEAN through learning-state migration delegation**
 
-`engine/core.js` contains generic helpers for:
+`engine/core.js` contains generic helpers for `localDate`, `plusDays`, `normalizeDrillState`, `wordCount`, `familyCount`, `ensureFamilyIds` and `migrateLearningState`.
 
-- `localDate`
-- `plusDays`
-- `normalizeDrillState`
-- `wordCount`
-- `familyCount`
-- `ensureFamilyIds`
-- `migrateLearningState`
-
-Waseda delegates these through guarded wrappers while retaining exact legacy fallbacks where needed. `engine/core.js` now loads before `learning-model.js`; `learning-model.js` delegates only the generic state-migration mechanics while supplying Waseda-specific metadata resolution and valid-drill lookup callbacks. The old Waseda migration body remains the no-core fallback.
+Waseda delegates these through guarded wrappers while retaining exact legacy fallbacks where needed. `engine/core.js` loads before `learning-model.js`; `learning-model.js` delegates only generic state-migration mechanics while supplying Waseda-specific metadata resolution and valid-drill lookup callbacks. The old Waseda migration body remains the no-core fallback.
 
 Permanent parity coverage proves delegated vs legacy equality for invalid-goal repair, invalid `currentDrill` cleanup, weakness metadata remapping, manual component mapping, confirmation reservation dedup/filter/cap-at-two, legacy drill normalization and family-ID completion.
 
@@ -58,33 +50,11 @@ Status: **CLEAN for current sub-stage**
 
 `engine/bootstrap.js` validates `schools/waseshibu/config.js` and `schools/waseshibu/policy.js` and exposes `ENGLISH_ENGINE_ADAPTER` before the candidate runtime starts.
 
-Seven school-specific decisions in `app.js` delegate through `ENGLISH_ENGINE_ADAPTER.policy`, with exact legacy fallbacks:
+Seven school-specific decisions in `app.js` delegate through `ENGLISH_ENGINE_ADAPTER.policy`, with exact legacy fallbacks: question priority, goal eligibility, priority ordering, route role, goal label, goal advice and skill display name.
 
-- question priority
-- goal eligibility
-- priority ordering
-- route role
-- goal label
-- goal advice
-- skill display name
+Low-risk exam values come from `ENGLISH_ENGINE_ADAPTER.config.exam`: route, default year, default goal, daily task target and goal tiers.
 
-The following low-risk exam values come from `ENGLISH_ENGINE_ADAPTER.config.exam` with exact Waseda fallbacks:
-
-- route
-- default year
-- default goal
-- daily task target
-- goal tiers
-
-The following persistence identity/config values now come from `ENGLISH_ENGINE_ADAPTER.config.storage`, again with exact current Waseda fallbacks:
-
-- primary localStorage key: `waseshibu.adaptive.v3`
-- legacy keys: `waseshibu.adaptive.v2`
-- migration-recovery prefix: `waseshibu.adaptive.pre-migration`
-- import-recovery prefix: `waseshibu.adaptive.pre-import`
-- schema version: `8`
-
-This is parameterization of the source of those values, **not** a Waseda identity migration. The actual values and state meaning are unchanged.
+Persistence identity/config values come from `ENGLISH_ENGINE_ADAPTER.config.storage`: primary/legacy localStorage keys, migration/import recovery prefixes and schema version. This is source parameterization only; Waseda identity values and state meaning are unchanged.
 
 ## Gate 4 — score, learning-model and persistence boundaries
 
@@ -92,56 +62,56 @@ Status: **CHARACTERIZED / CLEAN; selected generic mechanics delegated**
 
 ### Score model
 
-`tests/waseda-score-model-characterization.test.mjs` freezes the current Waseda coupling:
-
-- every routed written paper totals 80 points
-- listening is clamped to 0–20
-- total score is same-attempt written + listening
-- total denominator is 100
-- import validation remains written <=80 and listening <=20
-- result/stats displays remain /80, /20 and /100
-- cloud progress written max remains 80
-
-Score constants have **not** been generalized yet.
+`tests/waseda-score-model-characterization.test.mjs` freezes the Waseda 80+20=100 coupling: every routed written paper totals 80, listening is clamped to 20, total score remains same-attempt written + listening, import ceilings remain 80/20, displays remain /80, /20 and /100, and cloud written-score metadata remains 80.
 
 ### Learning model
 
-`tests/waseda-learning-model-characterization.test.mjs` fingerprints the current school-specific mapping/data boundary:
+Frozen school-specific mapping/data boundary:
 
-- exam mapping count: **167**
-- exam mapping SHA-256: `e11d73163f804c8639748a9e66c5853e078846842812152f30c33bf39fbe3db4`
-- active bank count: **283**
-- active bank mapping SHA-256: `eddfded9fc21d06b79d7b0ae9765104fb1520211f0951fa4ddf281c4de16c7e0`
-- pre-app missing `familyId`: **60**, SHA-256 `c1d5c29582039d1590b22b7ceda67a958268b3c34a3bf4f26ef0f636dcdf359c`
-- pre-app missing `focusTag`: **14**, SHA-256 `508748a861ecf59ed55c5a5918df31baa59826a3f541215b902c52d56ad91bcf`
-- pre-app missing `examFormat`: **32**, SHA-256 `010d82e535e67ee74ff338e76b6af21694efdbbb272d0b1d71f6c66c73faa15e`
-- pre-app missing `level`: **14**, SHA-256 `508748a861ecf59ed55c5a5918df31baa59826a3f541215b902c52d56ad91bcf`
+- exam mapping count: **167**; SHA-256 `e11d73163f804c8639748a9e66c5853e078846842812152f30c33bf39fbe3db4`
+- active bank count: **283**; SHA-256 `eddfded9fc21d06b79d7b0ae9765104fb1520211f0951fa4ddf281c4de16c7e0`
+- pre-app missing `familyId`: **60**
+- pre-app missing `focusTag`: **14**
+- pre-app missing `examFormat`: **32**
+- pre-app missing `level`: **14**
 
 Those optional-field gaps are current load-order behavior; production problem data was not rewritten to satisfy the refactor.
 
 ### Persistence / recovery
 
-`tests/waseda-persistence-characterization.test.mjs` freezes current persistence semantics before any deeper extraction:
+`tests/waseda-persistence-characterization.test.mjs` freezes primary/legacy/recovery lookup precedence, corrupt-primary recovery, v2/v7 migrations, raw pre-migration snapshots, targeted-attempt repair, future-schema no-downgrade behavior, same-key schema upgrades and newest-three import recovery retention.
 
-- primary -> legacy -> import-recovery -> migration-recovery lookup order
-- corrupt-primary fallback and recovery notice
-- v2 history migration into legacy, non-comparable attempts
-- pre-migration raw snapshot preservation
-- v7 `dailyPlan.answeredCount` -> `dailyProgress` transition
-- targeted attempt -> interrupted untimed repair
-- future-schema no-rewrite / no-downgrade behavior
-- same-key schema upgrade behavior
-- import recovery retention of the newest three snapshots
+## Gate 5 — progress-sync adapter boundary
 
-`tests/waseda-storage-config-delegation.test.mjs` additionally verifies fake-school adapter values are honored while the no-adapter path retains exact Waseda storage identities. Full browser, progress-sync and AI suites passed after this wiring.
+Status: **CHARACTERIZED, IDENTITY/CONFIG DELEGATION CLEAN**
 
-`engine/manifest.json` is `0.1.0-alpha.8`. Production wiring remains false because `main` has not changed, and Rikkyo consumption remains blocked.
+`tests/waseda-progress-sync-characterization.test.mjs` now executes representative state and occurrence projections with a fixed clock and freezes the external/local sync contract:
 
-## Next extraction boundary — progress sync
+- API endpoint: `https://waseshibu-progress-api.fyam8.workers.dev`
+- app ID: `english`
+- local state key: `waseshibu.adaptive.v3`
+- IndexedDB: `waseshibu-progress-sync`, version `7`
+- stores: `control`, `outbox`, `deadletter`, `seen_v2`
+- control keys and registration/revocation/collection-disabled behavior
+- registration/control/baseline/batch endpoints
+- state source IDs (`state:summary`, `state:latest-exam`, yearly rows, weakness, retention, drill)
+- occurrence source IDs (`history:exam:*`, `history:drill:*`) and event types
+- production-only occurrence behavior
+- timestamp-independent record fingerprinting
+- no raw `answers` or `manual` map upload
+- written-score metadata of 80
 
-Before parameterizing `progress-sync.js`, explicitly characterize its external and local identity boundary: API endpoint, app ID, IndexedDB name/version, local state key, control keys, event/source-record naming, anonymous registration behavior, occurrence/state record semantics, baseline semantics, revocation/collection-disabled behavior and score metadata. Existing sync guards already cover many of these, but the next gate should freeze them as a deliberate adapter boundary before changing runtime constants.
+`progress-sync.js` now sources API endpoint/app ID and its local storage/IndexedDB identity from `ENGLISH_ENGINE_ADAPTER.config.progress/storage`, with exact Waseda fallback literals. The existing `window.__WASESHIBU_PROGRESS_API__` override remains intact. This changed where the values come from, not the Waseda values or sync event semantics.
 
-No progress-sync identity or event meaning should change during that extraction.
+The guarded one-shot migration suite and the subsequent permanent normal verify suite both passed, including real-browser scenarios, progress/cloud guards and AI grading guards.
+
+`engine/manifest.json` is `0.1.0-alpha.9`. Production wiring remains false because `main` has not changed, and Rikkyo consumption remains blocked.
+
+## Next extraction boundary — school-specific progress projection values
+
+The next safe step is to parameterize only the school-specific projection values already frozen above—configured exam years, permitted goal tiers/default goal, written max score and school/app label—while leaving source-record IDs, event types, registration/control behavior, dedup/revision semantics and HTTP/IndexedDB contracts unchanged. This must remain behind fake-adapter + no-adapter tests and the complete browser/sync/AI suite.
+
+The app-side 80+20=100 score model is still a separate coupled boundary and must not be generalized merely because cloud written-score metadata becomes adapter-backed.
 
 ## Future Rikkyo relationship
 
