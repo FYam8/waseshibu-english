@@ -34,6 +34,10 @@ function validateConfig(config){
   if(goalTiers.length&&!goalTiers.includes(config.exam?.defaultGoal))errors.push('exam.defaultGoal must exist in exam.goalTiers');
   if(years.length&&!years.includes(config.exam?.defaultYear))errors.push('exam.defaultYear must exist in exam.years');
   if(!finiteNumber(config.exam?.writtenMaxScore)||config.exam.writtenMaxScore<=0)errors.push('exam.writtenMaxScore must be a positive number');
+  if(!finiteNumber(config.exam?.listeningMaxScore)||config.exam.listeningMaxScore<0)errors.push('exam.listeningMaxScore must be a non-negative number');
+  if(!finiteNumber(config.exam?.totalMaxScore)||config.exam.totalMaxScore<=0)errors.push('exam.totalMaxScore must be a positive number');
+  if(finiteNumber(config.exam?.writtenMaxScore)&&finiteNumber(config.exam?.listeningMaxScore)&&finiteNumber(config.exam?.totalMaxScore)&&config.exam.totalMaxScore!==config.exam.writtenMaxScore+config.exam.listeningMaxScore)errors.push('exam.totalMaxScore must equal writtenMaxScore + listeningMaxScore');
+  if(goalTiers.some(x=>finiteNumber(x)&&finiteNumber(config.exam?.totalMaxScore)&&x>config.exam.totalMaxScore))errors.push('exam.goalTiers must not exceed exam.totalMaxScore');
   if(!positiveInteger(config.exam?.dailyTaskTarget))errors.push('exam.dailyTaskTarget must be a positive integer');
 
   const storage=config.storage||{};
