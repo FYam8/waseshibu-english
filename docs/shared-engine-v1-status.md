@@ -7,8 +7,9 @@ Last updated: 2026-09-17
 - Production branch: `main`
 - Baseline production commit for this branch: `44154a777b2d6c584a1eba4a38bb782c6b70d0bb`
 - Shared-engine branch: `feat/shared-engine-v1`
-- Production runtime wiring changed: **No**
-- `app.js`, `index.html`, `learning-model.js`, `progress-sync.js`, exam data and drill data remain production behavior sources at this stage.
+- Production `main` wiring changed: **No**
+- Candidate branch now loads `engine/core.js`, but `app.js` has not delegated behavior to it yet.
+- `learning-model.js`, `progress-sync.js`, exam data, drill data, storage keys and cloud identities are unchanged.
 - PR #11 remains Draft and must not merge until the later Waseda parity gates are complete.
 
 ## Gate 0 — contract / identity baseline
@@ -75,7 +76,7 @@ This browser test uses an isolated localhost origin/profile and never touches pr
 
 ## Gate 2 — pure shared logic extraction
 
-Status: **STARTED — shadow only, not production-wired**
+Status: **STARTED — candidate runtime loads core; behavior delegation not started**
 
 `engine/core.js` currently mirrors a small school-neutral helper set:
 
@@ -85,11 +86,11 @@ Status: **STARTED — shadow only, not production-wired**
 - `wordCount`
 - `familyCount`
 
-`tests/shared-engine-core-parity.test.mjs` compares these helpers with the current Waseda runtime. `engine/manifest.json` identifies this stage as `shadow-core-parity`, pins the baseline main commit, keeps `productionWiring: false`, uses consumer policy `pinned-vendor-pr-only`, requires `waseda-parity-before-consumer-sync`, explicitly excludes school-specific files, and states that no consumer may use the artifact until Waseda runtime wiring/parity gates are complete.
+`tests/shared-engine-core-parity.test.mjs` compares these helpers with the current Waseda runtime and guards that `engine/core.js` loads before `app.js` in the candidate `index.html`. The real-browser scenarios also assert that the shared core is loaded.
 
-No script tag has been added to production `index.html`, and `app.js` does not call `engine/core.js` yet. Therefore this stage cannot change Waseda user behavior.
+`engine/manifest.json` marks `runtimeLoaded: true` and still keeps `productionWiring: false`. Thus the feature branch exercises the engine asset in the real browser while current Waseda behavior continues to come from the existing `app.js` functions.
 
-**Next Gate 2 action:** wire one small pure-helper group behind Waseda compatibility wrappers, rerun contract + pure-core parity + executable flow + real-browser scenarios + existing Waseda CI, and stop on any unexplained difference.
+**Next Gate 2 action:** delegate one small pure-helper group behind Waseda compatibility wrappers, rerun contract + pure-core parity + executable flow + real-browser scenarios + existing Waseda CI, and stop on any unexplained difference.
 
 ## Future Rikkyo relationship
 
