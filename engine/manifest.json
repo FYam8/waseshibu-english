@@ -9,5 +9,6 @@
   "consumerPolicy": "pinned-vendor-pr-only",
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
-  "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb"
+  "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
+  "notes": "Do not consume from another repository until Waseda runtime wiring and parity gates are complete."
 }
