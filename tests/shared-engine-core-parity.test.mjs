@@ -29,6 +29,7 @@ vm.runInContext(`${oldNames.map(n=>functionSource(app,n)).join('\n')}\nglobalThi
 const coreCtx={};coreCtx.globalThis=coreCtx;coreCtx.window=coreCtx;vm.createContext(coreCtx);vm.runInContext(read('engine/core.js'),coreCtx,{filename:'engine/core.js'});
 const old=oldCtx.old,core=coreCtx.ENGLISH_ENGINE_CORE;
 assert.ok(core,'shared engine core did not load');
+assert.match(functionSource(app,'normalizeDrillState'),/ENGLISH_ENGINE_CORE\?\.normalizeDrillState/,'startup normalization wrapper must delegate when shared core is loaded');
 
 const index=read('index.html');
 const coreTag='<script src="engine/core.js"></script>',appTag='<script src="app.js"></script>',compatTag='<script src="engine/waseda-compat.js"></script>',syncTag='<script src="progress-sync.js"></script>';
@@ -68,9 +69,9 @@ assert.deepEqual(plain(coreReorder.orderIndices),[1,0],'legacy reorder selection
 for(const value of ['', '   ', 'one', 'one two', ' one\n two\tthree '])assert.equal(core.wordCount(value),old.wordCount(value));
 for(const items of [[],[{familyId:'a'}],[{familyId:'a'},{familyId:'a'},{familyId:'b'}]])assert.equal(core.familyCount(items),old.familyCount(items));
 
-const bridgeCtx={ENGLISH_ENGINE_CORE:core,wordCount:old.wordCount,familyCount:old.familyCount,localDate:old.localDate,plusDays:old.plusDays};bridgeCtx.globalThis=bridgeCtx;bridgeCtx.window=bridgeCtx;vm.createContext(bridgeCtx);vm.runInContext(read('engine/waseda-compat.js'),bridgeCtx,{filename:'engine/waseda-compat.js'});
-for(const name of ['wordCount','familyCount','localDate','plusDays'])assert.equal(bridgeCtx[name],core[name],`${name} was not delegated`);
-assert.deepEqual(plain(bridgeCtx.ENGLISH_ENGINE_COMPAT.delegated),['wordCount','familyCount','localDate','plusDays']);
-assert.equal(bridgeCtx.ENGLISH_ENGINE_COMPAT.stage,'gate2-pure-helper-delegation-2');
+const bridgeCtx={ENGLISH_ENGINE_CORE:core,wordCount:old.wordCount,familyCount:old.familyCount,localDate:old.localDate,plusDays:old.plusDays,normalizeDrillState:old.normalizeDrillState};bridgeCtx.globalThis=bridgeCtx;bridgeCtx.window=bridgeCtx;vm.createContext(bridgeCtx);vm.runInContext(read('engine/waseda-compat.js'),bridgeCtx,{filename:'engine/waseda-compat.js'});
+for(const name of ['wordCount','familyCount','localDate','plusDays','normalizeDrillState'])assert.equal(bridgeCtx[name],core[name],`${name} was not delegated`);
+assert.deepEqual(plain(bridgeCtx.ENGLISH_ENGINE_COMPAT.delegated),['wordCount','familyCount','localDate','plusDays','normalizeDrillState']);
+assert.equal(bridgeCtx.ENGLISH_ENGINE_COMPAT.stage,'gate2-pure-helper-delegation-3');
 
 console.log('shared engine core/delegation parity: CLEAN');
