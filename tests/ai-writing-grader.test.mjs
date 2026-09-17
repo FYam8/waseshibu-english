@@ -31,8 +31,9 @@ assert.equal(scoreAssessment(resolveTask(summaryTask),summaryAnswer,full).score,
 assert.equal(scoreAssessment(resolveTask(completionTask),"(1) animals can notice danger\n(2) we should not ignore what animals tell us",full).score,12);
 
 let aiCalls=0;
-const env={GLOBAL_LIMITER:{limit:async()=>({success:true})},CLIENT_LIMITER:{limit:async()=>({success:true})},AI:{run:async(_model,input)=>{aiCalls++;assert.equal(input.max_tokens,900);assert.equal(input.reasoning_effort,"low");return{response:JSON.stringify(rawAssessment),usage:{prompt_tokens:612,completion_tokens:338}}}}};
-function request(body,options={}){return new Request("https://worker.example/v1/grade-writing",{method:"POST",headers:{origin,"content-type":"application/json","x-client-id":"web-123456789012",...(options.headers||{})},body:JSON.stringify(body)})}
+const env={GLOBAL_LIMITER:{limit:async()=>{throw new Error("application rate limiter must not be called")}},CLIENT_LIMITER:{limit:async()=>{throw new Error("application rate limiter must not be called")}},AI:{run:async(_model,input)=>{aiCalls++;assert.equal(input.max_tokens,900);assert.equal(input.reasoning_effort,"low");return{response:JSON.stringify(rawAssessment),usage:{prompt_tokens:612,completion_tokens:338}}}}};
+function request(body,options={}){return new Request("https://worker.example/v1/grade-writing",{method:"POST",headers:{origin,"content-type":"application/json",...(options.headers||{})},body:JSON.stringify(body)})}
+const preflight=await worker.fetch(new Request("https://worker.example/v1/grade-writing",{method:"OPTIONS",headers:{origin,"access-control-request-headers":"content-type, x-client-id"}}),env);assert.equal(preflight.status,204);assert.match(preflight.headers.get("access-control-allow-headers"),/x-client-id/,"cached app versions remain compatible while the legacy header is ignored");
 
 const response=await worker.fetch(request({task:rebuttalTask,answer}),env),payload=await response.json();
 assert.equal(response.status,200);assert.equal(payload.score,24);assert.equal(payload.maxScore,24);assert.deepEqual(payload.modelSemantic,[3,1,0,1,0,0]);assert.deepEqual(payload.semantic,[1,1,1,1,0,0]);assert.equal(payload.localAdjustments.length,2);assert.deepEqual(payload.usage,{inputTokens:612,outputTokens:338});assert.equal(aiCalls,1);
@@ -45,6 +46,11 @@ const tooLong=await worker.fetch(request({task:rebuttalTask,answer:"a".repeat(12
 const foreign=await worker.fetch(request({task:rebuttalTask,answer},{headers:{origin:"https://evil.example"}}),env);assert.equal(foreign.status,403);assert.equal(aiCalls,2);
 const malformedEnv={...env,AI:{run:async()=>{aiCalls++;return{response:"not json",usage:{}}}}};
 const malformed=await worker.fetch(request({task:rebuttalTask,answer}),malformedEnv);assert.equal(malformed.status,502);assert.equal(aiCalls,3,"malformed output must not trigger an expensive retry");
-const blockedEnv={...env,GLOBAL_LIMITER:{limit:async()=>({success:false})}};const blocked=await worker.fetch(request({task:rebuttalTask,answer}),blockedEnv);assert.equal(blocked.status,429);assert.equal(aiCalls,3);
+const dailyLimitEnv={...env,AI:{run:async()=>{aiCalls++;throw Object.assign(new Error("You have used up your daily free allocation of 10,000 neurons."),{status:429,code:3036})}}};
+const dailyLimit=await worker.fetch(request({task:rebuttalTask,answer}),dailyLimitEnv),dailyPayload=await dailyLimit.json();assert.equal(dailyLimit.status,429);assert.equal(dailyPayload.error,"usage_limit_reached");assert.equal(dailyPayload.cloudflareCode,3036);assert.match(dailyPayload.message,/利用上限に達しました/);
+const capacityEnv={...env,AI:{run:async()=>{aiCalls++;throw Object.assign(new Error("No more data centers to forward the request to"),{status:429,code:3040})}}};
+const capacity=await worker.fetch(request({task:rebuttalTask,answer}),capacityEnv),capacityPayload=await capacity.json();assert.equal(capacity.status,429);assert.equal(capacityPayload.error,"ai_capacity_unavailable");assert.doesNotMatch(capacityPayload.message,/利用上限に達しました/);
+const platformRateEnv={...env,AI:{run:async()=>{aiCalls++;throw Object.assign(new Error("Too Many Requests"),{status:429})}}};
+const platformRate=await worker.fetch(request({task:rebuttalTask,answer}),platformRateEnv),platformRatePayload=await platformRate.json();assert.equal(platformRate.status,429);assert.equal(platformRatePayload.error,"cloudflare_rate_limited");assert.match(platformRatePayload.message,/一時的な利用上限に達しました/);assert.equal(aiCalls,6);
 
-console.log("ai-writing-grader ok: 8 exam + 45 drill tasks, bounded one-call grading, deterministic 12/24 scoring");
+console.log("ai-writing-grader ok: 8 exam + 45 drill tasks, no app call-count cap, Cloudflare limit errors classified, deterministic 12/24 scoring");
