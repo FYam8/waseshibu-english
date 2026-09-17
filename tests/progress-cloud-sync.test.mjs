@@ -59,7 +59,10 @@ assert.match(sync,/await uploadBaseline\(reg\);if\(await getControl\('syncRevoke
 assert.doesNotMatch(sync,/\banswers\s*:/);
 assert.doesNotMatch(sync,/\bmanual\s*:/);
 
-assert.match(index,/<script src="app\.js"><\/script><script src="progress-sync\.js"><\/script>/);
+const appScriptPos=index.indexOf('<script src="app.js"></script>');
+const syncScriptPos=index.indexOf('<script src="progress-sync.js"></script>');
+assert.ok(appScriptPos>=0,'app.js must be loaded');
+assert.ok(syncScriptPos>appScriptPos,'progress-sync.js must load after app.js and any compatibility bridge');
 assert.match(app,/const STORAGE_KEY="waseshibu\.adaptive\.v3"/);
 assert.match(app,/SCHEMA_VERSION=8/);
 
