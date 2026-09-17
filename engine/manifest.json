@@ -1,15 +1,16 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.1",
+  "engineVersion": "0.1.0-alpha.2",
   "contractVersion": 1,
-  "status": "shadow-core-parity",
+  "status": "candidate-runtime-loaded",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": ["engine/"],
+  "runtimeLoaded": true,
   "productionWiring": false,
   "consumerPolicy": "pinned-vendor-pr-only",
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "Do not consume from another repository until Waseda runtime wiring and parity gates are complete.",
-  "nextGate": "wire-small-pure-helper-group"
+  "notes": "engine/core.js is loaded by the candidate index but app.js has not delegated behavior to it yet. Do not consume from another repository until Waseda runtime wiring and parity gates are complete.",
+  "nextGate": "delegate-small-pure-helper-group"
 }
