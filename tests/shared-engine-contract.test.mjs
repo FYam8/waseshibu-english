@@ -30,9 +30,6 @@ assert.deepEqual([...config.exam.years],Object.keys(dataCtx.EXAM_DATA).map(Numbe
 const app=read('app.js');
 const sync=read('progress-sync.js');
 
-// Storage identity is migration-sensitive. During staged commonization it may still be literal
-// or may be sourced from the validated school adapter, but the exact Waseda fallbacks must remain
-// visible and equal to the contract until production parity gates are complete.
 if(app.includes('SCHOOL_STORAGE_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.storage||null')){
   assert.match(app,/STORAGE_KEY=String\(SCHOOL_STORAGE_CONFIG\?\.key\|\|"waseshibu\.adaptive\.v3"\)/);
   assert.match(app,/LEGACY_KEYS=Array\.isArray\(SCHOOL_STORAGE_CONFIG\?\.legacyKeys\)\?\[\.\.\.SCHOOL_STORAGE_CONFIG\.legacyKeys\]:\["waseshibu\.adaptive\.v2"\]/);
@@ -52,9 +49,6 @@ assert.equal(config.storage.recoveryPrefix,'waseshibu.adaptive.pre-migration');
 assert.equal(config.storage.importRecoveryPrefix,'waseshibu.adaptive.pre-import');
 assert.equal(config.storage.schemaVersion,8);
 
-// During the staged migration, low-risk exam runtime values may still be literals or may
-// already be sourced from the validated adapter. In either case the Waseda fallback values
-// must remain visible and equal to the adapter contract.
 if(app.includes('SCHOOL_EXAM_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.exam||null')){
   assert.match(app,/DAILY_TASK_TARGET=Number\(SCHOOL_EXAM_CONFIG\?\.dailyTaskTarget\)\|\|10/);
   assert.match(app,/ROUTE=Array\.isArray\(SCHOOL_EXAM_CONFIG\?\.route\)\?\[\.\.\.SCHOOL_EXAM_CONFIG\.route\]:\[2024,2023,2022,2021,2020,2019,2025,2026\]/);
@@ -90,7 +84,11 @@ assert.equal(config.progress.appId,'english');
 assert.equal(config.storage.syncDb,'waseshibu-progress-sync');
 assert.equal(config.storage.syncDbVersion,7);
 assert.equal(config.storage.key,'waseshibu.adaptive.v3');
-assert.equal(config.exam.writtenMaxScore,Number(capture(sync,/maxScore:(\d+)/,'written max score')));
+if(sync.includes('const SYNC_WRITTEN_MAX=')){
+  assert.match(sync,/SYNC_WRITTEN_MAX=Number\(SCHOOL_EXAM_CONFIG\?\.writtenMaxScore\)\|\|80/);
+  assert.match(sync,/maxScore:SYNC_WRITTEN_MAX/);
+  assert.equal(config.exam.writtenMaxScore,80);
+}else assert.equal(config.exam.writtenMaxScore,Number(capture(sync,/maxScore:(\d+)/,'written max score')));
 
 assert.equal(policy.resolveQuestionPriority({priority:'A',skill:'detail'}),'A');
 assert.equal(policy.resolveQuestionPriority({skill:'insertion'}),'C');
