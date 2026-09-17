@@ -1,18 +1,21 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.4",
+  "engineVersion": "0.1.0-alpha.5",
   "contractVersion": 1,
-  "status": "candidate-helper-delegation-3",
+  "status": "candidate-school-policy-delegation-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": ["engine/"],
   "runtimeLoaded": true,
+  "schoolAdapterLoaded": true,
   "candidateBehaviorDelegation": true,
   "delegatedHelpers": ["wordCount", "familyCount", "localDate", "plusDays", "normalizeDrillState"],
+  "schoolPolicyDelegated": true,
+  "delegatedPolicyFunctions": ["resolveQuestionPriority", "isPriorityInGoal", "priorityOrder", "routeRole", "goalLabel", "goalAdvice", "skillName"],
   "productionWiring": false,
   "consumerPolicy": "pinned-vendor-pr-only",
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "The feature branch now delegates startup/resume drill-state normalization through a guarded app.js wrapper and delegates the same helper directly after app load through the Waseda compatibility bridge. Legacy fallback behavior is retained when the shared core is unavailable. Production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "extract-next-pure-state-helper-group"
+  "notes": "The candidate branch validates the Waseda config/policy through engine/bootstrap.js, delegates five generic helpers to the shared core, and routes seven Waseda policy decisions through the school adapter while retaining exact legacy fallbacks. Push and pull-request verification are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
+  "nextGate": "parameterize-low-risk-runtime-config-constants"
 }
