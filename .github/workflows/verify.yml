@@ -25,6 +25,7 @@ jobs:
       - run: node tests/waseda-persistence-characterization.test.mjs
       - run: node tests/waseda-storage-config-delegation.test.mjs
       - run: node tests/waseda-progress-sync-characterization.test.mjs
+      - run: node tests/waseda-progress-sync-config-delegation.test.mjs
       - run: node tests/waseda-behavior-characterization.test.mjs
       - run: node tests/waseda-learning-flow-characterization.test.mjs
       - run: bash tests/waseda-browser-smoke.sh
