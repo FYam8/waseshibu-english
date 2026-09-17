@@ -48,12 +48,18 @@
 </script>
 <script src="../engine/core.js"></script>
 <script src="../app.js"></script>
+<script src="../engine/waseda-compat.js"></script>
 <script>
 (function(){
   const result=document.getElementById('test-result'),scenario=new URLSearchParams(location.search).get('case')||'fresh';
   function check(value,message){if(!value)throw new Error(`${scenario}: ${message}`)}
   try{
     check(!!window.ENGLISH_ENGINE_CORE,'shared engine core did not load before app');
+    check(window.ENGLISH_ENGINE_COMPAT?.stage==='gate2-pure-helper-delegation-1','compatibility bridge did not load');
+    check(window.wordCount===window.ENGLISH_ENGINE_CORE.wordCount,'wordCount was not delegated to shared core');
+    check(window.familyCount===window.ENGLISH_ENGINE_CORE.familyCount,'familyCount was not delegated to shared core');
+    check(window.wordCount('one two three')===3,'delegated wordCount behavior changed');
+    check(window.familyCount([{familyId:'a'},{familyId:'a'},{familyId:'b'}])===2,'delegated familyCount behavior changed');
     const appText=()=>document.getElementById('app').innerText;
     if(scenario==='fresh'){
       check(appText().includes('今日やること'),'home did not render');
