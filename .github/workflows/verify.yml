@@ -19,6 +19,7 @@ jobs:
       - run: node tests/waseda-policy-delegation.test.mjs
       - run: node tests/waseda-runtime-config-delegation.test.mjs
       - run: node tests/waseda-score-model-characterization.test.mjs
+      - run: node tests/waseda-app-score-config-delegation.test.mjs
       - run: node tests/waseda-learning-model-characterization.test.mjs
       - run: node tests/shared-engine-learning-migration-parity.test.mjs
       - run: node tests/waseda-learning-migration-delegation.test.mjs
