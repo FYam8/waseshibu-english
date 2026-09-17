@@ -9,7 +9,7 @@ Last updated: 2026-09-17
 - Shared-engine branch: `feat/shared-engine-v1`
 - Production `main` wiring changed: **No**
 - Candidate branch loads and validates the Waseda school adapter, then loads the shared core.
-- Exam/drill data, `learning-model.js`, `progress-sync.js`, Waseda storage/schema/recovery identities and Cloud Sync identities remain unchanged.
+- Exam/drill content, `learning-model.js`, `progress-sync.js`, Waseda storage/schema/recovery identities and Cloud Sync identities remain unchanged.
 - PR #11 remains Draft and must not merge until the later Waseda parity gates are complete.
 
 ## Gate 0 — contract / identity baseline
@@ -35,17 +35,26 @@ The browser suite uses isolated localhost Chrome profiles and never touches prod
 
 ## Gate 2 — shared pure/state helpers
 
-Status: **CLEAN through helper delegation stage 3**
+Status: **CLEAN through current helper extraction**
 
-`engine/core.js` contains `localDate`, `plusDays`, `normalizeDrillState`, `wordCount` and `familyCount`.
+`engine/core.js` now contains:
 
-The candidate runtime loads `engine/core.js` before `app.js`. Waseda delegates all five helpers to the shared core. `normalizeDrillState` is additionally delegated during startup through a guarded `app.js` wrapper because it executes before the post-app compatibility bridge. If the shared core is absent, the exact legacy Waseda implementation remains as fallback.
+- `localDate`
+- `plusDays`
+- `normalizeDrillState`
+- `wordCount`
+- `familyCount`
+- `ensureFamilyIds`
 
-Parity coverage includes the two-pass startup path (stored drill snapshot, then current bank question), invalid legacy choice-order repair, legacy reorder `orderIndices` recovery, and production-valid browser resume of an old-format choice drill. The full Waseda verify suite passed after delegation.
+The first five helpers are delegated through the candidate Waseda runtime with exact legacy fallbacks. `normalizeDrillState` is also delegated during startup because it is needed before the post-app compatibility bridge.
+
+`ensureFamilyIds` now owns the generic practice-bank completion rule that had been a Waseda startup hotfix: records missing `familyId` receive `id` when available, otherwise the same `skill:targetId:index` fallback. A guarded one-shot workflow changed `app.js` only after the entire Waseda contract/browser/sync/AI suite passed. The original Waseda loop remains as fallback if the shared engine is absent.
+
+Parity coverage includes two-pass drill-state startup normalization, invalid legacy choice-order repair, legacy reorder `orderIndices` recovery, old-format choice resume, and exact old-vs-shared family-ID completion.
 
 ## Gate 3 — school adapter / Waseda policy and low-risk runtime config
 
-Status: **IN PROGRESS — current sub-stage CLEAN**
+Status: **CLEAN for current sub-stage**
 
 The candidate page loads, in order:
 
@@ -58,7 +67,7 @@ The candidate page loads, in order:
 7. `engine/waseda-compat.js`
 8. `progress-sync.js`
 
-`engine/bootstrap.js` validates the Waseda config and policy and exposes `ENGLISH_ENGINE_ADAPTER`. Browser tests verify that the loaded adapter is `waseshibu`, keeps `waseshibu.adaptive.v3`, and exposes the expected Waseda route policy.
+`engine/bootstrap.js` validates the Waseda config and policy and exposes `ENGLISH_ENGINE_ADAPTER`.
 
 Seven school-specific decisions in `app.js` delegate through `ENGLISH_ENGINE_ADAPTER.policy` while retaining their exact previous Waseda logic as fallback:
 
@@ -70,7 +79,7 @@ Seven school-specific decisions in `app.js` delegate through `ENGLISH_ENGINE_ADA
 - goal advice
 - skill display name
 
-The following low-risk exam runtime values now come from `ENGLISH_ENGINE_ADAPTER.config.exam`, again with exact current Waseda fallbacks:
+The following low-risk exam runtime values come from `ENGLISH_ENGINE_ADAPTER.config.exam`, with exact current Waseda fallbacks:
 
 - route
 - default year
@@ -78,17 +87,51 @@ The following low-risk exam runtime values now come from `ENGLISH_ENGINE_ADAPTER
 - daily task target
 - goal tiers
 
-Goal-tier validation and all three current goal rendering loops now use `GOAL_TIERS`, so a future school adapter can supply its own permitted tiers without changing Waseda's current `[60,70,75]` behavior. Dedicated runtime-config tests inject a fake exam config and verify that route, defaults, daily target and goal tiers actually follow the adapter; a no-adapter fixture verifies the original Waseda fallbacks.
+Dedicated tests inject fake policy/config adapters and verify that these runtime decisions truly follow the adapter; no-adapter fixtures verify the original Waseda fallbacks.
 
-The guarded one-shot wiring workflows for each runtime edit were deleted after successful use. The normal verify workflow now permanently covers contract, adapter bootstrap, core parity, policy delegation, runtime-config delegation, Waseda behavior/learning-flow characterization, real-browser scenarios, progress-sync and AI-grading guards.
+## Gate 4 — score and learning-model boundaries
 
-`engine/manifest.json` is `0.1.0-alpha.6`. Production wiring remains false because `main` has not changed, and Rikkyo consumption remains blocked until Waseda parity/release gates complete.
+Status: **CHARACTERIZED / CLEAN — extraction not yet performed**
 
-## Next boundary to characterize before further extraction
+### Score model
 
-Do **not** naively replace every `80`/`20`/`100` in Waseda with config constants. The current runtime has coupled assumptions around written score, listening score, total score, import validation, result display and comparability. Before parameterizing these, add explicit score-model characterization so Waseda's current 80+20=100 semantics cannot drift.
+`tests/waseda-score-model-characterization.test.mjs` freezes the current Waseda coupling:
 
-The other next boundary is `learning-model.js`: separate school-specific model mappings from generic scheduling/state behavior only after its current migration/mapping behavior has dedicated characterization coverage.
+- every routed written paper totals 80 points
+- listening is clamped to 0–20
+- total score is same-attempt written + listening
+- total denominator is 100
+- import validation remains written <=80 and listening <=20
+- result/stats displays remain /80, /20 and /100
+- cloud progress written max remains 80
+
+This prevents a future school adapter from accidentally breaking Waseda by replacing isolated score constants without understanding the 80+20=100 model.
+
+### Learning model
+
+`tests/waseda-learning-model-characterization.test.mjs` now fingerprints the current school-specific mapping and migration boundary:
+
+- exam mapping count: **167**
+- exam mapping SHA-256: `e11d73163f804c8639748a9e66c5853e078846842812152f30c33bf39fbe3db4`
+- active bank count: **283**
+- active bank mapping SHA-256: `eddfded9fc21d06b79d7b0ae9765104fb1520211f0951fa4ddf281c4de16c7e0`
+
+It also freezes the real load-order boundary created by drill scripts that execute after `learning-model.js`:
+
+- pre-app missing `familyId`: **60** records, SHA-256 `c1d5c29582039d1590b22b7ceda67a958268b3c34a3bf4f26ef0f636dcdf359c`
+- pre-app missing `focusTag`: **14** records, SHA-256 `508748a861ecf59ed55c5a5918df31baa59826a3f541215b902c52d56ad91bcf`
+- pre-app missing `examFormat`: **32** records, SHA-256 `010d82e535e67ee74ff338e76b6af21694efdbbb272d0b1d71f6c66c73faa15e`
+- pre-app missing `level`: **14** records, SHA-256 `508748a861ecf59ed55c5a5918df31baa59826a3f541215b902c52d56ad91bcf`
+
+This was an important finding: those missing optional fields are part of the current load-order behavior, not evidence that production data should be rewritten. `familyId` is normalized at app startup; `focusTag`, `examFormat` and `level` may remain undefined for some later-loaded records and are currently tolerated as ranking/difficulty hints.
+
+Migration characterization also freezes invalid-goal fallback, invalid `currentDrill` cleanup, weakness metadata remapping, reservation filtering/deduplication/cap-at-two, and manual-component focus/trap mapping.
+
+`engine/manifest.json` is now `0.1.0-alpha.7`. Production wiring remains false because `main` has not changed, and Rikkyo consumption remains blocked.
+
+## Next extraction boundary
+
+The next safe task is to separate generic learning-state migration mechanics from Waseda-specific metadata mapping. That should be done without changing the existing `learning-model.js` data mappings or the just-frozen fingerprints. Score parameterization, storage/schema changes and Cloud Sync parameterization remain later gates.
 
 Storage key, schema version, recovery prefixes, sync DB/API/app ID and Cloud Sync event meaning remain frozen until their own later gates.
 
