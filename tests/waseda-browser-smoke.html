@@ -54,6 +54,10 @@
   localStorage.setItem('waseshibu.adaptive.v3',JSON.stringify(base));
 })();
 </script>
+<script src="../engine/contract.js"></script>
+<script src="../schools/waseshibu/config.js"></script>
+<script src="../schools/waseshibu/policy.js"></script>
+<script src="../engine/bootstrap.js"></script>
 <script src="../engine/core.js"></script>
 <script src="../app.js"></script>
 <script src="../engine/waseda-compat.js"></script>
@@ -62,6 +66,10 @@
   const result=document.getElementById('test-result'),scenario=new URLSearchParams(location.search).get('case')||'fresh';
   function check(value,message){if(!value)throw new Error(`${scenario}: ${message}`)}
   try{
+    check(!!window.ENGLISH_ENGINE_ADAPTER,'validated school adapter did not load before app');
+    check(window.ENGLISH_ENGINE_ADAPTER.config.schoolId==='waseshibu','wrong school adapter loaded');
+    check(window.ENGLISH_ENGINE_ADAPTER.config.storage.key==='waseshibu.adaptive.v3','Waseda storage identity changed');
+    check(window.ENGLISH_ENGINE_ADAPTER.policy.routeRole(2024)==='初見診断','Waseda route policy changed');
     check(!!window.ENGLISH_ENGINE_CORE,'shared engine core did not load before app');
     check(window.ENGLISH_ENGINE_COMPAT?.stage==='gate2-pure-helper-delegation-3','compatibility bridge did not load at delegation stage 3');
     for(const name of ['wordCount','familyCount','localDate','plusDays','normalizeDrillState'])check(window[name]===window.ENGLISH_ENGINE_CORE[name],`${name} was not delegated to shared core`);
