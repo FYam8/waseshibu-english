@@ -194,6 +194,17 @@ for(const target of new Set(B.filter(x=>!x.retired).map(x=>x.targetId))){
 }
 
 function migrateState(state){
+ const shared=window.ENGLISH_ENGINE_CORE?.migrateLearningState;
+ if(shared)return shared(state,{
+   goalTiers:[60,70,75],
+   defaultGoal:60,
+   resolveWeakMeta(w){
+     const q=(D[w.year]||[]).find(x=>x.id===w.id),meta=q?actualMeta(w.year,q):null;
+     if(!meta)return null;
+     return {targetId:meta.targetId,focusTag:w.component&&w.component!=="main"?`manual:${q.skill}:${w.component}`:meta.focusTag,examFormat:meta.examFormat,trap:w.component&&w.component!=="main"?w.component:meta.trap};
+   },
+   validDrillIdsForTarget(targetId){return B.filter(x=>!x.retired&&x.targetId===targetId).map(x=>x.id)}
+ });
  state.goal=[60,70,75].includes(Number(state.goal))?Number(state.goal):60;
  state.currentDrill=state.currentDrill&&typeof state.currentDrill==="object"?state.currentDrill:null;
  for(const w of Object.values(state.weak||{})){
