@@ -1,8 +1,7 @@
 (function(root){
 'use strict';
 
-// Gate 2 shadow extraction: these helpers are not wired into production yet.
-// They mirror current Waseda behavior so parity can be proven before app.js delegates to them.
+// Shared English engine helpers extracted under Waseda parity guards.
 function localDate(d=new Date()){
   const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
   return `${y}-${m}-${day}`;
@@ -40,8 +39,13 @@ function normalizeDrillState(value){
 }
 function wordCount(s){return String(s||'').trim()?String(s).trim().split(/\s+/).length:0}
 function familyCount(items){return new Set((items||[]).map(x=>x.familyId)).size}
+function ensureFamilyIds(items){
+  if(!Array.isArray(items))return items;
+  items.forEach((q,i)=>{if(!q.familyId)q.familyId=String(q.id||`${q.skill||'skill'}:${q.targetId||'target'}:${i}`)});
+  return items;
+}
 
-const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount});
+const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.ENGLISH_ENGINE_CORE=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
