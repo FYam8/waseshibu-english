@@ -21,6 +21,7 @@ function before(haystack,a,b,label){
 }
 function compact(s){return s.replace(/\s+/g,'')}
 function hash(values){return crypto.createHash('sha256').update(values.join('\n')).digest('hex')}
+function plain(value){return JSON.parse(JSON.stringify(value))}
 
 const BASELINE=Object.freeze({
   examIdCount:167,
@@ -31,10 +32,15 @@ const BASELINE=Object.freeze({
 
 const app=read('app.js');
 
-// Fresh-state and route baseline. These are user-visible current behavior, not a proposed design.
-assert.match(app,/const ROUTE=\[2024,2023,2022,2021,2020,2019,2025,2026\]/);
-assert.match(app,/const INIT=\{schemaVersion:SCHEMA_VERSION,goal:60,year:2024,/);
-assert.match(app,/DAILY_TASK_TARGET=10/);
+// Fresh-state and route baseline. The Waseda adapter is now the canonical candidate source,
+// while app.js must retain exact legacy fallbacks until the migration is complete.
+const configCtx={};configCtx.globalThis=configCtx;configCtx.window=configCtx;vm.createContext(configCtx);vm.runInContext(read('schools/waseshibu/config.js'),configCtx,{filename:'schools/waseshibu/config.js'});
+const examConfig=configCtx.ENGLISH_SCHOOL_CONFIG.exam;
+assert.deepEqual(plain(examConfig.route),[2024,2023,2022,2021,2020,2019,2025,2026]);
+assert.equal(examConfig.defaultGoal,60);assert.equal(examConfig.defaultYear,2024);assert.equal(examConfig.dailyTaskTarget,10);assert.equal(examConfig.writtenMaxScore,80);
+assert.match(app,/\[2024,2023,2022,2021,2020,2019,2025,2026\]/,'Waseda route fallback must remain present during config migration');
+assert.match(app,/goal:(?:60|DEFAULT_GOAL),year:(?:2024|DEFAULT_YEAR),/,'fresh-state defaults changed');
+assert.match(app,/DAILY_TASK_TARGET[^;]*10/,'daily target fallback changed');
 
 // Evaluate the small current policy helpers directly from the production source.
 const policyNames=['strategyPriority','gradeInGoal','goalLabel','goalAdvice','routeRole','priorityOrder'];
