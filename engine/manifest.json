@@ -6,5 +6,6 @@
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": ["engine/"],
   "productionWiring": false,
-  "consumerPolicy": "pinned-vendor-pr-only"
+  "consumerPolicy": "pinned-vendor-pr-only",
+  "releaseGate": "waseda-parity-before-consumer-sync"
 }
