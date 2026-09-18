@@ -12,6 +12,16 @@ assert.equal(ui.progressBar(2,3),'<div class=progress><span style="width:66.6666
 assert.equal(ui.progressBar(5,3),'<div class=progress><span style="width:100%"></span></div>');
 assert.equal(ui.completionMark('✓ 今日の目安10問を達成'),'<span class=completion-mark>✓ 今日の目安10問を達成</span>');
 
+const route=ui.routeStepCard({
+  index:2,title:'2023年度',role:'弱点補強',status:'未着手',
+  description:'現在の弱点に対応する実際の過去問を使います。',
+  recommendationsHtml:'<div class=route-recs>R</div>',
+  detailHtml:'<p class=tiny>D</p>',
+  actionHtml:'<button>年度を開く</button>'
+});
+assert.equal(route,'<article class="card route-step "><div class=route-number>2</div><div class=route-main><div class="row space"><div><h3>2023年度</h3><b>弱点補強</b></div><span class="status-pill">未着手</span></div><p>現在の弱点に対応する実際の過去問を使います。</p><div class=route-recs>R</div><p class=tiny>D</p><button>年度を開く</button></div></article>');
+assert.match(ui.routeStepCard({index:1,title:'x',role:'y',status:'z',description:'d',protectedCard:true}),/class="card route-step protected"/);
+
 const backup=ui.backupPanel({
   description:'この端末では、アプリを更新しても学習履歴を自動で引き継ぎます。',
   exportOnclick:'exportData()',
