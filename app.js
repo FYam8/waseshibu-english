@@ -15,8 +15,10 @@ const GOAL_TIERS=Array.isArray(SCHOOL_EXAM_CONFIG?.goalTiers)?[...SCHOOL_EXAM_CO
 const WRITTEN_MAX_SCORE=Number(SCHOOL_EXAM_CONFIG?.writtenMaxScore)||80;
 const LISTENING_MAX_SCORE=Number.isFinite(Number(SCHOOL_EXAM_CONFIG?.listeningMaxScore))&&Number(SCHOOL_EXAM_CONFIG.listeningMaxScore)>=0?Number(SCHOOL_EXAM_CONFIG.listeningMaxScore):20;
 const TOTAL_MAX_SCORE=Number(SCHOOL_EXAM_CONFIG?.totalMaxScore)||WRITTEN_MAX_SCORE+LISTENING_MAX_SCORE;
-const AI_GRADING_API="https://waseshibu-writing-grader.fyam8.workers.dev";
-const AI_GRADING_SKILLS=new Set(["writing_completion","summary","rebuttal"]);
+const SCHOOL_AI_WRITING_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.aiWriting||null;
+const AI_GRADING_ENABLED=SCHOOL_AI_WRITING_CONFIG?.enabled!==false;
+const AI_GRADING_API=String(SCHOOL_AI_WRITING_CONFIG?.endpoint||"https://waseshibu-writing-grader.fyam8.workers.dev");
+const AI_GRADING_SKILLS=new Set(AI_GRADING_ENABLED?(Array.isArray(SCHOOL_AI_WRITING_CONFIG?.skills)?SCHOOL_AI_WRITING_CONFIG.skills:["writing_completion","summary","rebuttal"]):[]);
 const ROUTE=Array.isArray(SCHOOL_EXAM_CONFIG?.route)?[...SCHOOL_EXAM_CONFIG.route]:[2024,2023,2022,2021,2020,2019,2025,2026];
 const DEFAULT_GOAL=Number(SCHOOL_EXAM_CONFIG?.defaultGoal)||60, DEFAULT_YEAR=Number(SCHOOL_EXAM_CONFIG?.defaultYear)||2024;
 const INIT={schemaVersion:SCHEMA_VERSION,goal:DEFAULT_GOAL,year:DEFAULT_YEAR,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentDrill:null,currentAttempt:null,lastResultId:null,lastStartedWeakKey:null,dailyPlan:null,dailyProgress:null,recoveredDrills:[],exposure:{},theme:"light",answerSheetOpen:true,answerSheetExpanded:false,examInfoCompact:false,recoveryNotice:null};
