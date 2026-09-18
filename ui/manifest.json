@@ -1,8 +1,8 @@
 {
   "name": "shared-english-ui",
-  "uiVersion": "1.0.0-rc.1",
+  "uiVersion": "1.0.0",
   "contractVersion": 1,
-  "status": "candidate-final-readiness",
+  "status": "production-waseda-commonized",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": [
     "ui/"
@@ -38,8 +38,8 @@
     "cloud and AI endpoints"
   ],
   "releaseGate": "waseda-ui-parity-before-consumer-sync",
-  "notes": "Shared English UI v1 candidate now owns the Waseda-compatible shell, responsive base CSS, Today/route/review/drill frames, metric/completion/progress primitives, backup/import panel, and past-paper attempt/answer/paper-page shells. School branding, policy wording, exam content, scoring behavior and question-type renderers remain school-owned. Waseda app delegates through guarded wrappers with local fallbacks.",
-  "nextGate": "two-consecutive-full-clean-loops-before-ui-production-merge",
+  "notes": "Shared English UI v1 is now the production Waseda UI/UX after exact-head CLEAN verification and successful GitHub Pages deployment. The vendorable ui/ artifact remains school-neutral; Waseda theme/policy CSS and school-specific data/renderers remain outside ui/. Rikkyo may consume only a pinned vendored UI revision through its own compatibility gates.",
+  "nextGate": "rikkyo-shared-ui-consumer-onboarding",
   "sharedComponents": [
     "metricCard",
     "progressBar",
@@ -52,5 +52,9 @@
     "answerPanel",
     "paperPage",
     "backupPanel"
-  ]
+  ],
+  "productionWiring": true,
+  "productionCutoverCommit": "ab46ccd86b7bae6ecbedb9ae2acfa7814f38f13d",
+  "postCutoverVerifyRun": 35357854853,
+  "postCutoverPagesRun": 35357854834
 }
