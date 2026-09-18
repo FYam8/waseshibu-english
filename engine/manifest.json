@@ -1,28 +1,75 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.11",
+  "engineVersion": "0.1.0-alpha.12",
   "contractVersion": 1,
-  "status": "candidate-app-score-config-clean",
+  "status": "candidate-remediation-mastery-delegation-clean",
   "sourceRepository": "FYam8/waseshibu-english",
-  "artifactRoots": ["engine/"],
+  "artifactRoots": [
+    "engine/"
+  ],
   "runtimeLoaded": true,
   "schoolAdapterLoaded": true,
   "candidateBehaviorDelegation": true,
-  "delegatedHelpers": ["wordCount", "familyCount", "localDate", "plusDays", "normalizeDrillState", "ensureFamilyIds", "migrateLearningState"],
+  "delegatedHelpers": [
+    "wordCount",
+    "familyCount",
+    "localDate",
+    "plusDays",
+    "normalizeDrillState",
+    "ensureFamilyIds",
+    "migrateLearningState",
+    "advanceRemediationMastery"
+  ],
   "schoolPolicyDelegated": true,
-  "delegatedPolicyFunctions": ["resolveQuestionPriority", "isPriorityInGoal", "priorityOrder", "routeRole", "goalLabel", "goalAdvice", "skillName"],
+  "delegatedPolicyFunctions": [
+    "resolveQuestionPriority",
+    "isPriorityInGoal",
+    "priorityOrder",
+    "routeRole",
+    "goalLabel",
+    "goalAdvice",
+    "skillName"
+  ],
   "runtimeExamConfigDelegated": true,
-  "delegatedExamConfig": ["route", "defaultYear", "defaultGoal", "dailyTaskTarget", "goalTiers"],
+  "delegatedExamConfig": [
+    "route",
+    "defaultYear",
+    "defaultGoal",
+    "dailyTaskTarget",
+    "goalTiers"
+  ],
   "learningMigrationDelegated": true,
   "runtimeStorageConfigDelegated": true,
-  "delegatedStorageConfig": ["key", "legacyKeys", "recoveryPrefix", "importRecoveryPrefix", "schemaVersion"],
+  "delegatedStorageConfig": [
+    "key",
+    "legacyKeys",
+    "recoveryPrefix",
+    "importRecoveryPrefix",
+    "schemaVersion"
+  ],
   "progressSyncCharacterized": true,
   "progressSyncConfigDelegated": true,
-  "delegatedProgressSyncConfig": ["endpoint", "appId", "storage.key", "storage.syncDb", "storage.syncDbVersion"],
+  "delegatedProgressSyncConfig": [
+    "endpoint",
+    "appId",
+    "storage.key",
+    "storage.syncDb",
+    "storage.syncDbVersion"
+  ],
   "progressProjectionConfigDelegated": true,
-  "delegatedProgressProjectionConfig": ["exam.years", "exam.goalTiers", "exam.defaultGoal", "exam.writtenMaxScore", "progress.appId label"],
+  "delegatedProgressProjectionConfig": [
+    "exam.years",
+    "exam.goalTiers",
+    "exam.defaultGoal",
+    "exam.writtenMaxScore",
+    "progress.appId label"
+  ],
   "appScoreConfigDelegated": true,
-  "delegatedAppScoreConfig": ["exam.writtenMaxScore", "exam.listeningMaxScore", "exam.totalMaxScore"],
+  "delegatedAppScoreConfig": [
+    "exam.writtenMaxScore",
+    "exam.listeningMaxScore",
+    "exam.totalMaxScore"
+  ],
   "scoreModelCharacterized": true,
   "learningModelCharacterized": true,
   "persistenceCharacterized": true,
@@ -31,6 +78,7 @@
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "The candidate branch now sources Waseda exam, persistence, progress-sync and app score maxima from the validated school adapter while preserving exact Waseda values and behavior. Generic core helpers plus learning-state migration are delegated; policy remains school-owned. Guarded one-shot and permanent full browser/sync/AI verification are clean after the app score-model wiring. Production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "extract-generic-remediation-mastery-transition-under-waseda-parity"
+  "notes": "The candidate branch now sources Waseda exam, persistence, progress-sync and score configuration from the validated school adapter while preserving exact Waseda values and behavior. Generic core helpers now also own the deterministic 3-correct training to next-day 2-correct confirmation mastery transition; app.js delegates that state transition while retaining Waseda-side question reservation and an exact legacy fallback. The full browser/sync/AI verification suite is clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
+  "nextGate": "characterize-daily-remediation-scheduling-before-extraction",
+  "remediationMasteryDelegated": true
 }
