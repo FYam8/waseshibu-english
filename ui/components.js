@@ -14,10 +14,19 @@ function completionMark(text){
 function routeStepCard({index,title,role,status,description,protectedCard=false,recommendationsHtml='',detailHtml='',actionHtml=''}={}){
   return '<article class="card route-step '+(protectedCard?'protected':'')+'"><div class=route-number>'+esc(index)+'</div><div class=route-main><div class="row space"><div><h3>'+esc(title)+'</h3><b>'+esc(role)+'</b></div><span class="status-pill">'+esc(status)+'</span></div><p>'+esc(description)+'</p>'+String(recommendationsHtml||'')+String(detailHtml||'')+String(actionHtml||'')+'</div></article>';
 }
+function todayCard({complete=false,contentHtml=''}={}){
+  return '<section class="card hero today-card '+(complete?'today-complete':'')+'">'+String(contentHtml||'')+'</section>';
+}
+function weaknessCard({assigned=false,contentHtml=''}={}){
+  return '<section class="card wrong '+(assigned?'today-assigned':'')+'">'+String(contentHtml||'')+'</section>';
+}
+function drillCard({contentHtml=''}={}){
+  return '<section class="card drill-card">'+String(contentHtml||'')+'</section>';
+}
 function backupPanel({title='学習データのバックアップ',description='',exportOnclick='exportData()',importOnchange='importData(this)',mergeLabel='現在データへ統合',replaceLabel='現在データと置換',fileLabel='バックアップを選ぶ'}={}){
   return '<section class=backup-box><h3>'+esc(title)+'</h3><p>'+esc(description)+'</p><div class=row><button onclick="'+esc(exportOnclick)+'">バックアップを書き出す</button><label>復元方法 <select id=importMode><option value=merge>'+esc(mergeLabel)+'</option><option value=replace>'+esc(replaceLabel)+'</option></select></label><label class=file-button>'+esc(fileLabel)+'<input type=file accept="application/json,.json" onchange="'+esc(importOnchange)+'"></label></div></section>';
 }
-const api=Object.freeze({metricCard,progressBar,completionMark,routeStepCard,backupPanel});
+const api=Object.freeze({metricCard,progressBar,completionMark,routeStepCard,todayCard,weaknessCard,drillCard,backupPanel});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.ENGLISH_UI_COMPONENTS=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
