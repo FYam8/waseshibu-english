@@ -5,13 +5,15 @@ Last updated: 2026-09-18
 ## Production safety
 
 - Production branch: `main`
-- Baseline production commit for this branch: `44154a777b2d6c584a1eba4a38bb782c6b70d0bb`
-- Shared-engine branch: `feat/shared-engine-v1`
-- Production `main` wiring changed: **No**
-- PR #11 remains Draft and must not merge until final Waseda parity gates are complete.
+- Original production baseline: `44154a777b2d6c584a1eba4a38bb782c6b70d0bb`
+- Shared-engine production cutover: `70644a9bb891f7c99bd7a08f7beeb941b3ed6807`
+- PR #11 was squash-merged after two consecutive full CLEAN verification loops.
+- Production `main` wiring changed: **Yes — Shared English Engine v1 is now the Waseda runtime.**
+- Post-cutover `main` verification run `35334219119`: **SUCCESS**
+- Post-cutover GitHub Pages run `35334217904`: **SUCCESS**
 - Exam/drill content and stable problem IDs remain frozen.
-- Waseda local/cloud identity values remain exactly the same even where their source is now the validated school adapter.
-- Rikkyo does **not** consume this candidate yet.
+- Waseda local/cloud identity values remain exactly the same even though their source is now the validated school adapter.
+- Rikkyo consumer onboarding may begin only through a separate pinned-vendor branch/PR after this release metadata gate is merged.
 
 ## Gate 0 — contract / identity baseline
 
@@ -95,11 +97,11 @@ Status: **CHARACTERIZED; IDENTITY + PROJECTION CONFIG DELEGATION CLEAN**
 
 The progress projection also sources configured exam years, goal tiers/default goal, written maximum score and the baseline progress label from school config. Fake-adapter and no-adapter tests verify that only those school-specific values vary; source-record IDs, event types, registration/control behavior, dedup/revision semantics and HTTP/IndexedDB contracts remain unchanged.
 
-## Current candidate level
+## Current production level
 
-`engine/manifest.json` is **0.1.0-alpha.22** with status `candidate-final-readiness-clean`.
+`engine/manifest.json` is **1.0.0** with status `production-waseda-commonized`.
 
-The current feature branch has passed the full permanent verification suite after app score-model parameterization, including:
+The production cutover and post-cutover verification have passed the permanent verification suite, including:
 
 - shared contract/bootstrap/core parity
 - policy/runtime config delegation
@@ -113,7 +115,7 @@ The current feature branch has passed the full permanent verification suite afte
 - progress cloud-sync guards
 - AI writing UI/grader/goldset guards
 
-Production `main` remains unchanged and PR #11 remains Draft.
+Production `main` is now commonized. The release metadata update changes no runtime behavior.
 
 ## Gate 6 — remediation mastery transition
 
@@ -307,11 +309,11 @@ The permanent readiness gate now verifies:
 
 After correcting the browser smoke fixture to load the relocated school compatibility bridge, the final readiness test and complete browser/sync/AI suite are CLEAN.
 
-## Next boundary — two consecutive CLEAN loops
+## Next boundary — Rikkyo consumer onboarding
 
-Do not add further runtime refactoring in this candidate. Run the complete permanent verification suite twice consecutively on this exact head with no corrective changes between the runs. Both runs must include the final readiness audit, real-browser smoke, persistence/recovery, Cloud Sync and AI grading suites.
+Shared Engine v1 production cutover is complete. Do not make additional Waseda runtime refactors as part of Rikkyo onboarding.
 
-Only after both loops are CLEAN should PR #11 be considered for squash-merge to production `main`. After merge, run the same suite on `main` and verify GitHub Pages before enabling any Rikkyo consumption.
+The next phase is to create/use the separate Rikkyo English repository, inventory its existing analyzed/problem data as-is, create a Rikkyo config/policy/data pack, and vendor a pinned copy of the **school-neutral `engine/` artifact**. Rikkyo tests must verify its own storage/cloud namespace, FY24–FY26 exam formats and learning flow before deployment. Future Waseda engine changes flow to Rikkyo only through compatibility-tested sync PRs.
 
 ## Future Rikkyo relationship
 
