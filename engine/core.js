@@ -244,7 +244,45 @@ function applyPracticeQuestionState(drill,weak,question,{usedIds,choiceOrder}={}
   return drill;
 }
 
-const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan,selectDailyLearningActionDescriptors,selectPracticePool,reserveConfirmationIds,selectNextPracticeQuestion,rankPracticeQuestions,practiceSessionStartDecision,createPracticeSessionState,applyPracticeQuestionState});
+function isExamAttemptComparable(attempt){
+  return !!(attempt?.exposure==='first'&&attempt?.mode==='timed'&&!attempt?.interrupted&&!attempt?.overtime);
+}
+function interruptExamAttempt(attempt){
+  if(!attempt||typeof attempt!=='object')return attempt;
+  attempt.interrupted=true;attempt.mode='untimed';return attempt;
+}
+function scoreObjectiveQuestion(question,answer,{normalize,matchAnswer}={}){
+  if(!question||typeof question!=='object')throw new TypeError('question must be an object');
+  if(typeof normalize!=='function')throw new TypeError('normalize must be a function');
+  if(question.type==='multi'){
+    const chosen=new Set(normalize(answer).split(',').filter(Boolean));
+    const correct=normalize(question.answer).split(',').filter(Boolean);
+    const unit=Number(question.points)/correct.length;
+    return correct.reduce((sum,x)=>sum+(chosen.has(x)?unit:0),0);
+  }
+  if(typeof matchAnswer!=='function')throw new TypeError('matchAnswer must be a function');
+  return matchAnswer(question,answer)?Number(question.points):0;
+}
+function buildWrongWeaknessState(oldState={},{
+  year,id,label,category,component='main',skill,targetId,focusTag,examFormat,trap,priority,points,user,today,manualComponents=[]
+}={}){
+  const old=oldState&&typeof oldState==='object'?oldState:{};
+  return {
+    ...old,year:Number(year),id,label,category,component,skill,targetId,focusTag,examFormat,trap,priority,points,user,
+    last:'wrong',status:'active',streak:0,confirmStreak:0,next:today,wrongCount:(old.wrongCount||0)+1,
+    reservedConfirm:[],seenDrills:old.seenDrills||[],
+    manualComponents:manualComponents.length?[...new Set(manualComponents)]:old.manualComponents||[]
+  };
+}
+function markWeaknessesActuallyCorrect(rows,{year,id,user}={}){
+  const values=Array.isArray(rows)?rows:Array.from(rows||[]);
+  for(const weak of values.filter(w=>w&&w.year===Number(year)&&w.id===id)){
+    weak.user=user;weak.last='correct';weak.actualCorrect=(weak.actualCorrect||0)+1;
+  }
+  return values;
+}
+
+const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan,selectDailyLearningActionDescriptors,selectPracticePool,reserveConfirmationIds,selectNextPracticeQuestion,rankPracticeQuestions,practiceSessionStartDecision,createPracticeSessionState,applyPracticeQuestionState,isExamAttemptComparable,interruptExamAttempt,scoreObjectiveQuestion,buildWrongWeaknessState,markWeaknessesActuallyCorrect});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.ENGLISH_ENGINE_CORE=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
