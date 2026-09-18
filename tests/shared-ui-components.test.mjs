@@ -26,6 +26,11 @@ assert.equal(ui.todayCard({complete:true,contentHtml:'X'}),'<section class="card
 assert.equal(ui.weaknessCard({assigned:false,contentHtml:'W'}),'<section class="card wrong ">W</section>');
 assert.equal(ui.weaknessCard({assigned:true,contentHtml:'W'}),'<section class="card wrong today-assigned">W</section>');
 assert.equal(ui.drillCard({contentHtml:'D'}),'<section class="card drill-card">D</section>');
+assert.equal(ui.attemptBar({summaryHtml:'S',timerHtml:'T',actionsHtml:'A'}),'<section class="attempt-bar ">STA</section>');
+assert.equal(ui.attemptBar({compact:true,summaryHtml:'S'}),'<section class="attempt-bar attempt-compact">S</section>');
+assert.equal(ui.answerPanel({open:true,expanded:false,headerHtml:'H',bodyHtml:'B'}),'<aside id=answerPanel class="card answerpanel sheet-open ">HB</aside>');
+assert.equal(ui.answerPanel({open:false,expanded:true,headerHtml:'H',bodyHtml:'B'}),'<aside id=answerPanel class="card answerpanel sheet-collapsed sheet-expanded">HB</aside>');
+assert.equal(ui.paperPage({year:2024,label:'大問 3',bodyHtml:'<p>X</p>'}),'<article class=paper-page><div class=page-label><b>2024年度</b><span>大問 3</span></div><div class=paper-text><p>X</p></div></article>');
 
 const backup=ui.backupPanel({
   description:'この端末では、アプリを更新しても学習履歴を自動で引き継ぎます。',
