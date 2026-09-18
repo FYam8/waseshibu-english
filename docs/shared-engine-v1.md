@@ -8,7 +8,7 @@ The target is not to copy the Waseda app and then maintain two forks. The target
 
 ## Non-negotiable safety rules
 
-1. `main` is production. Shared-engine work stays on `feat/shared-engine-v1` until all Waseda compatibility gates are green.
+1. `main` is production. Shared-engine changes are developed on isolated branches and merge only after Waseda compatibility gates are green; the initial v1 cutover completed through PR #11.
 2. The current Waseda browser storage identity must not change: `waseshibu.adaptive.v3`, legacy/recovery prefixes, schema migration behavior, and existing recovery semantics stay compatible.
 3. Waseda cloud progress identity must not change during commonization: endpoint, `APP_ID=english`, IndexedDB name/version, event identity, source-record identity, and payload meaning remain compatible.
 4. No Rikkyo data may be written under a Waseda localStorage key, IndexedDB name, cloud app ID, recovery prefix, or source-record namespace.
@@ -67,7 +67,7 @@ A school adapter has two parts.
 - goal labels/advice
 - school-facing skill labels
 
-The Waseda baseline explicitly preserves the current `A/B/C` rules, including the current `insertion -> C` behavior. These files are intentionally not loaded by production yet.
+The Waseda adapter explicitly preserves the current `A/B/C` rules, including the current `insertion -> C` behavior. Production now loads these school-owned files around the shared engine; consumers such as Rikkyo provide their own config/policy files.
 
 ### 3. School data pack
 
@@ -220,4 +220,4 @@ Preferred pattern: run the same seeded state/action sequence against the pre-ref
 
 ## Current status
 
-`tests/shared-engine-contract.test.mjs` enforces Gate 0. The adapter/engine files are not loaded by `index.html`, so this stage does not change the Waseda runtime. The feature branch must stay synchronized with current `main` before Gate 1 begins.
+`tests/shared-engine-contract.test.mjs` originated as the Gate 0 guard and remains a permanent regression gate. During the initial extraction the adapter/engine files were introduced without changing production behavior; after the v1 cutover, `index.html` loads the validated Waseda adapter and shared engine in the tested order.
