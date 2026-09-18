@@ -74,6 +74,18 @@ function uiRouteStepCard(options){
  if(SHARED_UI_COMPONENTS?.routeStepCard)return SHARED_UI_COMPONENTS.routeStepCard(options);
  return `<article class="card route-step ${options.protectedCard?"protected":""}"><div class=route-number>${options.index}</div><div class=route-main><div class="row space"><div><h3>${options.title}</h3><b>${options.role}</b></div><span class="status-pill">${options.status}</span></div><p>${options.description}</p>${options.recommendationsHtml||""}${options.detailHtml||""}${options.actionHtml||""}</div></article>`
 }
+function uiTodayCard(options){
+ if(SHARED_UI_COMPONENTS?.todayCard)return SHARED_UI_COMPONENTS.todayCard(options);
+ return `<section class="card hero today-card ${options.complete?"today-complete":""}">${options.contentHtml||""}</section>`
+}
+function uiWeaknessCard(options){
+ if(SHARED_UI_COMPONENTS?.weaknessCard)return SHARED_UI_COMPONENTS.weaknessCard(options);
+ return `<section class="card wrong ${options.assigned?"today-assigned":""}">${options.contentHtml||""}</section>`
+}
+function uiDrillCard(contentHtml){
+ if(SHARED_UI_COMPONENTS?.drillCard)return SHARED_UI_COMPONENTS.drillCard({contentHtml});
+ return `<section class="card drill-card">${contentHtml||""}</section>`
+}
 function uiBackupPanel(description){
  if(SHARED_UI_COMPONENTS?.backupPanel)return SHARED_UI_COMPONENTS.backupPanel({description,exportOnclick:"exportData()",importOnchange:"importData(this)"});
  return `<section class=backup-box><h3>学習データのバックアップ</h3><p>${description}</p><div class=row><button onclick="exportData()">バックアップを書き出す</button><label>復元方法 <select id=importMode><option value=merge>現在データへ統合</option><option value=replace>現在データと置換</option></select></label><label class=file-button>バックアップを選ぶ<input type=file accept="application/json,.json" onchange="importData(this)"></label></div></section>`
@@ -282,11 +294,12 @@ function home(){
  const active=activeWeak();
  const last=S.history.at(-1);
  const action=todayAction(),plan=ensureDailyPlan(),answered=dailyAnswered(plan),targetReached=dailyTargetReached(plan),extra=Math.max(0,answered-DAILY_TASK_TARGET),etas=GOAL_TIERS.map(t=>[t,goalEstimate(t)]);
- return `${S.recoveryNotice?`<section class="card okbox recovery-notice"><b>学習履歴を自動復元しました</b><p>${h(S.recoveryNotice)}</p><button onclick="dismissRecoveryNotice()">確認</button></section>`:""}<section class="card hero today-card ${action.complete?"today-complete":""}"><div class=today-head><div><div class=eyebrow>${action.complete?"AVAILABLE WORK COMPLETE":targetReached?"TARGET ACHIEVED · KEEP GOING":"TODAY · STANDARD 10 QUESTIONS"}</div><h2>今日やること</h2><p>${h(action.note)}</p></div><div class=goal-block><span>学習目標</span><strong>${goalLabel()}</strong><small>得点・履歴とは別に管理</small></div></div>
+ const todayContent=`<div class=today-head><div><div class=eyebrow>${action.complete?"AVAILABLE WORK COMPLETE":targetReached?"TARGET ACHIEVED · KEEP GOING":"TODAY · STANDARD 10 QUESTIONS"}</div><h2>今日やること</h2><p>${h(action.note)}</p></div><div class=goal-block><span>学習目標</span><strong>${goalLabel()}</strong><small>得点・履歴とは別に管理</small></div></div>
  <div class="target-row goal-selector"><span>目標を変更</span>${GOAL_TIERS.map((t,i)=>`<button class="target-chip ${S.goal===t?"selected":""}" onclick="setGoal(${t})">${String.fromCharCode(65+i)} ${t}点</button>`).join("")}</div>
  <div class=daily-summary><article><b>${answered}問</b><small>今日の克服ドリル</small></article><article><b>${DAILY_TASK_TARGET}問</b><small>標準目安</small></article><article><b>${targetReached?`${extra}問`:`あと${dailyTargetRemaining(plan)}問`}</b><small>${targetReached?"目安達成後":"目安まで"}</small></article></div>
  <div class=goal-eta>${etas.map(([t,e])=>`<article class="${S.goal===t?"selected":""}"><div><b>${goalLabel(t)}</b><small>${e.count}弱点を対象</small></div><strong>${e.days?`約${e.days}日`:"達成"}</strong></article>`).join("")}</div><p class=goal-eta-note>1日${DAILY_TASK_TARGET}問のペースで進めた場合の目安です。追加学習で短くなることがあります。得点到達を保証する日数ではありません。</p>
- ${learningActionsMarkup(action)}${futureConfirmationMarkup()}</section>
+ ${learningActionsMarkup(action)}${futureConfirmationMarkup()}`;
+ return `${S.recoveryNotice?`<section class="card okbox recovery-notice"><b>学習履歴を自動復元しました</b><p>${h(S.recoveryNotice)}</p><button onclick="dismissRecoveryNotice()">確認</button></section>`:""}${uiTodayCard({complete:action.complete,contentHtml:todayContent})}
  <section class="grid three">${uiMetricCard(last?`${last.score}/${WRITTEN_MAX_SCORE}`:"--",last?`${last.year}年度の筆記得点`:"過去問未実施")}${uiMetricCard(goalLabel(),"現在の学習目標")}${uiMetricCard(active.filter(([_,w])=>w.priority==="A").length,"A問題の未克服")}</section>
  <section class=card><div class="row space"><div><div class=eyebrow>CURRENT STATUS</div><h3>現在の到達状況</h3></div><b>未克服 ${active.length} ／ 克服済み ${mastered()}</b></div><p>${goalAdvice()}</p><p class=muted>A＝60点、B＝70点、C＝75点。目標を変えても、これまでの得点・正誤・類題履歴は消しません。</p></section>
  <section class=card><h3>推奨する過去問ルート</h3><p class=route-inline>${ROUTE.map(y=>`<span class="${S.attempts.some(a=>a.year===y&&a.status==="graded")?"done":""}">${y}</span>`).join("<b>→</b>")}</p><p class=muted>2024で診断し、2023～2019で補強。2025で実戦確認し、2026を最終判定に残します。</p></section>
@@ -597,11 +610,11 @@ function review(){
  const plan=ensureDailyPlan(),remaining=planRemaining(plan),assigned=new Set(plan.weakKeys||[]),backlog=planBacklog(plan);
  return `<section class=card><div class="row space"><div><div class=eyebrow>ERROR → DRILL → RETEST</div><h2>間違い対策 ${arr.length}件</h2></div>${remaining.length?`<button class=primary onclick="startTodayTasks()">目安まであと${dailyTargetRemaining(plan)}問</button>`:dailyTargetReached(plan)?uiCompletionMark(`✓ 今日の目安${DAILY_TASK_TARGET}問を達成`):uiCompletionMark("✓ 現在できる課題は完了")}</div>
  <p>${goalLabel()}の範囲を優先し、1日${DAILY_TASK_TARGET}問を標準目安にします。同じ論点の類題を3連続正解→翌日2連続正解で克服です。${backlog?` 目安達成後も、取り組める${backlog}件を任意で続けられます。`:""}</p></section>
- ${arr.map(({key,w})=>{const isAssigned=assigned.has(key),future=w.status==="pending"&&w.next>today(),buttonLabel=future?`${w.next} まで待つ`:isAssigned?(w.status==="pending"?"今日の定着チェック":"今日の克服ドリル"):(w.status==="pending"?"定着チェック":"追加練習");return `<section class="card wrong ${isAssigned?"today-assigned":""}"><div class="row space"><div><b>${w.year} ${h(w.label)}</b><div class="tiny"><span class=skill>${skillName(w.skill)}</span> ／ ${h(w.category)} ／ ${w.component&&w.component!=="main"?`元設問 ${w.points}点`:`${w.points}点`}</div></div>${badge(w.priority)}</div>
+ ${arr.map(({key,w})=>{const isAssigned=assigned.has(key),future=w.status==="pending"&&w.next>today(),buttonLabel=future?`${w.next} まで待つ`:isAssigned?(w.status==="pending"?"今日の定着チェック":"今日の克服ドリル"):(w.status==="pending"?"定着チェック":"追加練習"),contentHtml=`<div class="row space"><div><b>${w.year} ${h(w.label)}</b><div class="tiny"><span class=skill>${skillName(w.skill)}</span> ／ ${h(w.category)} ／ ${w.component&&w.component!=="main"?`元設問 ${w.points}点`:`${w.points}点`}</div></div>${badge(w.priority)}</div>
  <p>誤答：<b>${h(w.user||"未入力")}</b>　${w.status==="pending"?`<span class=badge>翌日確認待ち</span>`:""}</p>
  <p class=muted>${w.status==="pending"?`次の定着チェック：${w.next}`:`類題連続正解：${w.streak||0}/3`}</p>
  <label>失点原因 <select onchange="setCause('${key}',this.value)"><option value="">選択</option>${["ケアレスミス","知識不足","語順・構文","本文根拠の見落とし","選択肢の読み違い","推論しすぎ","時間不足","記述条件漏れ"].map(c=>`<option ${S.cause[key]===c?"selected":""}>${c}</option>`).join("")}</select></label>
- <div class=row style="margin-top:10px"><button ${future?"disabled":""} class="${isAssigned&&!future?"primary":""}" onclick="startSkill('${key}')">${buttonLabel}</button><button onclick="openYear(${w.year})">過去問本文を確認</button></div></section>`}).join("")}`;
+ <div class=row style="margin-top:10px"><button ${future?"disabled":""} class="${isAssigned&&!future?"primary":""}" onclick="startSkill('${key}')">${buttonLabel}</button><button onclick="openYear(${w.year})">過去問本文を確認</button></div>`;return uiWeaknessCard({assigned:isAssigned,contentHtml})}).join("")}`;
 }
 function setCause(key,v){S.cause[key]=v;save()}
 function startTodayTasks(){const remaining=planRemaining();if(!remaining.length)return alert(dailyTargetReached()?"今日の目安分は完了しています。引き続き、一覧から任意の弱点を選べます。":"現在取り組める目安課題はありません。");if(S.currentSkill&&remaining.includes(S.currentSkill))return startSkill(S.currentSkill);const entries=remaining.map(key=>[key,S.weak[key]]).sort(sortWeakEntries),last=entries.findIndex(([key])=>key===S.lastStartedWeakKey),chosen=entries[(last+1)%entries.length];startSkill(chosen[0])}
@@ -702,12 +715,12 @@ function drill(){
  const w=S.weak[drillState.key], q=drillState.q;
  if(!w||!q)return `<section class=card><h2>ドリルを開始できませんでした</h2><p>${h(drillState.error||"ドリル対象がありません。")}</p><button onclick="finishSession()">間違い対策へ戻る</button></section>`;
  const target=drillState.mode==="confirm"?2:3, streak=drillState.mode==="confirm"?(w.confirmStreak||0):(w.streak||0);
- return `<section class="card drill-card"><div class="row space drill-head"><div><div class=drill-mode>${drillState.mode==="confirm"?"翌日の定着チェック":"類題反復"}</div><h2>${skillName(drillState.skill)} 克服ドリル</h2></div><span class=streak-label>${streak}/${target} 連続正解</span></div>
+ const contentHtml=`<div class="row space drill-head"><div><div class=drill-mode>${drillState.mode==="confirm"?"翌日の定着チェック":"類題反復"}</div><h2>${skillName(drillState.skill)} 克服ドリル</h2></div><span class=streak-label>${streak}/${target} 連続正解</span></div>
  ${uiProgressBar(streak,target)}
  <p class=drill-origin>元の誤答：${w.year} ${h(w.label)} ／ ${h(w.category)} ／ ${h(w.trap||w.focusTag||"")}</p>
  <hr><h3 class=drill-prompt>${h(displayedDrillPrompt(q))}</h3>${drillInput(q)}
- ${drillState.answered?drillFeedback(q):""}
- </section>`;
+ ${drillState.answered?drillFeedback(q):""}`;
+ return uiDrillCard(contentHtml);
 }
 function drillChoiceMark(original,isCorrect){
  if(!drillState.answered)return "";
