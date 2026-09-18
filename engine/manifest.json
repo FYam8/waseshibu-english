@@ -1,8 +1,8 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.12",
+  "engineVersion": "0.1.0-alpha.13",
   "contractVersion": 1,
-  "status": "candidate-remediation-mastery-delegation-clean",
+  "status": "candidate-daily-remediation-scheduling-delegation-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": [
     "engine/"
@@ -18,7 +18,13 @@
     "normalizeDrillState",
     "ensureFamilyIds",
     "migrateLearningState",
-    "advanceRemediationMastery"
+    "advanceRemediationMastery",
+    "isRemediationEligible",
+    "compareRemediationEntries",
+    "remediationDailyProgressCount",
+    "remediationDailyAnsweredCount",
+    "remediationDailyTargetRemaining",
+    "remediationDailyTargetReached"
   ],
   "schoolPolicyDelegated": true,
   "delegatedPolicyFunctions": [
@@ -78,7 +84,8 @@
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "The candidate branch now sources Waseda exam, persistence, progress-sync and score configuration from the validated school adapter while preserving exact Waseda values and behavior. Generic core helpers now also own the deterministic 3-correct training to next-day 2-correct confirmation mastery transition; app.js delegates that state transition while retaining Waseda-side question reservation and an exact legacy fallback. The full browser/sync/AI verification suite is clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "characterize-daily-remediation-scheduling-before-extraction",
-  "remediationMasteryDelegated": true
+  "notes": "The candidate branch now delegates deterministic remediation mastery plus daily eligibility, ordering and daily-target accounting to the shared core while preserving exact Waseda fallback behavior. Waseda exam, persistence, progress-sync and score configuration remain adapter-backed with unchanged identity values. Characterization, parity, runtime delegation, real-browser, cloud-sync and AI suites are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
+  "nextGate": "characterize-and-extract-daily-plan-construction-and-action-selection",
+  "remediationMasteryDelegated": true,
+  "dailyRemediationSchedulingDelegated": true
 }
