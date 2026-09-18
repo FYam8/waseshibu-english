@@ -126,8 +126,14 @@ function priorityOrder(w){
  if(policy)return policy.priorityOrder(w?.priority);
  return ({A:0,B:1,C:2})[w.priority]??3
 }
-function eligibleToday([_,w]){return w.status==="active"||(w.status==="pending"&&(!w.next||w.next<=today()))}
+function eligibleToday([_,w]){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.isRemediationEligible;
+ if(shared)return shared(w,today());
+ return w.status==="active"||(w.status==="pending"&&(!w.next||w.next<=today()))
+}
 function sortWeakEntries(a,b){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.compareRemediationEntries;
+ if(shared)return shared(a,b,priorityOrder);
  const aDue=a[1].status==="pending"?0:1,bDue=b[1].status==="pending"?0:1;if(aDue!==bDue)return aDue-bDue;
  const priority=priorityOrder(a[1])-priorityOrder(b[1]);if(priority)return priority;
  const next=(a[1].next||"").localeCompare(b[1].next||"");if(next)return next;
@@ -136,10 +142,26 @@ function sortWeakEntries(a,b){
 }
 function dailyPlanValid(){return S.dailyPlan&&S.dailyPlan.date===today()&&Number(S.dailyPlan.goal)===Number(S.goal)}
 function invalidateDailyPlan(){S.dailyPlan=null;save()}
-function dailyProgressCount(){return S.dailyProgress?.date===today()?Math.max(0,Number(S.dailyProgress.answeredCount)||0):0}
-function dailyAnswered(plan=ensureDailyPlan()){return Math.max(dailyProgressCount(),plan?.date===today()?Number(plan.answeredCount)||0:0)}
-function dailyTargetRemaining(plan=ensureDailyPlan()){return Math.max(0,DAILY_TASK_TARGET-dailyAnswered(plan))}
-function dailyTargetReached(plan=ensureDailyPlan()){return dailyAnswered(plan)>=DAILY_TASK_TARGET}
+function dailyProgressCount(){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.remediationDailyProgressCount;
+ if(shared)return shared(S,today());
+ return S.dailyProgress?.date===today()?Math.max(0,Number(S.dailyProgress.answeredCount)||0):0
+}
+function dailyAnswered(plan=ensureDailyPlan()){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.remediationDailyAnsweredCount;
+ if(shared)return shared(S,plan,today());
+ return Math.max(dailyProgressCount(),plan?.date===today()?Number(plan.answeredCount)||0:0)
+}
+function dailyTargetRemaining(plan=ensureDailyPlan()){
+ const answered=dailyAnswered(plan),shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.remediationDailyTargetRemaining;
+ if(shared)return shared(answered,DAILY_TASK_TARGET);
+ return Math.max(0,DAILY_TASK_TARGET-answered)
+}
+function dailyTargetReached(plan=ensureDailyPlan()){
+ const answered=dailyAnswered(plan),shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.remediationDailyTargetReached;
+ if(shared)return shared(answered,DAILY_TASK_TARGET);
+ return answered>=DAILY_TASK_TARGET
+}
 function ensureDailyPlan(){
  if(dailyPlanValid())return S.dailyPlan;
  const candidates=activeWeak().filter(([_,w])=>gradeInGoal(w.priority)).filter(eligibleToday).sort(sortWeakEntries),all=activeWeak().filter(([_,w])=>gradeInGoal(w.priority)),routeYear=nextRouteYear();
