@@ -204,6 +204,26 @@ function completeTodayNote(plan){
  return dailyTargetReached(plan)?`今日の目安${DAILY_TASK_TARGET}問を達成しました。現在実施できる学習はすべて完了です。`:"現在実施できる学習はすべて完了です。";
 }
 function availableLearningActions(){
+ const sharedSelect=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.selectDailyLearningActionDescriptors;
+ if(sharedSelect){
+   const entries=activeWeak(),byKey=Object.fromEntries(entries);
+   const descriptors=sharedSelect({entries,currentAttempt:S.currentAttempt,routeYear:nextRouteYear(),isInGoal:w=>gradeInGoal(w.priority),isEligible:eligibleToday,compareEntries:sortWeakEntries});
+   return descriptors.map(action=>{
+     if(action.kind==="weak"){
+       const w=byKey[action.key];if(!w)return null;
+       if(action.stage==="confirm")return {kind:"weak",key:action.key,label:"今日の定着チェックへ",note:`${w.year} ${w.label}（${w.confirmStreak||0}/2）`};
+       if(action.stage==="continue")return {kind:"weak",key:action.key,label:"この弱点を続ける",note:`${w.year} ${w.label}（${w.streak||0}/3）`};
+       return {kind:"weak",key:action.key,label:"次の弱点へ",note:`${w.year} ${w.label}（${w.priority}）`};
+     }
+     if(action.kind==="attempt")return {kind:"attempt",year:action.year,label:`${action.year}年度の続きへ`,note:"解答途中の過去問があります。"};
+     if(action.kind==="route")return {kind:"route",year:action.year,label:`${action.year}年度の過去問を見る`,note:`${routeRole(action.year)}。年度ページを開くだけでは初見性を消費しません。`};
+     if(action.kind==="upgrade"){
+       const w=byKey[action.key];if(!w)return null;
+       const goal=w.priority==="B"?70:75;return {kind:"goal",goal,label:`${goalLabel(goal)}へ進む`,note:`${w.priority}問題の未克服があります。`};
+     }
+     return null;
+   }).filter(Boolean);
+ }
  const rows=activeWeak().filter(([key,w])=>gradeInGoal(w.priority)&&eligibleToday([key,w])).sort(sortWeakEntries),due=rows.filter(([_,w])=>w.status==="pending"),progressed=rows.filter(([_,w])=>w.status==="active"&&(w.streak||0)>0),other=rows.filter(([_,w])=>w.status==="active"&&!(w.streak||0)),actions=[];
  if(due[0])actions.push({kind:"weak",key:due[0][0],label:"今日の定着チェックへ",note:`${due[0][1].year} ${due[0][1].label}（${due[0][1].confirmStreak||0}/2）`});
  if(progressed[0])actions.push({kind:"weak",key:progressed[0][0],label:"この弱点を続ける",note:`${progressed[0][1].year} ${progressed[0][1].label}（${progressed[0][1].streak||0}/3）`});
