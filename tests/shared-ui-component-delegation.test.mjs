@@ -8,6 +8,7 @@ for(const [helper,component] of [
   ['uiMetricCard','metricCard'],
   ['uiProgressBar','progressBar'],
   ['uiCompletionMark','completionMark'],
+  ['uiRouteStepCard','routeStepCard'],
   ['uiBackupPanel','backupPanel']
 ]){
   assert.ok(app.includes('function '+helper+'('),helper+' wrapper missing');
@@ -21,6 +22,7 @@ assert.ok(app.includes('uiMetricCard(a.length,"A未克服")'),'stats metric card
 assert.ok(app.includes('uiProgressBar(streak,target)'),'drill progress bar not delegated');
 assert.ok(app.includes('uiCompletionMark(`✓ ${h(action.label)}`)'),'Today completion marker not delegated');
 assert.ok(app.includes('uiCompletionMark(`✓ 今日の目安${DAILY_TASK_TARGET}問を達成`)'),'review completion marker not delegated');
+assert.ok(app.includes('uiRouteStepCard({index:i+1'),'route cards not delegated');
 assert.ok(app.includes('uiBackupPanel("この端末では、アプリを更新しても学習履歴を自動で引き継ぎます。'),'backup panel not delegated');
 
 const compPos=index.indexOf('<script src="ui/components.js"></script>');
