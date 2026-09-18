@@ -19,6 +19,7 @@ jobs:
       - run: node tests/shared-engine-remediation-mastery-parity.test.mjs
       - run: node tests/waseda-remediation-mastery-delegation.test.mjs
       - run: node tests/waseda-daily-remediation-scheduling-characterization.test.mjs
+      - run: node tests/shared-engine-daily-remediation-scheduling-parity.test.mjs
       - run: node tests/waseda-policy-delegation.test.mjs
       - run: node tests/waseda-runtime-config-delegation.test.mjs
       - run: node tests/waseda-score-model-characterization.test.mjs
