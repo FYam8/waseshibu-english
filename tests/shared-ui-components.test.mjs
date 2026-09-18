@@ -21,6 +21,11 @@ const route=ui.routeStepCard({
 });
 assert.equal(route,'<article class="card route-step "><div class=route-number>2</div><div class=route-main><div class="row space"><div><h3>2023年度</h3><b>弱点補強</b></div><span class="status-pill">未着手</span></div><p>現在の弱点に対応する実際の過去問を使います。</p><div class=route-recs>R</div><p class=tiny>D</p><button>年度を開く</button></div></article>');
 assert.match(ui.routeStepCard({index:1,title:'x',role:'y',status:'z',description:'d',protectedCard:true}),/class="card route-step protected"/);
+assert.equal(ui.todayCard({complete:false,contentHtml:'<b>T</b>'}),'<section class="card hero today-card "><b>T</b></section>');
+assert.equal(ui.todayCard({complete:true,contentHtml:'X'}),'<section class="card hero today-card today-complete">X</section>');
+assert.equal(ui.weaknessCard({assigned:false,contentHtml:'W'}),'<section class="card wrong ">W</section>');
+assert.equal(ui.weaknessCard({assigned:true,contentHtml:'W'}),'<section class="card wrong today-assigned">W</section>');
+assert.equal(ui.drillCard({contentHtml:'D'}),'<section class="card drill-card">D</section>');
 
 const backup=ui.backupPanel({
   description:'この端末では、アプリを更新しても学習履歴を自動で引き継ぎます。',
