@@ -297,8 +297,8 @@ function beginAttempt(y){
 function resumeLegacy(y){
  S.currentAttempt={id:attemptId(),year:Number(y),status:"active",exposure:S.exposure[y]||"unknown",mode:"unknown",limitMinutes:null,startedAt:new Date().toISOString(),startedTimezone:Intl.DateTimeFormat().resolvedOptions().timeZone||"local",interrupted:true,legacy:true};save();render();
 }
-function interruptAttempt(){if(!S.currentAttempt)return;S.currentAttempt.interrupted=true;S.currentAttempt.mode="untimed";save();alert("中断を記録しました。この受験は保存されますが、本番比較・安定判定には使いません。");render()}
-function attemptComparable(a){return a?.exposure==="first"&&a?.mode==="timed"&&!a?.interrupted&&!a?.overtime}
+function interruptAttempt(){if(!S.currentAttempt)return;const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.interruptExamAttempt;if(shared)shared(S.currentAttempt);else{S.currentAttempt.interrupted=true;S.currentAttempt.mode="untimed"}save();alert("中断を記録しました。この受験は保存されますが、本番比較・安定判定には使いません。");render()}
+function attemptComparable(a){const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.isExamAttemptComparable;return shared?shared(a):!!(a?.exposure==="first"&&a?.mode==="timed"&&!a?.interrupted&&!a?.overtime)}
 function elapsedSeconds(a){return Math.max(0,Math.floor((Date.now()-new Date(a.startedAt).getTime())/1000))}
 function timerMarkup(a){if(a.mode!=="timed")return `<span class="timer practice">時間無制限</span>`;const total=a.limitMinutes*60,remain=total-elapsedSeconds(a);if(remain<=0){a.overtime=true;save()}const abs=Math.abs(remain),mm=String(Math.floor(abs/60)).padStart(2,"0"),ss=String(abs%60).padStart(2,"0");return `<span id=examTimer class="timer ${remain<=0?"over":""}">${remain<=0?"時間超過 ":"残り "}${mm}:${ss}</span>`}
 function updateTimer(){const a=S.currentAttempt,el=document.getElementById("examTimer");if(!el||!a||a.mode!=="timed")return;const total=a.limitMinutes*60,remain=total-elapsedSeconds(a);if(remain<=0&&!a.overtime){a.overtime=true;save()}const abs=Math.abs(remain),mm=String(Math.floor(abs/60)).padStart(2,"0"),ss=String(abs%60).padStart(2,"0");el.textContent=`${remain<=0?"時間超過 ":"残り "}${mm}:${ss}`;el.classList.toggle("over",remain<=0)}
@@ -511,6 +511,8 @@ function matches(q,a){
  return x===z;
 }
 function objectiveScore(q,a){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.scoreObjectiveQuestion;
+ if(shared)return shared(q,a,{normalize:norm,matchAnswer:matches});
  if(q.type==="multi"){const chosen=new Set(norm(a).split(",").filter(Boolean)),correct=norm(q.answer).split(",").filter(Boolean),unit=q.points/correct.length;return correct.reduce((sum,x)=>sum+(chosen.has(x)?unit:0),0)}
  return matches(q,a)?q.points:0;
 }
@@ -545,11 +547,15 @@ function grade(y){
  save();goto("result");
  }
 function createWeak(y,q,user,component="main",manualComponents=[]){
- const key=`${k(y,q.id)}:${component}`, old=S.weak[key]||{};
- S.weak[key]={...old,year:Number(y),id:q.id,label:q.label,category:component==="main"?q.category:`${q.category}：${component}`,component,skill:q.skill,targetId:q.targetId,focusTag:component==="main"?q.focusTag:`manual:${q.skill}:${component}`,examFormat:q.examFormat,trap:component==="main"?q.trap:component,priority:strategyPriority(q),points:q.points,user,last:"wrong",status:"active",streak:0,confirmStreak:0,next:today(),wrongCount:(old.wrongCount||0)+1,reservedConfirm:[],seenDrills:old.seenDrills||[],manualComponents:manualComponents.length?[...new Set(manualComponents)]:old.manualComponents||[]};
+ const key=`${k(y,q.id)}:${component}`, old=S.weak[key]||{},category=component=="main"?q.category:`${q.category}：${component}`,focusTag=component=="main"?q.focusTag:`manual:${q.skill}:${component}`,trap=component=="main"?q.trap:component;
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.buildWrongWeaknessState;
+ if(shared)S.weak[key]=shared(old,{year:y,id:q.id,label:q.label,category,component,skill:q.skill,targetId:q.targetId,focusTag,examFormat:q.examFormat,trap,priority:strategyPriority(q),points:q.points,user,today:today(),manualComponents});
+ else S.weak[key]={...old,year:Number(y),id:q.id,label:q.label,category,component,skill:q.skill,targetId:q.targetId,focusTag,examFormat:q.examFormat,trap,priority:strategyPriority(q),points:q.points,user,last:"wrong",status:"active",streak:0,confirmStreak:0,next:today(),wrongCount:(old.wrongCount||0)+1,reservedConfirm:[],seenDrills:old.seenDrills||[],manualComponents:manualComponents.length?[...new Set(manualComponents)]:old.manualComponents||[]};
 }
 function markActualCorrect(y,q,user){
- Object.values(S.weak).filter(w=>w.year===Number(y)&&w.id===q.id).forEach(old=>{old.user=user;old.last="correct";old.actualCorrect=(old.actualCorrect||0)+1});
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.markWeaknessesActuallyCorrect;
+ if(shared)shared(Object.values(S.weak),{year:y,id:q.id,user});
+ else Object.values(S.weak).filter(w=>w.year===Number(y)&&w.id===q.id).forEach(old=>{old.user=user;old.last="correct";old.actualCorrect=(old.actualCorrect||0)+1});
 }
 function setListeningScore(id,value){const a=S.attempts.find(x=>x.id===id);if(!a)return;const score=value===""?null:Math.max(0,Math.min(LISTENING_MAX_SCORE,Number(value)||0));a.listeningScore=score;a.totalScore=score===null?null:a.writtenScore+score;save();render()}
 function goalStatus(a,target){if(a.listeningScore!==null&&a.listeningScore!==undefined){const total=a.writtenScore+a.listeningScore;return total>=target?`到達（${total}/${TOTAL_MAX_SCORE}）`:`あと${target-total}点`};const need=target-a.writtenScore;if(need<=0)return `筆記だけで${target}点以上`;if(need<=LISTENING_MAX_SCORE)return `リスニング${need}/${LISTENING_MAX_SCORE}以上が必要`;return `現在の筆記点では到達不可`}
