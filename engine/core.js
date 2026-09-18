@@ -150,7 +150,62 @@ function selectDailyLearningActionDescriptors({entries,currentAttempt,routeYear,
   return actions;
 }
 
-const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan,selectDailyLearningActionDescriptors});
+function selectPracticePool(bank,weak,{minFamilies=5}={}){
+  if(!Array.isArray(bank))throw new TypeError('bank must be an array');
+  if(!weak||typeof weak!=='object')throw new TypeError('weak must be an object');
+  const active=bank.filter(x=>x&&!x.retired);
+  const exact=active.filter(x=>x.targetId===weak.targetId);
+  if(familyCount(exact)>=Number(minFamilies||5))return exact;
+  const broad=active.filter(x=>x.skill===weak.skill);
+  return broad.length?broad:exact;
+}
+function reserveConfirmationIds({currentReserved,pool,rankChoices,limit=2}={}){
+  if(!Array.isArray(pool))throw new TypeError('pool must be an array');
+  if(typeof rankChoices!=='function')throw new TypeError('rankChoices must be a function');
+  const max=Math.max(0,Number(limit)||0),byId=new Map(pool.map(x=>[x.id,x])),reserved=[];
+  for(const id of [...new Set(Array.isArray(currentReserved)?currentReserved:[])]){
+    const q=byId.get(id);
+    if(q&&!reserved.some(x=>byId.get(x)?.familyId===q.familyId))reserved.push(id);
+    if(reserved.length===max)break;
+  }
+  if(reserved.length<max){
+    const families=new Set(reserved.map(id=>byId.get(id)?.familyId));
+    const eligible=pool.filter(x=>!reserved.includes(x.id)&&!families.has(x.familyId));
+    const choices=[...(rankChoices(eligible)||[])];
+    while(reserved.length<max&&choices.length){
+      const q=choices.shift();
+      if(!q||families.has(q.familyId))continue;
+      families.add(q.familyId);reserved.push(q.id);
+    }
+  }
+  return reserved;
+}
+function selectNextPracticeQuestion({pool,reservedIds,usedIds,mode,streak,rankChoices}={}){
+  if(!Array.isArray(pool))throw new TypeError('pool must be an array');
+  if(typeof rankChoices!=='function')throw new TypeError('rankChoices must be a function');
+  const reserved=Array.isArray(reservedIds)?reservedIds:[],initialUsed=Array.isArray(usedIds)?usedIds:[];
+  const reservedFamilies=new Set(pool.filter(x=>reserved.includes(x.id)).map(x=>x.familyId));
+  let nextUsed=[...initialUsed];
+  let candidates=mode==='confirm'
+    ?pool.filter(x=>reserved.includes(x.id)&&!nextUsed.includes(x.id))
+    :pool.filter(x=>!reservedFamilies.has(x.familyId)&&!nextUsed.includes(x.id));
+  let resetUsed=false;
+  if(!candidates.length){
+    resetUsed=true;nextUsed=[];
+    candidates=mode==='confirm'?pool.filter(x=>reserved.includes(x.id)):pool.filter(x=>!reserved.includes(x.id));
+  }
+  if(mode==='train'){
+    const max=(Number(streak)||0)>=2?3:2;
+    const leveled=candidates.filter(x=>Number(x.level)<=max);
+    if(leveled.length)candidates=leveled;
+  }
+  candidates=[...(rankChoices(candidates,mode==='confirm')||[])];
+  const question=candidates[0]||null;
+  if(question)nextUsed.push(question.id);
+  return {question,usedIds:nextUsed,resetUsed};
+}
+
+const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan,selectDailyLearningActionDescriptors,selectPracticePool,reserveConfirmationIds,selectNextPracticeQuestion});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.ENGLISH_ENGINE_CORE=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
