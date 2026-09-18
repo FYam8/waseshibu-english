@@ -23,19 +23,27 @@ assert.deepEqual([...contract.viewIds],['home','route','exam','review','drill','
 assert.deepEqual(plain(school.views.map(x=>x.id)),plain(contract.viewIds));
 
 const index=read('index.html');
-const labels=[...index.matchAll(/<button data-v="([^"]+)"(?: class="active")?>([^<]+)<\/button>/g)].map(m=>({id:m[1],label:m[2]}));
-assert.deepEqual(labels,plain(school.views),'Waseda nav baseline changed');
-assert.ok(index.includes('<div class="eyebrow">'+school.brand.eyebrow+'</div><h1>'+school.brand.heading+'</h1>'));
-assert.ok(index.includes('<footer>'+school.footer+'</footer>'));
+const expectedViews=[
+  {id:'home',label:'今日やること'},
+  {id:'route',label:'学習ルート'},
+  {id:'exam',label:'過去問'},
+  {id:'review',label:'間違い対策'},
+  {id:'drill',label:'克服ドリル'},
+  {id:'stats',label:'成績・到達度'},
+  {id:'guide',label:'使い方'}
+];
+assert.deepEqual(plain(school.views),expectedViews,'Waseda nav baseline changed');
+assert.equal(school.brand.eyebrow,'WASEDA SHIBUYA ENGLISH');
+assert.equal(school.brand.heading,'過去問 × 弱点克服');
+assert.equal(school.footer,'2019〜2026年度の実際の筆記問題をテキスト収録。英単語・リスニングは別アプリ想定。');
 
 const shell=run('ui/shell.js').ENGLISH_UI_SHELL;
-const shellHeader=compact(shell.headerMarkup(school));
-const currentHeader=compact(index.match(/<header>[\s\S]*?<\/header>/)[0]);
-assert.equal(shellHeader,currentHeader,'shared header helper must reproduce current Waseda header');
-const shellNav=compact(shell.navMarkup(school,'home'));
-const currentNav=compact(index.match(/<nav>[\s\S]*?<\/nav>/)[0]);
-assert.equal(shellNav,currentNav,'shared nav helper must reproduce current Waseda nav');
-assert.equal(compact(shell.footerMarkup(school)),compact(index.match(/<footer>[\s\S]*?<\/footer>/)[0]));
+assert.equal(compact(shell.headerMarkup(school)),compact('<header><div><div class="eyebrow">WASEDA SHIBUYA ENGLISH</div><h1>過去問 × 弱点克服</h1></div><button id="dark">◐</button></header>'));
+assert.equal(compact(shell.navMarkup(school,'home')),compact('<nav><button data-v="home" class="active">今日やること</button><button data-v="route">学習ルート</button><button data-v="exam">過去問</button><button data-v="review">間違い対策</button><button data-v="drill">克服ドリル</button><button data-v="stats">成績・到達度</button><button data-v="guide">使い方</button></nav>'));
+assert.equal(compact(shell.footerMarkup(school)),compact('<footer>2019〜2026年度の実際の筆記問題をテキスト収録。英単語・リスニングは別アプリ想定。</footer>'));
+assert.ok(index.includes('id="shared-ui-header"'));
+assert.ok(index.includes('id="shared-ui-nav"'));
+assert.ok(index.includes('id="shared-ui-footer"'));
 
 const sourceCss=read('styles.css').trimStart();
 const theme=read('schools/waseshibu/theme.css'),compat=read('schools/waseshibu/ui-compat.css').trim();
