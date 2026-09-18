@@ -1,8 +1,8 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.20",
+  "engineVersion": "0.1.0-alpha.21",
   "contractVersion": 1,
-  "status": "candidate-ai-writing-config-delegation-clean",
+  "status": "candidate-import-merge-delegation-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": [
     "engine/"
@@ -40,7 +40,14 @@
     "buildWrongWeaknessState",
     "markWeaknessesActuallyCorrect",
     "decideDayRollover",
-    "applyDailyRolloverState"
+    "applyDailyRolloverState",
+    "mergeImportedWeakState",
+    "mergeImportedAnswerMaps",
+    "mergeImportedManualMaps",
+    "mergeImportedExposure",
+    "dedupeImportedRows",
+    "mergeImportedDailyProgress",
+    "mergeImportedLearningState"
   ],
   "schoolPolicyDelegated": true,
   "delegatedPolicyFunctions": [
@@ -100,8 +107,8 @@
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "The candidate branch now also characterizes the AI writing browser/worker compatibility boundary and sources AI enablement, endpoint and supported skills from the validated school adapter with exact Waseda fallbacks. School-specific exam/drill task construction, answer aliases, grading UI and Worker scoring contract remain outside the generic core. All prior engine/state/persistence/progress gates plus full real-browser, Cloud Sync and AI suites are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "characterize-high-risk-import-merge-boundary-before-deciding-extraction",
+  "notes": "The candidate branch now characterizes and delegates deterministic backup/import merge primitives and the composite state merge to the shared core while leaving validation, backup identity, pre-import recovery snapshots, learning-model migration, drill rebinding, confirmation UI and persistence side effects in the Waseda app. Existing storage keys/schema/recovery semantics are unchanged. All prior learning, Today, practice, exam, day-rollover, progress-sync and AI-writing gates plus full real-browser/Cloud Sync/AI verification remain clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
+  "nextGate": "final-shared-engine-readiness-audit-and-two-consecutive-clean-loops",
   "remediationMasteryDelegated": true,
   "dailyRemediationSchedulingDelegated": true,
   "dailyPlanConstructionDelegated": true,
@@ -118,5 +125,7 @@
     "enabled",
     "endpoint",
     "skills"
-  ]
+  ],
+  "importMergeCharacterized": true,
+  "importMergeDelegated": true
 }
