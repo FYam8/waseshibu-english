@@ -7,20 +7,13 @@ function functionSource(source,name){
   let start=source.indexOf(`async function ${name}(`);
   if(start<0)start=source.indexOf(`function ${name}(`);
   assert.ok(start>=0,`missing function ${name}`);
-  const brace=source.indexOf('{',start);assert.ok(brace>=0);
-  let depth=0,inSingle=false,inDouble=false,inTemplate=false,escaped=false;
-  for(let i=brace;i<source.length;i++){
-    const ch=source[i];
-    if(escaped){escaped=false;continue}
-    if(ch==='\\'){escaped=true;continue}
-    if(!inDouble&&!inTemplate&&ch==="'"){inSingle=!inSingle;continue}
-    if(!inSingle&&!inTemplate&&ch==='"'){inDouble=!inDouble;continue}
-    if(!inSingle&&!inDouble&&ch==='`'){inTemplate=!inTemplate;continue}
-    if(inSingle||inDouble||inTemplate)continue;
-    if(ch==='{')depth++;
-    else if(ch==='}'&&--depth===0)return source.slice(start,i+1);
+  const candidates=[];
+  for(const marker of ['\nfunction ','\nasync function ']){
+    const pos=source.indexOf(marker,start+10);
+    if(pos>start)candidates.push(pos);
   }
-  throw new Error(`unterminated function ${name}`);
+  const end=candidates.length?Math.min(...candidates):source.length;
+  return source.slice(start,end).trim();
 }
 function plain(v){return JSON.parse(JSON.stringify(v))}
 
