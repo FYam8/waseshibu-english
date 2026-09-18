@@ -97,7 +97,7 @@ The progress projection also sources configured exam years, goal tiers/default g
 
 ## Current candidate level
 
-`engine/manifest.json` is **0.1.0-alpha.20** with status `candidate-ai-writing-config-delegation-clean`.
+`engine/manifest.json` is **0.1.0-alpha.21** with status `candidate-import-merge-delegation-clean`.
 
 The current feature branch has passed the full permanent verification suite after app score-model parameterization, including:
 
@@ -266,11 +266,33 @@ The Waseda school adapter now explicitly declares `aiWriting.enabled`, `aiWritin
 
 School-specific exam/drill task construction, Waseda source-paper mapping, manual guides, answer aliases, UI wording and the Worker scoring implementation remain outside the shared core. Contract validation covers malformed optional AI-writing config. Full browser, Cloud Sync and existing AI grader/UI/goldset suites remain CLEAN.
 
-## Next boundary — high-risk import / merge
+## Gate 15 — backup / import merge
 
-The next remaining behavior candidate is backup/import merge. Because this can affect existing learner history, it must begin with characterization only. Freeze weak-state merge preference, attempt/history de-duplication, answer/manual/exposure merge behavior, same-day daily-progress merge, current-attempt/drill conflict archiving and recovery-snapshot retention before deciding whether any part should move into the shared engine.
+Status: **CHARACTERIZED + DELEGATED / CLEAN**
 
-No import/merge runtime wiring should change until those fixtures pass. Existing production Waseda storage keys/schema/recovery semantics remain non-negotiable.
+The high-risk merge path was characterized before runtime wiring. The frozen semantics cover:
+
+- mastered weakness state wins over non-mastered state
+- otherwise confirmation/streak progress decides the weakness merge, with incoming winning ties
+- nonblank current answers win ordinary answer-map conflicts
+- manual records prefer the side with a score; when both are scored, current wins; component tags are unioned
+- exposure keeps the more-exposed state by the existing first < unknown < partial < done rank
+- duplicate rows keep the last value for a key while retaining the original key insertion order
+- same-day daily progress keeps the larger answered count
+- current live attempt/drill remains active; a conflicting incoming live attempt is archived as interrupted and a conflicting incoming drill is moved to recovered drills
+- attempts/history/drill logs and recovered drills retain the existing de-duplication keys
+- merged daily plan is deliberately cleared
+- schema is forced to the current Waseda schema
+
+The shared core now owns the deterministic merge primitives and `mergeImportedLearningState`. The Waseda app still owns backup identity validation, checksum/schema checks, pre-import recovery snapshots, replace-vs-merge confirmation, learning-model migration, manual weakness consolidation, current-drill rebinding, persistence and UI. Exact no-core fallbacks remain.
+
+The focused characterization, primitive parity, composite parity and runtime-delegation gates all pass, followed by the complete real-browser, Cloud Sync and AI suite. Waseda storage keys, recovery prefixes, schema and existing learner-history meaning were not changed.
+
+## Next boundary — final shared-engine readiness audit
+
+The planned behavior extraction for v1 is now complete enough to enter final readiness review. Do not add more runtime extraction merely to reduce `app.js`. The next step is to audit the candidate as a consumer-facing engine boundary, verify that school-specific data/policy/branding do not leak into `engine/**`, verify exact Waseda identity/data fingerprints again, and confirm that all shared runtime calls retain safe fallbacks.
+
+After the readiness audit is CLEAN, run the full Waseda verification suite twice consecutively with no corrective code changes between the two runs. Only after those two CLEAN loops should PR #11 be considered for production merge.
 
 ## Future Rikkyo relationship
 
