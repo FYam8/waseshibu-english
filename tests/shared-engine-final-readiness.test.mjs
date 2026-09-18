@@ -25,7 +25,7 @@ assert.deepEqual(manifest.artifactRoots,['engine/']);
 assert.equal(manifest.schoolSpecificFilesExcluded,true);
 assert.equal(manifest.consumerPolicy,'pinned-vendor-pr-only');
 assert.equal(manifest.releaseGate,'waseda-parity-before-consumer-sync');
-assert.equal(manifest.productionWiring,false);
+assert.equal(manifest.productionWiring,true);
 assert.equal(manifest.importMergeDelegated,true);
 assert.equal(manifest.aiWritingConfigDelegated,true);
 assert.equal(manifest.dayRolloverDelegated,true);
