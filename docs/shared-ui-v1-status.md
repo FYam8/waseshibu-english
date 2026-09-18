@@ -61,35 +61,38 @@ The complete Waseda verification suite, including existing real-browser smoke, C
 
 ## UI2 — shared view primitives
 
-Status: **FIRST SLICE WIRED / FULL VERIFY CLEAN**
+Status: **FRAME LAYER WIRED / EXACT-HEAD FULL VERIFY CLEAN**
 
-`ui/components.js` is now loaded before `app.js`. Waseda delegates the following reusable presentation primitives while retaining exact no-Shared-UI fallbacks:
+`ui/components.js` is loaded before `app.js`. Waseda now delegates the following reusable presentation primitives while retaining exact no-Shared-UI fallbacks:
 
 - metric cards used by Today and Stats
 - progress bar used by remediation
 - completion marks used by Today/Review
 - learning-route step card frame
+- Today hero frame
+- weakness/review row frame
+- remediation drill card frame
 - backup/import panel frame
 
-The route component owns only shared layout/classes. Waseda still supplies route-role wording, protected-year policy, recommendations, score detail and button action.
+Shared components own layout/classes only. Waseda continues to supply goal/scoring wording, route policy, weakness metadata, question content, button actions and drill feedback content.
 
-The complete Waseda permanent suite and real-browser smoke remain CLEAN after the runtime delegation.
+The exact same runtime head passed both push and PR full verification. Existing Waseda real-browser smoke, persistence/recovery, Cloud Sync and AI suites are CLEAN.
 
 ## Still not shared
 
-The next UI2 slices are:
+The next presentation boundary is the past-paper experience:
 
-- Today hero/action frame and daily summary frame
-- weakness/review row frame
-- remediation header/question/feedback frame
-- past-paper attempt/answer-panel frame
-- common question-renderer primitives
+- attempt bar / timer shell
+- paper + answer-panel layout
+- answer-jump navigation
+- reusable choice/text/multi/manual renderer primitives
+- common correct/wrong feedback framing
 
-School-specific question formats, goal/scoring wording and data remain pluggable through adapter/data.
+School-specific question formats, scoring rules and content stay pluggable through adapter/data.
 
-## Next gate — UI2 Today / weakness / remediation frames
+## Next gate — UI3 past-paper and answer shell
 
-Continue with small parity-guarded frame extraction. Do not rewrite all Waseda view functions at once.
+Characterize the current Waseda attempt/answer-panel DOM first, then extract small renderer/layout primitives. Do not copy Waseda scoring assumptions into the shared UI.
 
 ## Rikkyo gate
 
