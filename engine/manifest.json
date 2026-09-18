@@ -1,8 +1,8 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.16",
+  "engineVersion": "0.1.0-alpha.17",
   "contractVersion": 1,
-  "status": "candidate-practice-session-delegation-clean",
+  "status": "candidate-practice-session-state-delegation-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": [
     "engine/"
@@ -31,7 +31,9 @@
     "reserveConfirmationIds",
     "selectNextPracticeQuestion",
     "rankPracticeQuestions",
-    "practiceSessionStartDecision"
+    "practiceSessionStartDecision",
+    "createPracticeSessionState",
+    "applyPracticeQuestionState"
   ],
   "schoolPolicyDelegated": true,
   "delegatedPolicyFunctions": [
@@ -91,13 +93,14 @@
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "The candidate branch now delegates deterministic remediation mastery, Today scheduling/planning, practice pool/reservation/next-question selection, practice ranking and post-resume session readiness to the shared core. Same-session resume/cross-weakness blocking, Waseda alerts/navigation and persistence side effects remain app-owned. Exact legacy fallbacks remain. Full characterization, parity, runtime-delegation, real-browser, Cloud Sync and AI suites are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "extract-practice-session-state-initialization-and-question-application",
+  "notes": "The candidate branch now delegates deterministic remediation mastery, Today scheduling/planning, practice pool/reservation/ranking/next-question selection, session readiness, new-session state creation and selected-question state reset/application to the shared core. Waseda random option shuffling, alerts/navigation, ranking history source and persistence side effects remain app-owned. Exact legacy fallbacks remain. Full characterization, parity, runtime-delegation, real-browser, Cloud Sync and AI suites are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
+  "nextGate": "audit-next-common-runtime-boundary-before-more-extraction",
   "remediationMasteryDelegated": true,
   "dailyRemediationSchedulingDelegated": true,
   "dailyPlanConstructionDelegated": true,
   "todayActionSelectionDelegated": true,
   "practiceSelectionDelegated": true,
   "practiceRankingDelegated": true,
-  "practiceSessionReadinessDelegated": true
+  "practiceSessionReadinessDelegated": true,
+  "practiceSessionStateDelegated": true
 }
