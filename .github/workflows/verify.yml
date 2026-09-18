@@ -47,6 +47,7 @@ jobs:
       - run: node tests/shared-engine-import-merge-parity.test.mjs
       - run: node tests/shared-engine-import-composite-parity.test.mjs
       - run: node tests/waseda-import-composite-delegation.test.mjs
+      - run: node tests/shared-engine-final-readiness.test.mjs
       - run: node tests/waseda-import-merge-delegation.test.mjs
       - run: node tests/waseda-policy-delegation.test.mjs
       - run: node tests/waseda-runtime-config-delegation.test.mjs
