@@ -20,7 +20,7 @@ assert.equal(contract.version,1);
 assert.equal(manifest.name,'shared-english-engine');
 assert.equal(manifest.contractVersion,contract.version);
 assert.equal(manifest.sourceRepository,'FYam8/waseshibu-english');
-assert.equal(manifest.productionWiring,false);
+assert.equal(manifest.productionWiring,true);
 assert.deepEqual(manifest.artifactRoots,['engine/']);
 assert.match(manifest.engineVersion,/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/);
 assert.equal(contract.validateSchoolConfig(config).ok,true,contract.validateSchoolConfig(config).errors.join('\n'));
