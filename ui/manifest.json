@@ -1,15 +1,15 @@
 {
   "name": "shared-english-ui",
-  "uiVersion": "0.1.0-alpha.1",
+  "uiVersion": "0.1.0-alpha.2",
   "contractVersion": 1,
-  "status": "baseline-characterized-no-runtime-wiring",
+  "status": "candidate-runtime-shell-css-wired",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": [
     "ui/"
   ],
   "consumerPolicy": "pinned-vendor-pr-only",
   "sourceOfTruth": "Waseda production UI/UX",
-  "runtimeWiring": false,
+  "runtimeWiring": true,
   "sharedViewOrder": [
     "home",
     "route",
@@ -37,5 +37,7 @@
     "school-specific question renderers where format differs",
     "cloud and AI endpoints"
   ],
-  "releaseGate": "waseda-ui-parity-before-consumer-sync"
+  "releaseGate": "waseda-ui-parity-before-consumer-sync",
+  "notes": "Waseda candidate now loads shared ui/base.css plus school-owned theme/policy CSS, and mounts header/nav/footer through the shared shell before app.js. styles.css remains as an untouched baseline/reference file during parity validation.",
+  "nextGate": "waseda-shared-ui-browser-parity"
 }
