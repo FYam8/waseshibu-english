@@ -97,7 +97,7 @@ The progress projection also sources configured exam years, goal tiers/default g
 
 ## Current candidate level
 
-`engine/manifest.json` is **0.1.0-alpha.16** with status `candidate-practice-session-delegation-clean`.
+`engine/manifest.json` is **0.1.0-alpha.17** with status `candidate-practice-session-state-delegation-clean`.
 
 The current feature branch has passed the full permanent verification suite after app score-model parameterization, including:
 
@@ -205,9 +205,26 @@ The app intentionally still owns the same-weakness resume and cross-weakness unf
 
 A source-characterization test initially caught the expected structural change in `startSkill`; the gate was updated to require both the shared readiness path and the original fallback, then the complete browser/sync/AI suite returned CLEAN. No production branch or deployed Waseda state was touched during that iteration.
 
-## Next extraction boundary — practice session state
+## Gate 11 — practice session state
 
-The next safe step is to extract the deterministic shape of a newly started practice session and the deterministic reset/application of a selected question. This should cover the common answer-state fields (`used`, selected answers, reorder state, text/self-check drafts, AI-feedback reset) while leaving random choice-order shuffling, persistence, navigation and Waseda-specific error text in the app layer.
+Status: **CHARACTERIZED + DELEGATED / CLEAN**
+
+The shared core now owns the deterministic shape of a newly started practice session and the deterministic state reset/application when a practice question is selected.
+
+The shared session shape covers the common learning-state fields: key/skill/target/focus/mode, used IDs, selected answers, multi-select state, reorder state, text inputs and self-check drafts. Applying a question also updates `lastDrillId` / unique `seenDrills`, clears prior answer/AI-feedback state and accepts a caller-supplied choice order.
+
+Random option-order generation intentionally remains in the app so the shared state helper stays deterministic. Persistence, navigation and Waseda-specific error text also remain app-owned. Exact legacy fallback state construction/reset remains present. The first source-only regression assertion was updated to recognize the guarded shared helper plus the retained fallback; full real-browser, Cloud Sync and AI suites are CLEAN.
+
+## Next boundary — common runtime audit
+
+Before extracting more code, audit the remaining `app.js` functions by responsibility and classify each as:
+
+- generic engine behavior that Rikkyo should inherit,
+- school policy/data mapping that must stay adapter-owned,
+- presentation/branding that must stay school-owned,
+- external integration behavior that needs its own compatibility boundary.
+
+The next extraction should be selected from that audit rather than continuing mechanically through the file.
 
 ## Future Rikkyo relationship
 
