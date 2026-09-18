@@ -640,7 +640,11 @@ function finishDrill(ok){
  ensureDailyPlan();
  const w=S.weak[drillState.key];drillState.answered=true;drillState.correct=ok;
  const count=dailyAnswered(S.dailyPlan)+1;S.dailyProgress={date:today(),answeredCount:count};if(S.dailyPlan?.date===today())S.dailyPlan.answeredCount=count;
- if(drillState.mode==="train"){
+ const sharedAdvance=window.ENGLISH_ENGINE_CORE?.advanceRemediationMastery;
+ if(sharedAdvance){
+   const transition=sharedAdvance(w,drillState,ok,{today:today(),nextDay:plusDays(1),nowIso:new Date().toISOString(),trainTarget:3,confirmTarget:2});
+   if(transition?.needsConfirmationReserve)ensureConfirmationReserve(drillState.key,w,poolForWeak(w));
+ }else if(drillState.mode==="train"){
    if(ok)w.streak=(w.streak||0)+1;else w.streak=0;
    if(w.streak>=3){w.status="pending";w.next=plusDays(1);w.confirmStreak=0}
  }else{
