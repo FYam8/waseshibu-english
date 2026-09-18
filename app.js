@@ -593,7 +593,11 @@ function poolForWeak(w){
  return broad.length?broad:exact;
 }
 function lastDrillUse(key,id){for(let i=S.drillLog.length-1;i>=0;i--){const x=S.drillLog[i];if(x.key===key&&x.q===id)return i}return -1}
-function leastRecentlyUsed(key,items,lastId,w,confirm=false){return [...items].sort((a,b)=>{const rank=q=>(q.focusTag===w.focusTag?-30:0)+(confirm&&q.level===3?-20:0)+(q.examFormat===w.examFormat?-6:0);return rank(a)-rank(b)||(a.id===lastId?1:b.id===lastId?-1:0)||lastDrillUse(key,a.id)-lastDrillUse(key,b.id)||a.id.localeCompare(b.id)})}
+function leastRecentlyUsed(key,items,lastId,w,confirm=false){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.rankPracticeQuestions;
+ if(shared)return shared(items,{weak:w,lastId,confirm,lastUse:id=>lastDrillUse(key,id)});
+ return [...items].sort((a,b)=>{const rank=q=>(q.focusTag===w.focusTag?-30:0)+(confirm&&q.level===3?-20:0)+(q.examFormat===w.examFormat?-6:0);return rank(a)-rank(b)||(a.id===lastId?1:b.id===lastId?-1:0)||lastDrillUse(key,a.id)-lastDrillUse(key,b.id)||a.id.localeCompare(b.id)})
+}
 function ensureConfirmationReserve(key,w,pool){
  const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.reserveConfirmationIds;
  if(shared){
@@ -613,11 +617,21 @@ function startSkill(key){
  if(drillState?.key&&S.weak[drillState.key]?.status==="mastered"){drillState=null;S.currentDrill=null;S.currentSkill=null}
  if(drillState?.key===key&&drillState.q&&!drillState.q.retired)return resumeCurrentDrill();
  if(drillState?.key&&drillState.key!==key)return alert("別の克服ドリルが途中です。『今日やること』から途中の問題を完了してから次へ進んでください。");
- const pool=poolForWeak(w),families=new Set(pool.map(x=>x.familyId));if(families.size<5)return alert(`${skillName(w.skill)}の同一論点類題は現在${families.size}系統です。即時3問＋翌日2問を別問題で確保できないため開始できません。`);
- if(w.status==="pending"&&w.next>today())return alert(`定着チェック予定日は ${w.next} です。翌日確認の効果を守るため、予定日までは開始できません。`);
+ const pool=poolForWeak(w),families=new Set(pool.map(x=>x.familyId)),sharedDecision=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.practiceSessionStartDecision;
+ let mode=null;
+ if(sharedDecision){
+   const decision=sharedDecision({weak:w,key,currentDrill:null,familyTotal:families.size,today:today(),minFamilies:5});
+   if(decision.kind==="insufficient-families")return alert(`${skillName(w.skill)}の同一論点類題は現在${decision.familyTotal}系統です。即時3問＋翌日2問を別問題で確保できないため開始できません。`);
+   if(decision.kind==="too-early")return alert(`定着チェック予定日は ${decision.date} です。翌日確認の効果を守るため、予定日までは開始できません。`);
+   mode=decision.mode;
+ }else{
+   if(families.size<5)return alert(`${skillName(w.skill)}の同一論点類題は現在${families.size}系統です。即時3問＋翌日2問を別問題で確保できないため開始できません。`);
+   if(w.status==="pending"&&w.next>today())return alert(`定着チェック予定日は ${w.next} です。翌日確認の効果を守るため、予定日までは開始できません。`);
+   mode=w.status==="pending"?"confirm":"train";
+ }
  ensureConfirmationReserve(key,w,pool);
  S.currentSkill=key;S.lastStartedWeakKey=key;
- drillState={key,skill:w.skill,targetId:w.targetId,focusTag:w.focusTag,mode:w.status==="pending"?"confirm":"train",used:[],q:null,error:null,answered:false,selected:null,selectedMany:[],order:[],orderIndices:[],textInputs:[],selfText:"",selfParts:[],selfChecks:[]};
+ drillState={key,skill:w.skill,targetId:w.targetId,focusTag:w.focusTag,mode,used:[],q:null,error:null,answered:false,selected:null,selectedMany:[],order:[],orderIndices:[],textInputs:[],selfText:"",selfParts:[],selfChecks:[]};
  nextDrill();goto("drill");
 }
 function nextDrill(){
