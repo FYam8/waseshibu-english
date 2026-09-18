@@ -61,6 +61,22 @@ function validateConfig(config){
     else if(!/^https:\/\/[^\s]+$/.test(config.progress.endpoint))errors.push('progress.endpoint must be an https URL');
     if(!nonEmpty(config.progress.appId))errors.push('progress.appId is required when progress is enabled');
   }
+
+  if(config.aiWriting!==undefined){
+    const ai=config.aiWriting;
+    if(!ai||typeof ai!=='object'||Array.isArray(ai))errors.push('aiWriting must be an object when provided');
+    else{
+      if(typeof ai.enabled!=='boolean')errors.push('aiWriting.enabled must be a boolean');
+      const skills=Array.isArray(ai.skills)?ai.skills:[];
+      if(!Array.isArray(ai.skills)||!skills.every(nonEmpty))errors.push('aiWriting.skills must be an array of non-empty strings');
+      else if(!unique(skills))errors.push('aiWriting.skills must not contain duplicates');
+      if(ai.enabled){
+        if(!nonEmpty(ai.endpoint))errors.push('aiWriting.endpoint is required when AI writing is enabled');
+        else if(!/^https:\/\/[^\s]+$/.test(ai.endpoint))errors.push('aiWriting.endpoint must be an https URL');
+        if(!skills.length)errors.push('aiWriting.skills must be non-empty when AI writing is enabled');
+      }
+    }
+  }
   return{ok:errors.length===0,errors};
 }
 function validatePolicy(policy){
