@@ -97,7 +97,7 @@ The progress projection also sources configured exam years, goal tiers/default g
 
 ## Current candidate level
 
-`engine/manifest.json` is **0.1.0-alpha.21** with status `candidate-import-merge-delegation-clean`.
+`engine/manifest.json` is **0.1.0-alpha.22** with status `candidate-final-readiness-clean`.
 
 The current feature branch has passed the full permanent verification suite after app score-model parameterization, including:
 
@@ -288,11 +288,30 @@ The shared core now owns the deterministic merge primitives and `mergeImportedLe
 
 The focused characterization, primitive parity, composite parity and runtime-delegation gates all pass, followed by the complete real-browser, Cloud Sync and AI suite. Waseda storage keys, recovery prefixes, schema and existing learner-history meaning were not changed.
 
-## Next boundary — final shared-engine readiness audit
+## Gate 16 — final shared-engine readiness audit
 
-The planned behavior extraction for v1 is now complete enough to enter final readiness review. Do not add more runtime extraction merely to reduce `app.js`. The next step is to audit the candidate as a consumer-facing engine boundary, verify that school-specific data/policy/branding do not leak into `engine/**`, verify exact Waseda identity/data fingerprints again, and confirm that all shared runtime calls retain safe fallbacks.
+Status: **CLEAN**
 
-After the readiness audit is CLEAN, run the full Waseda verification suite twice consecutively with no corrective code changes between the two runs. Only after those two CLEAN loops should PR #11 be considered for production merge.
+The final consumer-boundary audit found and corrected one structural leak before production cutover: the Waseda-only compatibility bridge had still lived at `engine/waseda-compat.js` even though the documented consumer rule says only school-neutral code belongs in the shared artifact. It now lives at `schools/waseshibu/compat.js`.
+
+The permanent readiness gate now verifies:
+
+- `engine/` contains only `bootstrap.js`, `contract.js`, `core.js` and `manifest.json`
+- generic engine runtime files contain no Waseda/Rikkyo/provider identity or browser persistence/network dependencies
+- every exported core helper is declared in the manifest
+- Waseda config/policy/compatibility files live under `schools/waseshibu/`
+- the real load order remains core -> learning-model, validated adapter -> app, app -> Waseda compatibility bridge -> progress sync
+- all current Waseda storage, score, route, progress and AI-writing identity values remain exact
+- the Waseda runtime is actually wired to the shared helpers while retaining local fallbacks
+- there is no live cross-repository engine import
+
+After correcting the browser smoke fixture to load the relocated school compatibility bridge, the final readiness test and complete browser/sync/AI suite are CLEAN.
+
+## Next boundary — two consecutive CLEAN loops
+
+Do not add further runtime refactoring in this candidate. Run the complete permanent verification suite twice consecutively on this exact head with no corrective changes between the runs. Both runs must include the final readiness audit, real-browser smoke, persistence/recovery, Cloud Sync and AI grading suites.
+
+Only after both loops are CLEAN should PR #11 be considered for squash-merge to production `main`. After merge, run the same suite on `main` and verify GitHub Pages before enabling any Rikkyo consumption.
 
 ## Future Rikkyo relationship
 
