@@ -26,6 +26,7 @@ jobs:
       - run: node tests/waseda-daily-plan-construction-delegation.test.mjs
       - run: node tests/shared-engine-today-action-selection-parity.test.mjs
       - run: node tests/waseda-today-action-selection-delegation.test.mjs
+      - run: node tests/waseda-practice-selection-characterization.test.mjs
       - run: node tests/waseda-policy-delegation.test.mjs
       - run: node tests/waseda-runtime-config-delegation.test.mjs
       - run: node tests/waseda-score-model-characterization.test.mjs
