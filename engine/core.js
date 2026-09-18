@@ -223,7 +223,28 @@ function practiceSessionStartDecision({weak,key,currentDrill,familyTotal,today,m
   return {kind:'start',mode:weak.status==='pending'?'confirm':'train'};
 }
 
-const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan,selectDailyLearningActionDescriptors,selectPracticePool,reserveConfirmationIds,selectNextPracticeQuestion,rankPracticeQuestions,practiceSessionStartDecision});
+function createPracticeSessionState({key,weak,mode}={}){
+  if(!weak||typeof weak!=='object')throw new TypeError('weak must be an object');
+  return {
+    key,skill:weak.skill,targetId:weak.targetId,focusTag:weak.focusTag,mode,
+    used:[],q:null,error:null,answered:false,selected:null,selectedMany:[],
+    order:[],orderIndices:[],textInputs:[],selfText:'',selfParts:[],selfChecks:[]
+  };
+}
+function applyPracticeQuestionState(drill,weak,question,{usedIds,choiceOrder}={}){
+  if(!drill||typeof drill!=='object')throw new TypeError('drill must be an object');
+  if(!weak||typeof weak!=='object')throw new TypeError('weak must be an object');
+  if(!question||typeof question!=='object')throw new TypeError('question must be an object');
+  drill.error=null;drill.q=question;drill.used=Array.isArray(usedIds)?[...usedIds]:[...(drill.used||[]),question.id];
+  weak.lastDrillId=question.id;
+  weak.seenDrills=[...new Set([...(weak.seenDrills||[]),question.id])];
+  drill.answered=false;drill.selected=null;drill.selectedMany=[];drill.order=[];drill.orderIndices=[];drill.textInputs=[];
+  drill.selfText='';drill.selfParts=[];drill.selfChecks=[];drill.selfcheck=false;drill.aiFeedback=null;drill.aiFeedbackStale=false;
+  drill.choiceOrder=Array.isArray(choiceOrder)?[...choiceOrder]:[];
+  return drill;
+}
+
+const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan,selectDailyLearningActionDescriptors,selectPracticePool,reserveConfirmationIds,selectNextPracticeQuestion,rankPracticeQuestions,practiceSessionStartDecision,createPracticeSessionState,applyPracticeQuestionState});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.ENGLISH_ENGINE_CORE=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
