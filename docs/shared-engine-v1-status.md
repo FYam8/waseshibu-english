@@ -97,7 +97,7 @@ The progress projection also sources configured exam years, goal tiers/default g
 
 ## Current candidate level
 
-`engine/manifest.json` is **0.1.0-alpha.12** with status `candidate-remediation-mastery-delegation-clean`.
+`engine/manifest.json` is **0.1.0-alpha.13** with status `candidate-daily-remediation-scheduling-delegation-clean`.
 
 The current feature branch has passed the full permanent verification suite after app score-model parameterization, including:
 
@@ -132,11 +132,27 @@ Status: **DELEGATED / CLEAN**
 
 The first runtime wiring attempt exposed one compatibility issue in the non-browser characterization harness because it referenced `window` directly. The candidate was not merged or deployed; the access was changed to a guarded `typeof window!=="undefined"` path, preserving the browser shared-core path and the existing non-browser fallback. After that fix, the permanent runtime-delegation gate, learning-flow characterization, real-browser smoke, Cloud Sync and AI suites all passed.
 
-## Next extraction boundary — daily remediation scheduling
+## Gate 7 — daily remediation scheduling primitives
 
-The next safe step is to characterize the deterministic parts of daily remediation scheduling before extracting them: due-confirmation eligibility, active-vs-pending ordering, streak-aware priority, daily target accounting and the Today action selection order. Waseda-specific labels, route roles and concrete practice-question selection should remain in the school/app layer.
+Status: **CHARACTERIZED + DELEGATED / CLEAN**
 
-No scheduling runtime wiring should change until the current Waseda Today behavior is frozen with dedicated parity fixtures.
+The current Waseda Today/remediation scheduler is now explicitly frozen for:
+
+- active weaknesses being immediately eligible
+- pending confirmation becoming eligible only on/after its due date
+- pending confirmations sorting before active training
+- school priority order, then due date, last-assigned date and stable key tie-breaks
+- daily answered count using the maximum of same-day persistent progress and same-day plan count
+- daily target remaining/reached semantics
+- Today action ordering: due confirmation -> in-progress weakness -> active exam resume -> untouched weakness -> route -> out-of-goal upgrade suggestion
+
+The shared core now owns the deterministic eligibility, ordering and daily-target accounting helpers. `app.js` delegates to them using guarded browser access while retaining exact no-core legacy fallbacks. Dedicated characterization, old-vs-shared parity and fake-shared runtime-delegation tests all pass, followed by the full real-browser, Cloud Sync and AI suite.
+
+## Next extraction boundary — daily plan construction and action selection
+
+The next safe step is to separate the generic construction of `weak / waiting / route / complete` daily plans and the generic action-kind ordering from Waseda presentation text and school policy. Concrete labels, route-role wording, goal labels and practice-question selection should stay in the Waseda adapter/app layer.
+
+Before wiring that runtime path, add parity fixtures for plan construction, last-assigned-date mutation, route fallback, waiting-for-retention behavior and action descriptors.
 
 ## Future Rikkyo relationship
 
