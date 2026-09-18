@@ -282,7 +282,19 @@ function markWeaknessesActuallyCorrect(rows,{year,id,user}={}){
   return values;
 }
 
-const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan,selectDailyLearningActionDescriptors,selectPracticePool,reserveConfirmationIds,selectNextPracticeQuestion,rankPracticeQuestions,practiceSessionStartDecision,createPracticeSessionState,applyPracticeQuestionState,isExamAttemptComparable,interruptExamAttempt,scoreObjectiveQuestion,buildWrongWeaknessState,markWeaknessesActuallyCorrect});
+function decideDayRollover({renderedDate,currentDate,isDrillView=false,hasDrill=false,drillAnswered=false}={}){
+  if(renderedDate===currentDate)return {kind:'same',notice:false};
+  if(isDrillView&&hasDrill&&!drillAnswered)return {kind:'defer',notice:false};
+  return {kind:'apply',notice:!!(isDrillView&&hasDrill)};
+}
+function applyDailyRolloverState(state,currentDate){
+  if(!state||typeof state!=='object')throw new TypeError('state must be an object');
+  if(state.dailyPlan?.date!==currentDate)state.dailyPlan=null;
+  if(state.dailyProgress?.date!==currentDate)state.dailyProgress=null;
+  return state;
+}
+
+const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan,selectDailyLearningActionDescriptors,selectPracticePool,reserveConfirmationIds,selectNextPracticeQuestion,rankPracticeQuestions,practiceSessionStartDecision,createPracticeSessionState,applyPracticeQuestionState,isExamAttemptComparable,interruptExamAttempt,scoreObjectiveQuestion,buildWrongWeaknessState,markWeaknessesActuallyCorrect,decideDayRollover,applyDailyRolloverState});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.ENGLISH_ENGINE_CORE=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
