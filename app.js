@@ -3,13 +3,25 @@ const D=window.EXAM_DATA, P=window.PAPERS, BANK=window.DRILLS, FALLBACK=window.F
 // Hotfix v0.18.2-hf1: legacy/new drill records without familyId must still be usable.
 // The mastery flow needs at least five distinct "family" values for the immediate 3 + next-day 2 confirmation plan.
 // Some active pronunciation/stress/connector/writing_completion records were missing familyId, which collapsed them to one family.
-BANK.forEach((q,i)=>{ if(!q.familyId) q.familyId=String(q.id||`${q.skill||"skill"}:${q.targetId||"target"}:${i}`); });
+const sharedEnsureFamilyIds=window.ENGLISH_ENGINE_CORE?.ensureFamilyIds;
+if(sharedEnsureFamilyIds)sharedEnsureFamilyIds(BANK);
+else BANK.forEach((q,i)=>{ if(!q.familyId) q.familyId=String(q.id||`${q.skill||"skill"}:${q.targetId||"target"}:${i}`); });
 // STORAGE_KEY is permanent. Future releases migrate schemaVersion in place and must not rename this key.
-const STORAGE_KEY="waseshibu.adaptive.v3", LEGACY_KEYS=["waseshibu.adaptive.v2"], RECOVERY_PREFIX="waseshibu.adaptive.pre-migration", IMPORT_RECOVERY_PREFIX="waseshibu.adaptive.pre-import", SCHEMA_VERSION=8, DAILY_TASK_TARGET=10;
-const AI_GRADING_API="https://waseshibu-writing-grader.fyam8.workers.dev";
-const AI_GRADING_SKILLS=new Set(["writing_completion","summary","rebuttal"]);
-const ROUTE=[2024,2023,2022,2021,2020,2019,2025,2026];
-const INIT={schemaVersion:SCHEMA_VERSION,goal:60,year:2024,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentDrill:null,currentAttempt:null,lastResultId:null,lastStartedWeakKey:null,dailyPlan:null,dailyProgress:null,recoveredDrills:[],exposure:{},theme:"light",answerSheetOpen:true,answerSheetExpanded:false,examInfoCompact:false,recoveryNotice:null};
+const SCHOOL_STORAGE_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.storage||null;
+const STORAGE_KEY=String(SCHOOL_STORAGE_CONFIG?.key||"waseshibu.adaptive.v3"), LEGACY_KEYS=Array.isArray(SCHOOL_STORAGE_CONFIG?.legacyKeys)?[...SCHOOL_STORAGE_CONFIG.legacyKeys]:["waseshibu.adaptive.v2"], RECOVERY_PREFIX=String(SCHOOL_STORAGE_CONFIG?.recoveryPrefix||"waseshibu.adaptive.pre-migration"), IMPORT_RECOVERY_PREFIX=String(SCHOOL_STORAGE_CONFIG?.importRecoveryPrefix||"waseshibu.adaptive.pre-import"), SCHEMA_VERSION=Number(SCHOOL_STORAGE_CONFIG?.schemaVersion)||8;
+const SCHOOL_EXAM_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.exam||null;
+const DAILY_TASK_TARGET=Number(SCHOOL_EXAM_CONFIG?.dailyTaskTarget)||10;
+const GOAL_TIERS=Array.isArray(SCHOOL_EXAM_CONFIG?.goalTiers)?[...SCHOOL_EXAM_CONFIG.goalTiers]:[60,70,75];
+const WRITTEN_MAX_SCORE=Number(SCHOOL_EXAM_CONFIG?.writtenMaxScore)||80;
+const LISTENING_MAX_SCORE=Number.isFinite(Number(SCHOOL_EXAM_CONFIG?.listeningMaxScore))&&Number(SCHOOL_EXAM_CONFIG.listeningMaxScore)>=0?Number(SCHOOL_EXAM_CONFIG.listeningMaxScore):20;
+const TOTAL_MAX_SCORE=Number(SCHOOL_EXAM_CONFIG?.totalMaxScore)||WRITTEN_MAX_SCORE+LISTENING_MAX_SCORE;
+const SCHOOL_AI_WRITING_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.aiWriting||null;
+const AI_GRADING_ENABLED=SCHOOL_AI_WRITING_CONFIG?.enabled!==false;
+const AI_GRADING_API=String(SCHOOL_AI_WRITING_CONFIG?.endpoint||"https://waseshibu-writing-grader.fyam8.workers.dev");
+const AI_GRADING_SKILLS=new Set(AI_GRADING_ENABLED?(Array.isArray(SCHOOL_AI_WRITING_CONFIG?.skills)?SCHOOL_AI_WRITING_CONFIG.skills:["writing_completion","summary","rebuttal"]):[]);
+const ROUTE=Array.isArray(SCHOOL_EXAM_CONFIG?.route)?[...SCHOOL_EXAM_CONFIG.route]:[2024,2023,2022,2021,2020,2019,2025,2026];
+const DEFAULT_GOAL=Number(SCHOOL_EXAM_CONFIG?.defaultGoal)||60, DEFAULT_YEAR=Number(SCHOOL_EXAM_CONFIG?.defaultYear)||2024;
+const INIT={schemaVersion:SCHEMA_VERSION,goal:DEFAULT_GOAL,year:DEFAULT_YEAR,answers:{},manual:{},history:[],attempts:[],weak:{},cause:{},drillLog:[],currentSkill:null,currentDrill:null,currentAttempt:null,lastResultId:null,lastStartedWeakKey:null,dailyPlan:null,dailyProgress:null,recoveredDrills:[],exposure:{},theme:"light",answerSheetOpen:true,answerSheetExpanded:false,examInfoCompact:false,recoveryNotice:null};
 function storageKeys(prefix){const keys=[];try{for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key?.startsWith(prefix))keys.push(key)}}catch(e){}return keys}
 function recoveryCandidates(){const imports=storageKeys(`${IMPORT_RECOVERY_PREFIX}.`).sort().reverse(),migrations=storageKeys(`${RECOVERY_PREFIX}.v`).sort((a,b)=>(Number(b.split(".v").pop())||0)-(Number(a.split(".v").pop())||0));return [...imports,...migrations]}
 function parseStored(key){try{const text=localStorage.getItem(key),value=text&&JSON.parse(text);return value&&typeof value==="object"?{value,text,key}:null}catch(e){return null}}
@@ -54,6 +66,8 @@ function localDate(d=new Date()){const y=d.getFullYear(),m=String(d.getMonth()+1
 function today(){return localDate()}
 function plusDays(n){let d=new Date();d.setDate(d.getDate()+n);return localDate(d)}
 function normalizeDrillState(value){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.normalizeDrillState;
+ if(shared)return shared(value);
  if(!value||typeof value!=="object")return null;
  const q=value.q||null,expected=q?.options?q.options.map((_,i)=>i):[],candidate=Array.isArray(value.choiceOrder)?value.choiceOrder:[],choiceOrder=candidate.length===expected.length&&new Set(candidate).size===expected.length&&candidate.every(i=>expected.includes(i))?candidate:expected,order=Array.isArray(value.order)?value.order:[];
  let orderIndices=Array.isArray(value.orderIndices)?value.orderIndices.filter(i=>Number.isInteger(i)):[];
@@ -63,19 +77,43 @@ function normalizeDrillState(value){
 function attemptId(){return `a-${Date.now()}-${Math.random().toString(36).slice(2,8)}`}
 function yearKeys(obj,y){return Object.keys(obj||{}).filter(x=>x.startsWith(`${y}:`))}
 function hasSavedAnswers(y){return yearKeys(S.answers,y).some(x=>S.answers[x]!=="")||yearKeys(S.manual,y).some(x=>S.manual[x]?.score!==""&&S.manual[x]?.score!==undefined)}
-function strategyPriority(q){if(q.priority==="A")return "A";if(q.skill==="insertion")return "C";return "B"}
-function gradeInGoal(grade,goal=S.goal){return grade==="A"||(grade==="B"&&goal>=70)||(grade==="C"&&goal>=75)}
-function goalLabel(goal=S.goal){return goal===60?"A 60点":goal===70?"B 70点":"C 75点"}
-function goalAdvice(goal=S.goal){return goal===60?"A問題を最優先にして60点を守ります。":goal===70?"Aを固め、B問題まで直して70点を狙います。":"A・Bを確実にした後、取れるC問題を選んで75点を狙います。"}
-function setGoal(goal){goal=Number(goal);if(![60,70,75].includes(goal))return;if(completedDrillCycle())endDrillSession();S.goal=goal;S.dailyPlan=null;save();render()}
-function routeRole(y){return y===2024?"初見診断":y===2025?"実戦確認":y===2026?"最終判定":"弱点補強"}
+function strategyPriority(q){
+ const policy=typeof window!=="undefined"&&window.ENGLISH_ENGINE_ADAPTER?.policy;
+ if(policy)return policy.resolveQuestionPriority(q);
+ if(q.priority==="A")return "A";if(q.skill==="insertion")return "C";return "B"
+}
+function gradeInGoal(grade,goal=S.goal){
+ const policy=typeof window!=="undefined"&&window.ENGLISH_ENGINE_ADAPTER?.policy;
+ if(policy)return policy.isPriorityInGoal(grade,goal);
+ return grade==="A"||(grade==="B"&&goal>=70)||(grade==="C"&&goal>=75)
+}
+function goalLabel(goal=S.goal){
+ const policy=typeof window!=="undefined"&&window.ENGLISH_ENGINE_ADAPTER?.policy;
+ if(policy)return policy.goalLabel(goal);
+ return goal===60?"A 60点":goal===70?"B 70点":"C 75点"
+}
+function goalAdvice(goal=S.goal){
+ const policy=typeof window!=="undefined"&&window.ENGLISH_ENGINE_ADAPTER?.policy;
+ if(policy)return policy.goalAdvice(goal);
+ return goal===60?"A問題を最優先にして60点を守ります。":goal===70?"Aを固め、B問題まで直して70点を狙います。":"A・Bを確実にした後、取れるC問題を選んで75点を狙います。"
+}
+function setGoal(goal){goal=Number(goal);if(!GOAL_TIERS.includes(goal))return;if(completedDrillCycle())endDrillSession();S.goal=goal;S.dailyPlan=null;save();render()}
+function routeRole(y){
+ const policy=typeof window!=="undefined"&&window.ENGLISH_ENGINE_ADAPTER?.policy;
+ if(policy)return policy.routeRole(y);
+ return y===2024?"初見診断":y===2025?"実戦確認":y===2026?"最終判定":"弱点補強"
+}
 function routeRecommendations(y){
  if(y>=2025)return [];
  const targets=new Set(activeWeak().filter(([_,w])=>gradeInGoal(w.priority)).map(([_,w])=>w.targetId));
  return (D[y]||[]).filter(q=>targets.has(q.targetId)&&gradeInGoal(strategyPriority(q))).sort((a,b)=>strategyPriority(a).localeCompare(strategyPriority(b))).slice(0,3);
 }
 function exposureLabel(x){return ({first:"完全初見",partial:"一部見た",done:"解答済み",unknown:"判定不明"})[x]||"未設定"}
-function skillName(s){return skillNames[s]||s}
+function skillName(s){
+ const policy=typeof window!=="undefined"&&window.ENGLISH_ENGINE_ADAPTER?.policy;
+ if(policy)return policy.skillName(s);
+ return skillNames[s]||s
+}
 function goto(v){view=v;document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.v===v));render();scrollTo(0,0)}
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>goto(b.dataset.v));
 document.getElementById("dark").onclick=()=>{document.documentElement.classList.toggle("dark");S.theme=document.documentElement.classList.contains("dark")?"dark":"light";save()}
@@ -85,9 +123,19 @@ function activeWeak(){return Object.entries(S.weak).filter(([_,w])=>w.status!=="
 function mastered(){return Object.values(S.weak).filter(w=>w.status==="mastered").length}
 function latestAttempt(y){return [...S.attempts].reverse().find(a=>a.status==="graded"&&(!y||a.year===Number(y)))}
 function nextRouteYear(){return ROUTE.find(y=>!S.attempts.some(a=>a.year===y&&a.status==="graded"))||null}
-function priorityOrder(w){return ({A:0,B:1,C:2})[w.priority]??3}
-function eligibleToday([_,w]){return w.status==="active"||(w.status==="pending"&&(!w.next||w.next<=today()))}
+function priorityOrder(w){
+ const policy=typeof window!=="undefined"&&window.ENGLISH_ENGINE_ADAPTER?.policy;
+ if(policy)return policy.priorityOrder(w?.priority);
+ return ({A:0,B:1,C:2})[w.priority]??3
+}
+function eligibleToday([_,w]){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.isRemediationEligible;
+ if(shared)return shared(w,today());
+ return w.status==="active"||(w.status==="pending"&&(!w.next||w.next<=today()))
+}
 function sortWeakEntries(a,b){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.compareRemediationEntries;
+ if(shared)return shared(a,b,priorityOrder);
  const aDue=a[1].status==="pending"?0:1,bDue=b[1].status==="pending"?0:1;if(aDue!==bDue)return aDue-bDue;
  const priority=priorityOrder(a[1])-priorityOrder(b[1]);if(priority)return priority;
  const next=(a[1].next||"").localeCompare(b[1].next||"");if(next)return next;
@@ -96,12 +144,37 @@ function sortWeakEntries(a,b){
 }
 function dailyPlanValid(){return S.dailyPlan&&S.dailyPlan.date===today()&&Number(S.dailyPlan.goal)===Number(S.goal)}
 function invalidateDailyPlan(){S.dailyPlan=null;save()}
-function dailyProgressCount(){return S.dailyProgress?.date===today()?Math.max(0,Number(S.dailyProgress.answeredCount)||0):0}
-function dailyAnswered(plan=ensureDailyPlan()){return Math.max(dailyProgressCount(),plan?.date===today()?Number(plan.answeredCount)||0:0)}
-function dailyTargetRemaining(plan=ensureDailyPlan()){return Math.max(0,DAILY_TASK_TARGET-dailyAnswered(plan))}
-function dailyTargetReached(plan=ensureDailyPlan()){return dailyAnswered(plan)>=DAILY_TASK_TARGET}
+function dailyProgressCount(){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.remediationDailyProgressCount;
+ if(shared)return shared(S,today());
+ return S.dailyProgress?.date===today()?Math.max(0,Number(S.dailyProgress.answeredCount)||0):0
+}
+function dailyAnswered(plan=ensureDailyPlan()){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.remediationDailyAnsweredCount;
+ if(shared)return shared(S,plan,today());
+ return Math.max(dailyProgressCount(),plan?.date===today()?Number(plan.answeredCount)||0:0)
+}
+function dailyTargetRemaining(plan=ensureDailyPlan()){
+ const answered=dailyAnswered(plan),shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.remediationDailyTargetRemaining;
+ if(shared)return shared(answered,DAILY_TASK_TARGET);
+ return Math.max(0,DAILY_TASK_TARGET-answered)
+}
+function dailyTargetReached(plan=ensureDailyPlan()){
+ const answered=dailyAnswered(plan),shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.remediationDailyTargetReached;
+ if(shared)return shared(answered,DAILY_TASK_TARGET);
+ return answered>=DAILY_TASK_TARGET
+}
 function ensureDailyPlan(){
  if(dailyPlanValid())return S.dailyPlan;
+ const sharedBuild=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.buildRemediationDailyPlan;
+ if(sharedBuild){
+   const planToday=today(),result=sharedBuild({
+     entries:activeWeak(),goal:S.goal,today:planToday,answeredCount:dailyProgressCount(),routeYear:nextRouteYear(),nowIso:new Date().toISOString(),
+     isInGoal:w=>gradeInGoal(w.priority),isEligible:eligibleToday,compareEntries:sortWeakEntries
+   });
+   for(const key of result.assignedKeys||[]){const w=S.weak[key];if(w)w.lastAssignedDate=planToday}
+   S.dailyPlan=result.plan;save();return S.dailyPlan;
+ }
  const candidates=activeWeak().filter(([_,w])=>gradeInGoal(w.priority)).filter(eligibleToday).sort(sortWeakEntries),all=activeWeak().filter(([_,w])=>gradeInGoal(w.priority)),routeYear=nextRouteYear();
  if(candidates.length){
    const weakKeys=candidates.map(([key,w])=>{w.lastAssignedDate=today();return key});
@@ -133,6 +206,26 @@ function completeTodayNote(plan){
  return dailyTargetReached(plan)?`今日の目安${DAILY_TASK_TARGET}問を達成しました。現在実施できる学習はすべて完了です。`:"現在実施できる学習はすべて完了です。";
 }
 function availableLearningActions(){
+ const sharedSelect=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.selectDailyLearningActionDescriptors;
+ if(sharedSelect){
+   const entries=activeWeak(),byKey=Object.fromEntries(entries);
+   const descriptors=sharedSelect({entries,currentAttempt:S.currentAttempt,routeYear:nextRouteYear(),isInGoal:w=>gradeInGoal(w.priority),isEligible:eligibleToday,compareEntries:sortWeakEntries});
+   return descriptors.map(action=>{
+     if(action.kind==="weak"){
+       const w=byKey[action.key];if(!w)return null;
+       if(action.stage==="confirm")return {kind:"weak",key:action.key,label:"今日の定着チェックへ",note:`${w.year} ${w.label}（${w.confirmStreak||0}/2）`};
+       if(action.stage==="continue")return {kind:"weak",key:action.key,label:"この弱点を続ける",note:`${w.year} ${w.label}（${w.streak||0}/3）`};
+       return {kind:"weak",key:action.key,label:"次の弱点へ",note:`${w.year} ${w.label}（${w.priority}）`};
+     }
+     if(action.kind==="attempt")return {kind:"attempt",year:action.year,label:`${action.year}年度の続きへ`,note:"解答途中の過去問があります。"};
+     if(action.kind==="route")return {kind:"route",year:action.year,label:`${action.year}年度の過去問を見る`,note:`${routeRole(action.year)}。年度ページを開くだけでは初見性を消費しません。`};
+     if(action.kind==="upgrade"){
+       const w=byKey[action.key];if(!w)return null;
+       const goal=w.priority==="B"?70:75;return {kind:"goal",goal,label:`${goalLabel(goal)}へ進む`,note:`${w.priority}問題の未克服があります。`};
+     }
+     return null;
+   }).filter(Boolean);
+ }
  const rows=activeWeak().filter(([key,w])=>gradeInGoal(w.priority)&&eligibleToday([key,w])).sort(sortWeakEntries),due=rows.filter(([_,w])=>w.status==="pending"),progressed=rows.filter(([_,w])=>w.status==="active"&&(w.streak||0)>0),other=rows.filter(([_,w])=>w.status==="active"&&!(w.streak||0)),actions=[];
  if(due[0])actions.push({kind:"weak",key:due[0][0],label:"今日の定着チェックへ",note:`${due[0][1].year} ${due[0][1].label}（${due[0][1].confirmStreak||0}/2）`});
  if(progressed[0])actions.push({kind:"weak",key:progressed[0][0],label:"この弱点を続ける",note:`${progressed[0][1].year} ${progressed[0][1].label}（${progressed[0][1].streak||0}/3）`});
@@ -167,13 +260,13 @@ function learningActionsMarkup(action){
 function home(){
  const active=activeWeak();
  const last=S.history.at(-1);
- const action=todayAction(),plan=ensureDailyPlan(),answered=dailyAnswered(plan),targetReached=dailyTargetReached(plan),extra=Math.max(0,answered-DAILY_TASK_TARGET),etas=[60,70,75].map(t=>[t,goalEstimate(t)]);
+ const action=todayAction(),plan=ensureDailyPlan(),answered=dailyAnswered(plan),targetReached=dailyTargetReached(plan),extra=Math.max(0,answered-DAILY_TASK_TARGET),etas=GOAL_TIERS.map(t=>[t,goalEstimate(t)]);
  return `${S.recoveryNotice?`<section class="card okbox recovery-notice"><b>学習履歴を自動復元しました</b><p>${h(S.recoveryNotice)}</p><button onclick="dismissRecoveryNotice()">確認</button></section>`:""}<section class="card hero today-card ${action.complete?"today-complete":""}"><div class=today-head><div><div class=eyebrow>${action.complete?"AVAILABLE WORK COMPLETE":targetReached?"TARGET ACHIEVED · KEEP GOING":"TODAY · STANDARD 10 QUESTIONS"}</div><h2>今日やること</h2><p>${h(action.note)}</p></div><div class=goal-block><span>学習目標</span><strong>${goalLabel()}</strong><small>得点・履歴とは別に管理</small></div></div>
- <div class="target-row goal-selector"><span>目標を変更</span>${[60,70,75].map((t,i)=>`<button class="target-chip ${S.goal===t?"selected":""}" onclick="setGoal(${t})">${String.fromCharCode(65+i)} ${t}点</button>`).join("")}</div>
+ <div class="target-row goal-selector"><span>目標を変更</span>${GOAL_TIERS.map((t,i)=>`<button class="target-chip ${S.goal===t?"selected":""}" onclick="setGoal(${t})">${String.fromCharCode(65+i)} ${t}点</button>`).join("")}</div>
  <div class=daily-summary><article><b>${answered}問</b><small>今日の克服ドリル</small></article><article><b>${DAILY_TASK_TARGET}問</b><small>標準目安</small></article><article><b>${targetReached?`${extra}問`:`あと${dailyTargetRemaining(plan)}問`}</b><small>${targetReached?"目安達成後":"目安まで"}</small></article></div>
  <div class=goal-eta>${etas.map(([t,e])=>`<article class="${S.goal===t?"selected":""}"><div><b>${goalLabel(t)}</b><small>${e.count}弱点を対象</small></div><strong>${e.days?`約${e.days}日`:"達成"}</strong></article>`).join("")}</div><p class=goal-eta-note>1日${DAILY_TASK_TARGET}問のペースで進めた場合の目安です。追加学習で短くなることがあります。得点到達を保証する日数ではありません。</p>
  ${learningActionsMarkup(action)}${futureConfirmationMarkup()}</section>
- <section class="grid three"><div class=card><div class=metric>${last?`${last.score}/80`:"--"}</div><div class=muted>${last?`${last.year}年度の筆記得点`:"過去問未実施"}</div></div>
+ <section class="grid three"><div class=card><div class=metric>${last?`${last.score}/${WRITTEN_MAX_SCORE}`:"--"}</div><div class=muted>${last?`${last.year}年度の筆記得点`:"過去問未実施"}</div></div>
  <div class=card><div class=metric>${goalLabel()}</div><div class=muted>現在の学習目標</div></div>
  <div class=card><div class=metric>${active.filter(([_,w])=>w.priority==="A").length}</div><div class=muted>A問題の未克服</div></div></section>
  <section class=card><div class="row space"><div><div class=eyebrow>CURRENT STATUS</div><h3>現在の到達状況</h3></div><b>未克服 ${active.length} ／ 克服済み ${mastered()}</b></div><p>${goalAdvice()}</p><p class=muted>A＝60点、B＝70点、C＝75点。目標を変えても、これまでの得点・正誤・類題履歴は消しません。</p></section>
@@ -182,11 +275,11 @@ function home(){
  <div class=bluebox><b>① ピンポイント類題</b><p>元の誤答と同じ論点を3問連続正解するまで反復。</p></div>
  <div class=warnbox><b>② 翌日チェック</b><p>3連続正解しても消さず、翌日に2問確認。</p></div>
  <div class=okbox><b>③ 克服</b><p>翌日の確認も2連続正解で初めて「克服済み」。</p></div></div></section>
- ${last?`<section class=card><h3>直近の過去問</h3><p>${last.year}年度　筆記 ${last.score}/80　／　A失点 ${last.aLost||0}点　／　B失点 ${last.bLost||0}点　／　C失点 ${last.cLost||0}点</p></section>`:""}`;
+ ${last?`<section class=card><h3>直近の過去問</h3><p>${last.year}年度　筆記 ${last.score}/${WRITTEN_MAX_SCORE}　／　A失点 ${last.aLost||0}点　／　B失点 ${last.bLost||0}点　／　C失点 ${last.cLost||0}点</p></section>`:""}`;
 }
 function route(){
  return `<section class="card hero"><div class=eyebrow>DIAGNOSE → REMEDIATE → VERIFY</div><h2>過去問学習ルート</h2><p>年度ごとの目的を変え、2025・2026の初見性を守ります。</p></section>
- <section class=route-list>${ROUTE.map((y,i)=>{const attempts=S.attempts.filter(a=>a.year===y),last=[...attempts].reverse().find(a=>a.status==="graded"),exp=S.exposure[y],status=last?"採点済み":S.currentAttempt?.year===y&&S.currentAttempt.status==="active"?"解答中":exp?"一部既出":"未着手",protectedYear=y>=2025&&!attempts.length&&!exp,recs=routeRecommendations(y);return `<article class="card route-step ${protectedYear?"protected":""}"><div class=route-number>${i+1}</div><div class=route-main><div class="row space"><div><h3>${y}年度</h3><b>${routeRole(y)}</b></div><span class="status-pill">${protectedYear?"初見温存中":status}</span></div><p>${y===2024?"現在地を測り、全問を弱点分析します。":y<2024?"2024で見つかった弱点に対応する実際の過去問を使います。":y===2025?"補強が直近型に通用するか確認します。":"本番前の最後の完全初見判定です。"}</p>${recs.length?`<div class=route-recs><b>現在の弱点に対応</b><p>${recs.map(q=>`${h(q.label)}（${skillName(q.skill)}・${strategyPriority(q)}）`).join(" ／ ")}</p></div>`:""}${last?`<p class=tiny>最新：筆記 ${last.writtenScore}/80　${exposureLabel(last.exposure)}　${last.comparable?"比較対象":"練習記録"}</p>`:""}<button class="${y===nextRouteYear()?"primary":""}" onclick="openYear(${y})">${S.currentAttempt?.year===y&&S.currentAttempt.status==="active"?"続きを解く":"年度を開く"}</button></div></article>`}).join("")}</section>`;
+ <section class=route-list>${ROUTE.map((y,i)=>{const attempts=S.attempts.filter(a=>a.year===y),last=[...attempts].reverse().find(a=>a.status==="graded"),exp=S.exposure[y],status=last?"採点済み":S.currentAttempt?.year===y&&S.currentAttempt.status==="active"?"解答中":exp?"一部既出":"未着手",protectedYear=y>=2025&&!attempts.length&&!exp,recs=routeRecommendations(y);return `<article class="card route-step ${protectedYear?"protected":""}"><div class=route-number>${i+1}</div><div class=route-main><div class="row space"><div><h3>${y}年度</h3><b>${routeRole(y)}</b></div><span class="status-pill">${protectedYear?"初見温存中":status}</span></div><p>${y===2024?"現在地を測り、全問を弱点分析します。":y<2024?"2024で見つかった弱点に対応する実際の過去問を使います。":y===2025?"補強が直近型に通用するか確認します。":"本番前の最後の完全初見判定です。"}</p>${recs.length?`<div class=route-recs><b>現在の弱点に対応</b><p>${recs.map(q=>`${h(q.label)}（${skillName(q.skill)}・${strategyPriority(q)}）`).join(" ／ ")}</p></div>`:""}${last?`<p class=tiny>最新：筆記 ${last.writtenScore}/${WRITTEN_MAX_SCORE}　${exposureLabel(last.exposure)}　${last.comparable?"比較対象":"練習記録"}</p>`:""}<button class="${y===nextRouteYear()?"primary":""}" onclick="openYear(${y})">${S.currentAttempt?.year===y&&S.currentAttempt.status==="active"?"続きを解く":"年度を開く"}</button></div></article>`}).join("")}</section>`;
 }
 function openYear(y){y=Number(y);if(!ROUTE.includes(y))return goto("home");if(completedDrillCycle())endDrillSession();S.year=y;save();goto("exam")}
 function clearYearWork(y){yearKeys(S.answers,y).forEach(x=>delete S.answers[x]);yearKeys(S.manual,y).forEach(x=>delete S.manual[x])}
@@ -206,8 +299,8 @@ function beginAttempt(y){
 function resumeLegacy(y){
  S.currentAttempt={id:attemptId(),year:Number(y),status:"active",exposure:S.exposure[y]||"unknown",mode:"unknown",limitMinutes:null,startedAt:new Date().toISOString(),startedTimezone:Intl.DateTimeFormat().resolvedOptions().timeZone||"local",interrupted:true,legacy:true};save();render();
 }
-function interruptAttempt(){if(!S.currentAttempt)return;S.currentAttempt.interrupted=true;S.currentAttempt.mode="untimed";save();alert("中断を記録しました。この受験は保存されますが、本番比較・安定判定には使いません。");render()}
-function attemptComparable(a){return a?.exposure==="first"&&a?.mode==="timed"&&!a?.interrupted&&!a?.overtime}
+function interruptAttempt(){if(!S.currentAttempt)return;const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.interruptExamAttempt;if(shared)shared(S.currentAttempt);else{S.currentAttempt.interrupted=true;S.currentAttempt.mode="untimed"}save();alert("中断を記録しました。この受験は保存されますが、本番比較・安定判定には使いません。");render()}
+function attemptComparable(a){const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.isExamAttemptComparable;return shared?shared(a):!!(a?.exposure==="first"&&a?.mode==="timed"&&!a?.interrupted&&!a?.overtime)}
 function elapsedSeconds(a){return Math.max(0,Math.floor((Date.now()-new Date(a.startedAt).getTime())/1000))}
 function timerMarkup(a){if(a.mode!=="timed")return `<span class="timer practice">時間無制限</span>`;const total=a.limitMinutes*60,remain=total-elapsedSeconds(a);if(remain<=0){a.overtime=true;save()}const abs=Math.abs(remain),mm=String(Math.floor(abs/60)).padStart(2,"0"),ss=String(abs%60).padStart(2,"0");return `<span id=examTimer class="timer ${remain<=0?"over":""}">${remain<=0?"時間超過 ":"残り "}${mm}:${ss}</span>`}
 function updateTimer(){const a=S.currentAttempt,el=document.getElementById("examTimer");if(!el||!a||a.mode!=="timed")return;const total=a.limitMinutes*60,remain=total-elapsedSeconds(a);if(remain<=0&&!a.overtime){a.overtime=true;save()}const abs=Math.abs(remain),mm=String(Math.floor(abs/60)).padStart(2,"0"),ss=String(abs%60).padStart(2,"0");el.textContent=`${remain<=0?"時間超過 ":"残り "}${mm}:${ss}`;el.classList.toggle("over",remain<=0)}
@@ -334,7 +427,7 @@ function exam(){
  <section class="attempt-bar ${S.examInfoCompact?"attempt-compact":""}"><div class=attempt-summary><b>${y}年度 <span class=attempt-role>${routeRole(y)}</span></b><span class=attempt-detail>${exposureLabel(attempt.exposure)}／${attempt.mode==="timed"?"本番時間":"時間無制限"}</span></div>${timerMarkup(attempt)}<div class=attempt-actions><button class=interrupt-button onclick="interruptAttempt()">中断を記録</button><button class=attempt-toggle onclick="toggleExamInfo()">${S.examInfoCompact?"開く":"小さくする"}</button></div></section>
  <section class=notice><b>${y}年度 実際の筆記問題</b><br><span class=muted>問題冊子PDFではなく、問題冊子から抽出した実際の本文・設問をそのまま表示しています。大問1・2（リスニング）は別アプリ対象です。</span></section>
  <div class=examgrid><section class=problem-column>${renderPaperPages(y,pages)}</section>
- <aside id=answerPanel class="card answerpanel ${S.answerSheetOpen?"sheet-open":"sheet-collapsed"} ${S.answerSheetExpanded?"sheet-expanded":""}"><div class=answer-sheet-head><div><h3>解答欄</h3><span>筆記80点</span></div><div class=sheet-actions>${S.answerSheetOpen?`<button type=button class="sheet-toggle size-toggle" onclick="toggleAnswerSize()">${S.answerSheetExpanded?"標準":"広げる"}</button>`:""}<button type=button class=sheet-toggle onclick="toggleAnswerSheet()">${S.answerSheetOpen?"閉じる":"解答欄を開く"}</button></div></div>
+ <aside id=answerPanel class="card answerpanel ${S.answerSheetOpen?"sheet-open":"sheet-collapsed"} ${S.answerSheetExpanded?"sheet-expanded":""}"><div class=answer-sheet-head><div><h3>解答欄</h3><span>筆記${WRITTEN_MAX_SCORE}点</span></div><div class=sheet-actions>${S.answerSheetOpen?`<button type=button class="sheet-toggle size-toggle" onclick="toggleAnswerSize()">${S.answerSheetExpanded?"標準":"広げる"}</button>`:""}<button type=button class=sheet-toggle onclick="toggleAnswerSheet()">${S.answerSheetOpen?"閉じる":"解答欄を開く"}</button></div></div>
  <div class=answer-sheet-body><div class=answer-help><b>スマホでは問題を上側、解答欄を下側に同時表示</b><span>「問題へ」を押すと、該当箇所へすぐ移動します。</span></div>
  <div class=answer-jumps>${answerMajors(rows).map(m=>`<button type=button onclick="jumpAnswerMajor(${y},'${m}')">大問${m}</button>`).join("")}</div>
  ${rows.map(q=>answerRow(y,q)).join("")}
@@ -420,6 +513,8 @@ function matches(q,a){
  return x===z;
 }
 function objectiveScore(q,a){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.scoreObjectiveQuestion;
+ if(shared)return shared(q,a,{normalize:norm,matchAnswer:matches});
  if(q.type==="multi"){const chosen=new Set(norm(a).split(",").filter(Boolean)),correct=norm(q.answer).split(",").filter(Boolean),unit=q.points/correct.length;return correct.reduce((sum,x)=>sum+(chosen.has(x)?unit:0),0)}
  return matches(q,a)?q.points:0;
 }
@@ -454,22 +549,26 @@ function grade(y){
  save();goto("result");
  }
 function createWeak(y,q,user,component="main",manualComponents=[]){
- const key=`${k(y,q.id)}:${component}`, old=S.weak[key]||{};
- S.weak[key]={...old,year:Number(y),id:q.id,label:q.label,category:component==="main"?q.category:`${q.category}：${component}`,component,skill:q.skill,targetId:q.targetId,focusTag:component==="main"?q.focusTag:`manual:${q.skill}:${component}`,examFormat:q.examFormat,trap:component==="main"?q.trap:component,priority:strategyPriority(q),points:q.points,user,last:"wrong",status:"active",streak:0,confirmStreak:0,next:today(),wrongCount:(old.wrongCount||0)+1,reservedConfirm:[],seenDrills:old.seenDrills||[],manualComponents:manualComponents.length?[...new Set(manualComponents)]:old.manualComponents||[]};
+ const key=`${k(y,q.id)}:${component}`, old=S.weak[key]||{},category=component=="main"?q.category:`${q.category}：${component}`,focusTag=component=="main"?q.focusTag:`manual:${q.skill}:${component}`,trap=component=="main"?q.trap:component;
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.buildWrongWeaknessState;
+ if(shared)S.weak[key]=shared(old,{year:y,id:q.id,label:q.label,category,component,skill:q.skill,targetId:q.targetId,focusTag,examFormat:q.examFormat,trap,priority:strategyPriority(q),points:q.points,user,today:today(),manualComponents});
+ else S.weak[key]={...old,year:Number(y),id:q.id,label:q.label,category,component,skill:q.skill,targetId:q.targetId,focusTag,examFormat:q.examFormat,trap,priority:strategyPriority(q),points:q.points,user,last:"wrong",status:"active",streak:0,confirmStreak:0,next:today(),wrongCount:(old.wrongCount||0)+1,reservedConfirm:[],seenDrills:old.seenDrills||[],manualComponents:manualComponents.length?[...new Set(manualComponents)]:old.manualComponents||[]};
 }
 function markActualCorrect(y,q,user){
- Object.values(S.weak).filter(w=>w.year===Number(y)&&w.id===q.id).forEach(old=>{old.user=user;old.last="correct";old.actualCorrect=(old.actualCorrect||0)+1});
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.markWeaknessesActuallyCorrect;
+ if(shared)shared(Object.values(S.weak),{year:y,id:q.id,user});
+ else Object.values(S.weak).filter(w=>w.year===Number(y)&&w.id===q.id).forEach(old=>{old.user=user;old.last="correct";old.actualCorrect=(old.actualCorrect||0)+1});
 }
-function setListeningScore(id,value){const a=S.attempts.find(x=>x.id===id);if(!a)return;const score=value===""?null:Math.max(0,Math.min(20,Number(value)||0));a.listeningScore=score;a.totalScore=score===null?null:a.writtenScore+score;save();render()}
-function goalStatus(a,target){if(a.listeningScore!==null&&a.listeningScore!==undefined){const total=a.writtenScore+a.listeningScore;return total>=target?`到達（${total}/100）`:`あと${target-total}点`};const need=target-a.writtenScore;if(need<=0)return `筆記だけで${target}点以上`;if(need<=20)return `リスニング${need}/20以上が必要`;return `現在の筆記点では到達不可`}
+function setListeningScore(id,value){const a=S.attempts.find(x=>x.id===id);if(!a)return;const score=value===""?null:Math.max(0,Math.min(LISTENING_MAX_SCORE,Number(value)||0));a.listeningScore=score;a.totalScore=score===null?null:a.writtenScore+score;save();render()}
+function goalStatus(a,target){if(a.listeningScore!==null&&a.listeningScore!==undefined){const total=a.writtenScore+a.listeningScore;return total>=target?`到達（${total}/${TOTAL_MAX_SCORE}）`:`あと${target-total}点`};const need=target-a.writtenScore;if(need<=0)return `筆記だけで${target}点以上`;if(need<=LISTENING_MAX_SCORE)return `リスニング${need}/${LISTENING_MAX_SCORE}以上が必要`;return `現在の筆記点では到達不可`}
 function result(){
  const a=S.attempts.find(x=>x.id===S.lastResultId)||latestAttempt();if(!a){const y=nextRouteYear();return `<section class="card hero"><h2>採点結果はまだありません。</h2>${y?`<button onclick="openYear(${y})">過去問を始める</button>`:`<button onclick="goto('home')">今日やることへ</button>`}</section>`;}
  const total=a.listeningScore===null||a.listeningScore===undefined?null:a.writtenScore+a.listeningScore;
  const unresolved=activeWeak().map(([_,w])=>w).filter(w=>w.year===a.year).sort((x,y)=>x.priority.localeCompare(y.priority)).slice(0,6);
- return `<section class="card hero result-hero"><div class=eyebrow>${a.year} RESULT</div><h2>筆記 ${a.writtenScore}/80</h2><p>${exposureLabel(a.exposure)}／${a.mode==="timed"?"本番時間":"時間無制限"}／${a.comparable?"到達度比較に使用":"練習記録"}</p><div class="score-total">${total===null?"総合点はリスニング入力後に表示":`総合 ${total}/100`}</div></section>
+ return `<section class="card hero result-hero"><div class=eyebrow>${a.year} RESULT</div><h2>筆記 ${a.writtenScore}/${WRITTEN_MAX_SCORE}</h2><p>${exposureLabel(a.exposure)}／${a.mode==="timed"?"本番時間":"時間無制限"}／${a.comparable?"到達度比較に使用":"練習記録"}</p><div class="score-total">${total===null?"総合点はリスニング入力後に表示":`総合 ${total}/${TOTAL_MAX_SCORE}`}</div></section>
  <section class="grid three"><div class=card><div class=metric>${a.aLost||0}</div><div class=muted>A問題の失点</div></div><div class=card><div class=metric>${a.bLost||0}</div><div class=muted>B問題の失点</div></div><div class=card><div class=metric>${a.cLost||0}</div><div class=muted>C問題の失点</div></div></section>
- <section class=card><h3>同じ受験回のリスニング</h3><p class=muted>別年度・別の受験回の最高点とは合算しません。</p><label>リスニング得点 <input class=listening-input type=number inputmode=numeric min=0 max=20 value="${a.listeningScore??""}" placeholder="未入力" onchange="setListeningScore('${a.id}',this.value)"> /20</label></section>
- <section class=card><h3>A・B・C目標への距離</h3><div class=goal-grid>${[60,70,75].map(t=>`<div class="goal-card ${S.goal===t?"selected":""}"><b>${goalLabel(t)}</b><span>${goalStatus(a,t)}</span></div>`).join("")}</div><p class=tiny>総合点は同じ年度・同じ受験回の筆記とリスニングだけを合算します。</p></section>
+ <section class=card><h3>同じ受験回のリスニング</h3><p class=muted>別年度・別の受験回の最高点とは合算しません。</p><label>リスニング得点 <input class=listening-input type=number inputmode=numeric min=0 max=${LISTENING_MAX_SCORE} value="${a.listeningScore??""}" placeholder="未入力" onchange="setListeningScore('${a.id}',this.value)"> /${LISTENING_MAX_SCORE}</label></section>
+ <section class=card><h3>A・B・C目標への距離</h3><div class=goal-grid>${GOAL_TIERS.map(t=>`<div class="goal-card ${S.goal===t?"selected":""}"><b>${goalLabel(t)}</b><span>${goalStatus(a,t)}</span></div>`).join("")}</div><p class=tiny>総合点は同じ年度・同じ受験回の筆記とリスニングだけを合算します。</p></section>
  ${unresolved.length?`<section class=card><h3>この年度の未克服ポイント</h3>${unresolved.map(w=>`<p><b>${badge(w.priority)} ${h(w.label)}</b>　${skillName(w.skill)}：${h(w.category)}</p>`).join("")}</section>`:""}
  <section class=card><h3>次にやること</h3><p>${goalAdvice()}</p><div class=row><button class=primary onclick="goto('home')">今日やることへ</button><button onclick="goto('review')">誤答一覧</button><button onclick="goto('route')">学習ルートへ</button></div></section>`;
 }
@@ -490,6 +589,8 @@ function startTodayTasks(){const remaining=planRemaining();if(!remaining.length)
 function startDue(){startTodayTasks()}
 function familyCount(items){return new Set(items.map(x=>x.familyId)).size}
 function poolForWeak(w){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.selectPracticePool;
+ if(shared)return shared(BANK,w,{minFamilies:5});
  const active=BANK.filter(x=>!x.retired);
  const exact=active.filter(x=>x.targetId===w.targetId);
  // Some legitimate target subtypes have fewer than five drills.
@@ -500,8 +601,17 @@ function poolForWeak(w){
  return broad.length?broad:exact;
 }
 function lastDrillUse(key,id){for(let i=S.drillLog.length-1;i>=0;i--){const x=S.drillLog[i];if(x.key===key&&x.q===id)return i}return -1}
-function leastRecentlyUsed(key,items,lastId,w,confirm=false){return [...items].sort((a,b)=>{const rank=q=>(q.focusTag===w.focusTag?-30:0)+(confirm&&q.level===3?-20:0)+(q.examFormat===w.examFormat?-6:0);return rank(a)-rank(b)||(a.id===lastId?1:b.id===lastId?-1:0)||lastDrillUse(key,a.id)-lastDrillUse(key,b.id)||a.id.localeCompare(b.id)})}
+function leastRecentlyUsed(key,items,lastId,w,confirm=false){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.rankPracticeQuestions;
+ if(shared)return shared(items,{weak:w,lastId,confirm,lastUse:id=>lastDrillUse(key,id)});
+ return [...items].sort((a,b)=>{const rank=q=>(q.focusTag===w.focusTag?-30:0)+(confirm&&q.level===3?-20:0)+(q.examFormat===w.examFormat?-6:0);return rank(a)-rank(b)||(a.id===lastId?1:b.id===lastId?-1:0)||lastDrillUse(key,a.id)-lastDrillUse(key,b.id)||a.id.localeCompare(b.id)})
+}
 function ensureConfirmationReserve(key,w,pool){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.reserveConfirmationIds;
+ if(shared){
+   const reserved=shared({currentReserved:w.reservedConfirm,pool,limit:2,rankChoices:items=>leastRecentlyUsed(key,items,w.lastDrillId,w,true)});
+   w.reservedConfirm=reserved;return reserved;
+ }
  const byId=new Map(pool.map(x=>[x.id,x])),reserved=[];
  for(const id of [...new Set(Array.isArray(w.reservedConfirm)?w.reservedConfirm:[])]){const q=byId.get(id);if(q&&!reserved.some(x=>byId.get(x)?.familyId===q.familyId))reserved.push(id);if(reserved.length===2)break}
  if(reserved.length<2){const families=new Set(reserved.map(id=>byId.get(id)?.familyId)),choices=leastRecentlyUsed(key,pool.filter(x=>!reserved.includes(x.id)&&!families.has(x.familyId)),w.lastDrillId,w,true);while(reserved.length<2&&choices.length){const q=choices.shift();if(families.has(q.familyId))continue;families.add(q.familyId);reserved.push(q.id)}}
@@ -515,17 +625,42 @@ function startSkill(key){
  if(drillState?.key&&S.weak[drillState.key]?.status==="mastered"){drillState=null;S.currentDrill=null;S.currentSkill=null}
  if(drillState?.key===key&&drillState.q&&!drillState.q.retired)return resumeCurrentDrill();
  if(drillState?.key&&drillState.key!==key)return alert("別の克服ドリルが途中です。『今日やること』から途中の問題を完了してから次へ進んでください。");
- const pool=poolForWeak(w),families=new Set(pool.map(x=>x.familyId));if(families.size<5)return alert(`${skillName(w.skill)}の同一論点類題は現在${families.size}系統です。即時3問＋翌日2問を別問題で確保できないため開始できません。`);
- if(w.status==="pending"&&w.next>today())return alert(`定着チェック予定日は ${w.next} です。翌日確認の効果を守るため、予定日までは開始できません。`);
+ const pool=poolForWeak(w),families=new Set(pool.map(x=>x.familyId)),sharedDecision=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.practiceSessionStartDecision;
+ let mode=null;
+ if(sharedDecision){
+   const decision=sharedDecision({weak:w,key,currentDrill:null,familyTotal:families.size,today:today(),minFamilies:5});
+   if(decision.kind==="insufficient-families")return alert(`${skillName(w.skill)}の同一論点類題は現在${decision.familyTotal}系統です。即時3問＋翌日2問を別問題で確保できないため開始できません。`);
+   if(decision.kind==="too-early")return alert(`定着チェック予定日は ${decision.date} です。翌日確認の効果を守るため、予定日までは開始できません。`);
+   mode=decision.mode;
+ }else{
+   if(families.size<5)return alert(`${skillName(w.skill)}の同一論点類題は現在${families.size}系統です。即時3問＋翌日2問を別問題で確保できないため開始できません。`);
+   if(w.status==="pending"&&w.next>today())return alert(`定着チェック予定日は ${w.next} です。翌日確認の効果を守るため、予定日までは開始できません。`);
+   mode=w.status==="pending"?"confirm":"train";
+ }
  ensureConfirmationReserve(key,w,pool);
  S.currentSkill=key;S.lastStartedWeakKey=key;
- drillState={key,skill:w.skill,targetId:w.targetId,focusTag:w.focusTag,mode:w.status==="pending"?"confirm":"train",used:[],q:null,error:null,answered:false,selected:null,selectedMany:[],order:[],orderIndices:[],textInputs:[],selfText:"",selfParts:[],selfChecks:[]};
+ const sharedCreate=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.createPracticeSessionState;
+ drillState=sharedCreate?sharedCreate({key,weak:w,mode}):{key,skill:w.skill,targetId:w.targetId,focusTag:w.focusTag,mode,used:[],q:null,error:null,answered:false,selected:null,selectedMany:[],order:[],orderIndices:[],textInputs:[],selfText:"",selfParts:[],selfChecks:[]};
  nextDrill();goto("drill");
 }
 function nextDrill(){
  if(!drillState)return;
  const w=S.weak[drillState.key],pool=poolForWeak(w);
- const reserved=ensureConfirmationReserve(drillState.key,w,pool),reservedFamilies=new Set(pool.filter(x=>reserved.includes(x.id)).map(x=>x.familyId));
+ const reserved=ensureConfirmationReserve(drillState.key,w,pool),shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.selectNextPracticeQuestion;
+ if(shared){
+   const selection=shared({pool,reservedIds:reserved,usedIds:drillState.used,mode:drillState.mode,streak:w.streak,rankChoices:(items,confirm)=>leastRecentlyUsed(drillState.key,items,w.lastDrillId,w,confirm)});
+   drillState.used=[...(selection.usedIds||[])];
+   const q=selection.question;
+   if(!q){drillState.q=null;drillState.error="出題できる類題を確保できませんでした。間違い対策へ戻って、もう一度開始してください。";persistDrill();return}
+   const choiceOrder=q.options?q.options.map((_,i)=>i).sort(()=>Math.random()-.5):[],sharedApply=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.applyPracticeQuestionState;
+   if(sharedApply)sharedApply(drillState,w,q,{usedIds:selection.usedIds,choiceOrder});
+   else{
+     drillState.error=null;
+     drillState.q=q;w.lastDrillId=q.id;w.seenDrills=[...new Set([...(w.seenDrills||[]),q.id])];drillState.answered=false;drillState.selected=null;drillState.selectedMany=[];drillState.order=[];drillState.orderIndices=[];drillState.textInputs=[];drillState.selfText="";drillState.selfParts=[];drillState.selfChecks=[];drillState.selfcheck=false;drillState.aiFeedback=null;drillState.aiFeedbackStale=false;drillState.choiceOrder=choiceOrder;
+   }
+   persistDrill();return;
+ }
+ const reservedFamilies=new Set(pool.filter(x=>reserved.includes(x.id)).map(x=>x.familyId));
  let candidates=drillState.mode==="confirm"?pool.filter(x=>reserved.includes(x.id)&&!drillState.used.includes(x.id)):pool.filter(x=>!reservedFamilies.has(x.familyId)&&!drillState.used.includes(x.id));
  if(!candidates.length){drillState.used=[];candidates=drillState.mode==="confirm"?pool.filter(x=>reserved.includes(x.id)):pool.filter(x=>!reserved.includes(x.id))}
  // During training, introduce level 1/2 first; confirmation may use any level.
@@ -600,7 +735,11 @@ function finishDrill(ok){
  ensureDailyPlan();
  const w=S.weak[drillState.key];drillState.answered=true;drillState.correct=ok;
  const count=dailyAnswered(S.dailyPlan)+1;S.dailyProgress={date:today(),answeredCount:count};if(S.dailyPlan?.date===today())S.dailyPlan.answeredCount=count;
- if(drillState.mode==="train"){
+ const sharedAdvance=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.advanceRemediationMastery;
+ if(sharedAdvance){
+   const transition=sharedAdvance(w,drillState,ok,{today:today(),nextDay:plusDays(1),nowIso:new Date().toISOString(),trainTarget:3,confirmTarget:2});
+   if(transition?.needsConfirmationReserve)ensureConfirmationReserve(drillState.key,w,poolForWeak(w));
+ }else if(drillState.mode==="train"){
    if(ok)w.streak=(w.streak||0)+1;else w.streak=0;
    if(w.streak>=3){w.status="pending";w.next=plusDays(1);w.confirmStreak=0}
  }else{
@@ -874,8 +1013,8 @@ function stats(){
  const comparable=S.attempts.filter(x=>x.status==="graded"&&x.comparable),latest=[...comparable].reverse()[0];
  const statusFor=t=>{const eligible=comparable.filter(x=>x.totalScore!==null&&x.totalScore!==undefined),reached=eligible.at(-1)?.totalScore>=t,stable=eligible.length>=2&&eligible.at(-1).year!==eligible.at(-2).year&&eligible.at(-1).totalScore>=t&&eligible.at(-2).totalScore>=t;return stable?"安定":reached?"到達":"未到達"};
  return `<section class="grid four"><div class=card><div class=metric>${a.length}</div><div class=muted>A未克服</div></div><div class=card><div class=metric>${b.length}</div><div class=muted>B未克服</div></div><div class=card><div class=metric>${c.length}</div><div class=muted>C未克服</div></div><div class=card><div class=metric>${rate}%</div><div class=muted>直近20類題</div></div></section>
- <section class=card><h2>総合点の到達度</h2><div class=goal-grid>${[60,70,75].map(t=>`<div class="goal-card ${statusFor(t)==="安定"?"stable":""} ${S.goal===t?"selected":""}"><b>${goalLabel(t)}</b><span>${statusFor(t)}</span></div>`).join("")}</div><p class=muted>「安定」は、異なる年度の完全初見・本番時間・通し演習で2回連続到達した場合のみです。${latest&&!latest.totalScore?" リスニング未入力のため総合判定は保留です。":""}</p></section>
- <section class=card><h2>年度別記録</h2><div class=table><table><tr><th>年度</th><th>役割</th><th>筆記</th><th>総合</th><th>条件</th></tr>${ROUTE.map(y=>{const x=latestAttempt(y);return `<tr><td>${y}</td><td>${routeRole(y)}</td><td>${x?`${x.writtenScore}/80`:"－"}</td><td>${x?.totalScore!==null&&x?.totalScore!==undefined?`${x.totalScore}/100`:"－"}</td><td>${x?(x.comparable?"比較対象":"練習記録"):"未着手"}</td></tr>`}).join("")}</table></div></section>
+ <section class=card><h2>総合点の到達度</h2><div class=goal-grid>${GOAL_TIERS.map(t=>`<div class="goal-card ${statusFor(t)==="安定"?"stable":""} ${S.goal===t?"selected":""}"><b>${goalLabel(t)}</b><span>${statusFor(t)}</span></div>`).join("")}</div><p class=muted>「安定」は、異なる年度の完全初見・本番時間・通し演習で2回連続到達した場合のみです。${latest&&!latest.totalScore?" リスニング未入力のため総合判定は保留です。":""}</p></section>
+ <section class=card><h2>年度別記録</h2><div class=table><table><tr><th>年度</th><th>役割</th><th>筆記</th><th>総合</th><th>条件</th></tr>${ROUTE.map(y=>{const x=latestAttempt(y);return `<tr><td>${y}</td><td>${routeRole(y)}</td><td>${x?`${x.writtenScore}/${WRITTEN_MAX_SCORE}`:"－"}</td><td>${x?.totalScore!==null&&x?.totalScore!==undefined?`${x.totalScore}/${TOTAL_MAX_SCORE}`:"－"}</td><td>${x?(x.comparable?"比較対象":"練習記録"):"未着手"}</td></tr>`}).join("")}</table></div></section>
  <section class=card><h2>弱点分野</h2><div class=table><table><tr><th>分野</th><th>未克服</th><th>対策</th></tr>${Object.entries(bySkill).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`<tr><td>${skillName(s)}</td><td>${n}</td><td><button onclick="startFirstSkill('${s}')">類題を解く</button></td></tr>`).join("")||"<tr><td colspan=3>未克服なし</td></tr>"}</table></div></section>
  <section class=card><h3>失点原因</h3>${Object.entries(byCause).sort((a,b)=>b[1]-a[1]).map(([c,n])=>`<p>${h(c)}：${n}</p>`).join("")||"<p class=muted>間違い対策画面で原因を選ぶと表示されます。</p>"}
  </section><section class=card><h3>優先順位</h3><p><b>Aの誤答 → Aのケアレスミス → 頻出B → 時間不足 → 記述条件</b>の順で直します。C相当の難問より、Aの再発防止を優先します。</p></section>`;
@@ -885,14 +1024,16 @@ function stateChecksum(state){const text=JSON.stringify(state);let hash=21661362
 function exportData(){const payload={appId:"waseshibu-english-adaptive",schemaVersion:SCHEMA_VERSION,exportedAt:new Date().toISOString(),state:S,stateChecksum:stateChecksum(S)};const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`waseshibu-english-backup-${today()}.json`;a.hidden=true;document.body?.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}
 function savePreImportRecovery(){try{const key=`${IMPORT_RECOVERY_PREFIX}.${Date.now()}`;localStorage.setItem(key,JSON.stringify(S));const keys=storageKeys(`${IMPORT_RECOVERY_PREFIX}.`).sort().reverse();keys.slice(3).forEach(old=>localStorage.removeItem(old));return key}catch(e){return null}}
 function normalizeImportedState(x){const next={...x,answers:x.answers||{},manual:x.manual||{},weak:x.weak||{},cause:x.cause||{},exposure:x.exposure||{},attempts:Array.isArray(x.attempts)?x.attempts:[],history:Array.isArray(x.history)?x.history:[],drillLog:Array.isArray(x.drillLog)?x.drillLog:[],dailyPlan:x.dailyPlan&&typeof x.dailyPlan==="object"?x.dailyPlan:null,dailyProgress:x.dailyProgress&&typeof x.dailyProgress==="object"?x.dailyProgress:null,recoveredDrills:Array.isArray(x.recoveredDrills)?x.recoveredDrills:[]};if(next.currentAttempt?.mode==="targeted"){next.currentAttempt.mode="untimed";next.currentAttempt.interrupted=true}return window.ENGLISH_MODEL?window.ENGLISH_MODEL.migrateState(next):next}
-function validateImport(payload){if(!payload||payload.appId!=="waseshibu-english-adaptive"||!payload.state)throw new Error("このアプリのバックアップではありません。");if(!Number.isFinite(Number(payload.schemaVersion))||Number(payload.schemaVersion)>SCHEMA_VERSION)throw new Error("対応していないバックアップ形式です。");if(payload.stateChecksum&&payload.stateChecksum!==stateChecksum(payload.state))throw new Error("バックアップの検査値が一致しません。ファイルが途中で壊れた可能性があります。");const x=normalizeImportedState(payload.state);if(typeof x.answers!=="object"||Array.isArray(x.answers)||typeof x.weak!=="object"||Array.isArray(x.weak))throw new Error("必要な学習データがありません。");for(const a of x.attempts){const writtenMissing=a.writtenScore===null||a.writtenScore===undefined||a.writtenScore==="",written=Number(a.writtenScore),writtenInvalid=(!writtenMissing&&(!Number.isFinite(written)||written<0||written>80))||(a.status==="graded"&&writtenMissing),listening=a.listeningScore;const listeningInvalid=listening!==null&&listening!==undefined&&(listening===""||!Number.isFinite(Number(listening))||Number(listening)<0||Number(listening)>20);if(!a.id||!ROUTE.includes(Number(a.year))||writtenInvalid||listeningInvalid)throw new Error("受験記録の年度または点数が不正です。")}if(x.currentAttempt&&(!x.currentAttempt.id||!ROUTE.includes(Number(x.currentAttempt.year))))throw new Error("解答途中の記録が不正です。");return x}
-function mergeWeak(a={},b={}){if(a.status==="mastered"&&b.status!=="mastered")return a;if(b.status==="mastered"&&a.status!=="mastered")return b;const ap=(a.confirmStreak||0)*10+(a.streak||0),bp=(b.confirmStreak||0)*10+(b.streak||0);return bp>=ap?{...a,...b}:{...b,...a}}
-function dedupeBy(arr,keyFn){const m=new Map();arr.forEach(x=>m.set(keyFn(x),x));return [...m.values()]}
-function mergeExposure(a={},b={}){const rank={first:0,unknown:1,partial:2,done:3},out={...a};Object.entries(b).forEach(([y,v])=>{if(out[y]===undefined||rank[v]>=rank[out[y]])out[y]=v});return out}
-function mergeAnswerMaps(current={},incoming={}){const out={...incoming};Object.entries(current).forEach(([key,value])=>{if(String(value??"").trim()||!String(out[key]??"").trim())out[key]=value});return out}
-function mergeManualMaps(current={},incoming={}){const out={...incoming};Object.entries(current).forEach(([key,value])=>{const other=out[key]||{},currentHas=value?.score!==""&&value?.score!==undefined,incomingHas=other?.score!==""&&other?.score!==undefined;out[key]={...(currentHas||!incomingHas?other:value),...(currentHas||!incomingHas?value:other),components:[...new Set([...(other.components||[]),...(value?.components||[])])]}});return out}
-function mergeDailyProgress(a,b){if(a?.date===today()||b?.date===today())return {date:today(),answeredCount:Math.max(a?.date===today()?Number(a.answeredCount)||0:0,b?.date===today()?Number(b.answeredCount)||0:0)};return a||b||null}
+function validateImport(payload){if(!payload||payload.appId!=="waseshibu-english-adaptive"||!payload.state)throw new Error("このアプリのバックアップではありません。");if(!Number.isFinite(Number(payload.schemaVersion))||Number(payload.schemaVersion)>SCHEMA_VERSION)throw new Error("対応していないバックアップ形式です。");if(payload.stateChecksum&&payload.stateChecksum!==stateChecksum(payload.state))throw new Error("バックアップの検査値が一致しません。ファイルが途中で壊れた可能性があります。");const x=normalizeImportedState(payload.state);if(typeof x.answers!=="object"||Array.isArray(x.answers)||typeof x.weak!=="object"||Array.isArray(x.weak))throw new Error("必要な学習データがありません。");for(const a of x.attempts){const writtenMissing=a.writtenScore===null||a.writtenScore===undefined||a.writtenScore==="",written=Number(a.writtenScore),writtenInvalid=(!writtenMissing&&(!Number.isFinite(written)||written<0||written>WRITTEN_MAX_SCORE))||(a.status==="graded"&&writtenMissing),listening=a.listeningScore;const listeningInvalid=listening!==null&&listening!==undefined&&(listening===""||!Number.isFinite(Number(listening))||Number(listening)<0||Number(listening)>LISTENING_MAX_SCORE);if(!a.id||!ROUTE.includes(Number(a.year))||writtenInvalid||listeningInvalid)throw new Error("受験記録の年度または点数が不正です。")}if(x.currentAttempt&&(!x.currentAttempt.id||!ROUTE.includes(Number(x.currentAttempt.year))))throw new Error("解答途中の記録が不正です。");return x}
+function mergeWeak(a={},b={}){const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.mergeImportedWeakState;if(shared)return shared(a,b);if(a.status==="mastered"&&b.status!=="mastered")return a;if(b.status==="mastered"&&a.status!=="mastered")return b;const ap=(a.confirmStreak||0)*10+(a.streak||0),bp=(b.confirmStreak||0)*10+(b.streak||0);return bp>=ap?{...a,...b}:{...b,...a}}
+function dedupeBy(arr,keyFn){const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.dedupeImportedRows;if(shared)return shared(arr,keyFn);const m=new Map();arr.forEach(x=>m.set(keyFn(x),x));return [...m.values()]}
+function mergeExposure(a={},b={}){const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.mergeImportedExposure;if(shared)return shared(a,b);const rank={first:0,unknown:1,partial:2,done:3},out={...a};Object.entries(b).forEach(([y,v])=>{if(out[y]===undefined||rank[v]>=rank[out[y]])out[y]=v});return out}
+function mergeAnswerMaps(current={},incoming={}){const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.mergeImportedAnswerMaps;if(shared)return shared(current,incoming);const out={...incoming};Object.entries(current).forEach(([key,value])=>{if(String(value??"").trim()||!String(out[key]??"").trim())out[key]=value});return out}
+function mergeManualMaps(current={},incoming={}){const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.mergeImportedManualMaps;if(shared)return shared(current,incoming);const out={...incoming};Object.entries(current).forEach(([key,value])=>{const other=out[key]||{},currentHas=value?.score!==""&&value?.score!==undefined,incomingHas=other?.score!==""&&other?.score!==undefined;out[key]={...(currentHas||!incomingHas?other:value),...(currentHas||!incomingHas?value:other),components:[...new Set([...(other.components||[]),...(value?.components||[])])]}});return out}
+function mergeDailyProgress(a,b){const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.mergeImportedDailyProgress;if(shared)return shared(a,b,today());if(a?.date===today()||b?.date===today())return {date:today(),answeredCount:Math.max(a?.date===today()?Number(a.answeredCount)||0:0,b?.date===today()?Number(b.answeredCount)||0:0)};return a||b||null}
 function mergeImportedState(current,incoming){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.mergeImportedLearningState;
+ if(shared)return shared(current,incoming,{schemaVersion:SCHEMA_VERSION,todayValue:today(),nowIso:()=>new Date().toISOString()});
  const attemptMap=new Map([...(incoming.attempts||[]),...(current.attempts||[])].map(x=>[x.id,x])),weak={...(current.weak||{})};Object.entries(incoming.weak||{}).forEach(([key,w])=>weak[key]=mergeWeak(weak[key],w));
  let currentAttempt=current.currentAttempt||null,recoveredDrills=[...(current.recoveredDrills||[]),...(incoming.recoveredDrills||[])];
  if(currentAttempt&&incoming.currentAttempt&&currentAttempt.id!==incoming.currentAttempt.id){const archived={...incoming.currentAttempt,status:"interrupted",interrupted:true,endedAt:new Date().toISOString(),recoveredFromImport:true};attemptMap.set(archived.id,archived)}else if(!currentAttempt)currentAttempt=incoming.currentAttempt||null;
@@ -922,8 +1063,8 @@ function guide(){
  <section class=backup-box><h3>学習データのバックアップ</h3><p>この端末では、アプリを更新しても学習履歴を自動で引き継ぎます。機種変更、ブラウザ変更、端末故障への備えにはバックアップを使ってください。復元前の状態は端末内にも3世代まで退避します。</p><div class=row><button onclick="exportData()">バックアップを書き出す</button><label>復元方法 <select id=importMode><option value=merge>現在データへ統合</option><option value=replace>現在データと置換</option></select></label><label class=file-button>バックアップを選ぶ<input type=file accept="application/json,.json" onchange="importData(this)"></label></div></section>${S.recoveredDrills?.length?`<section class=backup-box><h3>退避した途中ドリル</h3><p>バックアップ統合時に重なった途中データです。</p>${S.recoveredDrills.map((d,i)=>`<div class="row space"><span>${h(S.weak[d.key]?.label||d.key||"不明なドリル")} ／ ${h(d.q?.id||"問題不明")}</span><span><button onclick="restoreRecoveredDrill(${i})">再開</button><button onclick="deleteRecoveredDrill(${i})">削除</button></span></div>`).join("")}</section>`:""}</section>`;
 }
 function scheduleDayRefresh(){if(dayRefreshHandle)clearTimeout(dayRefreshHandle);const next=new Date();next.setHours(24,0,1,0);dayRefreshHandle=setTimeout(()=>{checkDayChange();scheduleDayRefresh()},Math.max(1000,next-Date.now()))}
-function applyDayChange(){const current=today();renderedDate=current;dayChangePending=false;if(S.dailyPlan?.date!==current)S.dailyPlan=null;if(S.dailyProgress?.date!==current)S.dailyProgress=null;save()}
-function checkDayChange(){if(renderedDate===today())return;if(view==="drill"&&drillState&&!drillState.answered){dayChangePending=true;return}dayChangeNotice=view==="drill"&&!!drillState;dayChangeAnswerMoved=false;applyDayChange();render()}
+function applyDayChange(){const current=today();renderedDate=current;dayChangePending=false;const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.applyDailyRolloverState;if(shared)shared(S,current);else{if(S.dailyPlan?.date!==current)S.dailyPlan=null;if(S.dailyProgress?.date!==current)S.dailyProgress=null}save()}
+function checkDayChange(){const current=today(),shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.decideDayRollover;if(shared){const decision=shared({renderedDate,currentDate:current,isDrillView:view==="drill",hasDrill:!!drillState,drillAnswered:!!drillState?.answered});if(decision.kind==="same")return;if(decision.kind==="defer"){dayChangePending=true;return}dayChangeNotice=!!decision.notice;dayChangeAnswerMoved=false;applyDayChange();render();return}if(renderedDate===current)return;if(view==="drill"&&drillState&&!drillState.answered){dayChangePending=true;return}dayChangeNotice=view==="drill"&&!!drillState;dayChangeAnswerMoved=false;applyDayChange();render()}
 window.addEventListener("focus",checkDayChange);document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkDayChange()});
 function render(){if(timerHandle){clearInterval(timerHandle);timerHandle=null}app.innerHTML=({home,route,exam,result,review,drill,stats,guide})[view]();if(view==="exam"&&S.currentAttempt?.status==="active"&&S.currentAttempt.mode==="timed")timerHandle=setInterval(updateTimer,1000);scheduleDayRefresh()}
 render();

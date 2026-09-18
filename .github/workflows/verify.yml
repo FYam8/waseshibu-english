@@ -13,6 +13,57 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - run: node tests/shared-engine-contract.test.mjs
+      - run: node tests/shared-engine-bootstrap.test.mjs
+      - run: node tests/shared-engine-core-parity.test.mjs
+      - run: node tests/shared-engine-remediation-mastery-parity.test.mjs
+      - run: node tests/waseda-remediation-mastery-delegation.test.mjs
+      - run: node tests/waseda-daily-remediation-scheduling-characterization.test.mjs
+      - run: node tests/shared-engine-daily-remediation-scheduling-parity.test.mjs
+      - run: node tests/waseda-daily-remediation-scheduling-delegation.test.mjs
+      - run: node tests/waseda-daily-plan-construction-characterization.test.mjs
+      - run: node tests/shared-engine-daily-plan-construction-parity.test.mjs
+      - run: node tests/waseda-daily-plan-construction-delegation.test.mjs
+      - run: node tests/shared-engine-today-action-selection-parity.test.mjs
+      - run: node tests/waseda-today-action-selection-delegation.test.mjs
+      - run: node tests/waseda-practice-selection-characterization.test.mjs
+      - run: node tests/shared-engine-practice-selection-parity.test.mjs
+      - run: node tests/waseda-practice-selection-delegation.test.mjs
+      - run: node tests/waseda-practice-ranking-session-characterization.test.mjs
+      - run: node tests/shared-engine-practice-ranking-session-parity.test.mjs
+      - run: node tests/waseda-practice-ranking-session-delegation.test.mjs
+      - run: node tests/waseda-practice-session-state-characterization.test.mjs
+      - run: node tests/shared-engine-practice-session-state-parity.test.mjs
+      - run: node tests/waseda-practice-session-state-delegation.test.mjs
+      - run: node tests/waseda-exam-state-scoring-characterization.test.mjs
+      - run: node tests/shared-engine-exam-state-scoring-parity.test.mjs
+      - run: node tests/waseda-exam-state-scoring-delegation.test.mjs
+      - run: node tests/waseda-day-rollover-characterization.test.mjs
+      - run: node tests/shared-engine-day-rollover-parity.test.mjs
+      - run: node tests/waseda-day-rollover-delegation.test.mjs
+      - run: node tests/waseda-ai-writing-integration-characterization.test.mjs
+      - run: node tests/waseda-ai-writing-config-delegation.test.mjs
+      - run: node tests/waseda-import-merge-characterization.test.mjs
+      - run: node tests/shared-engine-import-merge-parity.test.mjs
+      - run: node tests/shared-engine-import-composite-parity.test.mjs
+      - run: node tests/waseda-import-composite-delegation.test.mjs
+      - run: node tests/shared-engine-final-readiness.test.mjs
+      - run: node tests/waseda-import-merge-delegation.test.mjs
+      - run: node tests/waseda-policy-delegation.test.mjs
+      - run: node tests/waseda-runtime-config-delegation.test.mjs
+      - run: node tests/waseda-score-model-characterization.test.mjs
+      - run: node tests/waseda-app-score-config-delegation.test.mjs
+      - run: node tests/waseda-learning-model-characterization.test.mjs
+      - run: node tests/shared-engine-learning-migration-parity.test.mjs
+      - run: node tests/waseda-learning-migration-delegation.test.mjs
+      - run: node tests/waseda-persistence-characterization.test.mjs
+      - run: node tests/waseda-storage-config-delegation.test.mjs
+      - run: node tests/waseda-progress-sync-characterization.test.mjs
+      - run: node tests/waseda-progress-sync-config-delegation.test.mjs
+      - run: node tests/waseda-progress-projection-config-delegation.test.mjs
+      - run: node tests/waseda-behavior-characterization.test.mjs
+      - run: node tests/waseda-learning-flow-characterization.test.mjs
+      - run: bash tests/waseda-browser-smoke.sh
       - run: node --check progress-sync.js
       - run: node tests/progress-cloud-sync.test.mjs
       - run: node tests/ai-writing-grader.test.mjs

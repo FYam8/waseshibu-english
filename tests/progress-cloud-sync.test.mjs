@@ -5,17 +5,28 @@ const sync=fs.readFileSync(new URL('../progress-sync.js',import.meta.url),'utf8'
 const index=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const app=fs.readFileSync(new URL('../app.js',import.meta.url),'utf8');
 
-assert.match(sync,/APP_ID='english'/);
-assert.match(sync,/STORAGE_KEY='waseshibu\.adaptive\.v3'/);
-assert.match(sync,/SYNC_DB='waseshibu-progress-sync'/);
-assert.match(sync,/SYNC_DB_VERSION=7/);
+if(sync.includes('SCHOOL_PROGRESS_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.progress||null')){
+  assert.match(sync,/API_DEFAULT=String\(SCHOOL_PROGRESS_CONFIG\?\.endpoint\|\|'https:\/\/waseshibu-progress-api\.fyam8\.workers\.dev'\)/);
+  assert.match(sync,/APP_ID=String\(SCHOOL_PROGRESS_CONFIG\?\.appId\|\|'english'\)/);
+  assert.match(sync,/STORAGE_KEY=String\(SCHOOL_STORAGE_CONFIG\?\.key\|\|'waseshibu\.adaptive\.v3'\)/);
+  assert.match(sync,/SYNC_DB=String\(SCHOOL_STORAGE_CONFIG\?\.syncDb\|\|'waseshibu-progress-sync'\)/);
+  assert.match(sync,/SYNC_DB_VERSION=Number\(SCHOOL_STORAGE_CONFIG\?\.syncDbVersion\)\|\|7/);
+}else{
+  assert.match(sync,/APP_ID='english'/);
+  assert.match(sync,/STORAGE_KEY='waseshibu\.adaptive\.v3'/);
+  assert.match(sync,/SYNC_DB='waseshibu-progress-sync'/);
+  assert.match(sync,/SYNC_DB_VERSION=7/);
+}
 assert.match(sync,/state:summary/);
 assert.match(sync,/state:latest-exam/);
 assert.match(sync,/state:year:/);
 assert.match(sync,/state:weakness/);
 assert.match(sync,/state:retention/);
 assert.match(sync,/state:drill/);
-assert.match(sync,/maxScore:80/);
+if(sync.includes('const SYNC_WRITTEN_MAX=')){
+  assert.match(sync,/SYNC_WRITTEN_MAX=typeof SCHOOL_EXAM_CONFIG!=='undefined'\?Number\(SCHOOL_EXAM_CONFIG\?\.writtenMaxScore\)\|\|80:80/);
+  assert.match(sync,/maxScore:SYNC_WRITTEN_MAX/);
+}else assert.match(sync,/maxScore:80/);
 assert.match(sync,/progress\/snapshot/);
 assert.match(sync,/events\/batch/);
 assert.match(sync,/v1\/control/);
@@ -59,8 +70,16 @@ assert.match(sync,/await uploadBaseline\(reg\);if\(await getControl\('syncRevoke
 assert.doesNotMatch(sync,/\banswers\s*:/);
 assert.doesNotMatch(sync,/\bmanual\s*:/);
 
-assert.match(index,/<script src="app\.js"><\/script><script src="progress-sync\.js"><\/script>/);
-assert.match(app,/const STORAGE_KEY="waseshibu\.adaptive\.v3"/);
-assert.match(app,/SCHEMA_VERSION=8/);
+const appScriptPos=index.indexOf('<script src="app.js"></script>');
+const syncScriptPos=index.indexOf('<script src="progress-sync.js"></script>');
+assert.ok(appScriptPos>=0,'app.js must be loaded');
+assert.ok(syncScriptPos>appScriptPos,'progress-sync.js must load after app.js and any compatibility bridge');
+if(app.includes('SCHOOL_STORAGE_CONFIG=window.ENGLISH_ENGINE_ADAPTER?.config?.storage||null')){
+  assert.match(app,/STORAGE_KEY=String\(SCHOOL_STORAGE_CONFIG\?\.key\|\|"waseshibu\.adaptive\.v3"\)/);
+  assert.match(app,/SCHEMA_VERSION=Number\(SCHOOL_STORAGE_CONFIG\?\.schemaVersion\)\|\|8/);
+}else{
+  assert.match(app,/const STORAGE_KEY="waseshibu\.adaptive\.v3"/);
+  assert.match(app,/SCHEMA_VERSION=8/);
+}
 
 console.log('English cloud progress sync guards: CLEAN');
