@@ -1,8 +1,8 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.18",
+  "engineVersion": "0.1.0-alpha.19",
   "contractVersion": 1,
-  "status": "candidate-exam-scoring-weakness-delegation-clean",
+  "status": "candidate-day-rollover-delegation-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": [
     "engine/"
@@ -38,7 +38,9 @@
     "interruptExamAttempt",
     "scoreObjectiveQuestion",
     "buildWrongWeaknessState",
-    "markWeaknessesActuallyCorrect"
+    "markWeaknessesActuallyCorrect",
+    "decideDayRollover",
+    "applyDailyRolloverState"
   ],
   "schoolPolicyDelegated": true,
   "delegatedPolicyFunctions": [
@@ -98,8 +100,8 @@
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "The candidate branch now delegates deterministic exam-attempt comparability/interruption, objective scoring and weakness-state reset/actual-correct mutation to the shared core while keeping Waseda matching exceptions, metadata mapping, strategy priority and orchestration in the app. Existing remediation, Today planning, practice selection/session, persistence, progress-sync and score config delegation remain clean with exact legacy fallbacks. Full real-browser, Cloud Sync and AI suites pass. Production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "characterize-day-rollover-boundary-before-extraction",
+  "notes": "The candidate branch now delegates deterministic local-day rollover decision/state cleanup to the shared core, including unanswered-drill deferral and stale daily plan/progress clearing, while keeping browser focus/visibility listeners, notices, render/save side effects and Japanese wording app-owned. Exam scoring/weakness, remediation, Today planning, practice selection/session, persistence, progress-sync and score config delegation remain clean with exact legacy fallbacks. Full browser, Cloud Sync and AI suites pass; production main remains unchanged and Rikkyo consumption is still blocked.",
+  "nextGate": "characterize-ai-writing-integration-boundary-before-parameterization",
   "remediationMasteryDelegated": true,
   "dailyRemediationSchedulingDelegated": true,
   "dailyPlanConstructionDelegated": true,
@@ -108,5 +110,6 @@
   "practiceRankingDelegated": true,
   "practiceSessionReadinessDelegated": true,
   "practiceSessionStateDelegated": true,
-  "examStateScoringDelegated": true
+  "examStateScoringDelegated": true,
+  "dayRolloverDelegated": true
 }
