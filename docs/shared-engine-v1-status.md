@@ -97,7 +97,7 @@ The progress projection also sources configured exam years, goal tiers/default g
 
 ## Current candidate level
 
-`engine/manifest.json` is **0.1.0-alpha.13** with status `candidate-daily-remediation-scheduling-delegation-clean`.
+`engine/manifest.json` is **0.1.0-alpha.14** with status `candidate-today-planning-delegation-clean`.
 
 The current feature branch has passed the full permanent verification suite after app score-model parameterization, including:
 
@@ -148,11 +148,39 @@ The current Waseda Today/remediation scheduler is now explicitly frozen for:
 
 The shared core now owns the deterministic eligibility, ordering and daily-target accounting helpers. `app.js` delegates to them using guarded browser access while retaining exact no-core legacy fallbacks. Dedicated characterization, old-vs-shared parity and fake-shared runtime-delegation tests all pass, followed by the full real-browser, Cloud Sync and AI suite.
 
-## Next extraction boundary — daily plan construction and action selection
+## Gate 8 — daily plan construction and Today action selection
 
-The next safe step is to separate the generic construction of `weak / waiting / route / complete` daily plans and the generic action-kind ordering from Waseda presentation text and school policy. Concrete labels, route-role wording, goal labels and practice-question selection should stay in the Waseda adapter/app layer.
+Status: **CHARACTERIZED + DELEGATED / CLEAN**
 
-Before wiring that runtime path, add parity fixtures for plan construction, last-assigned-date mutation, route fallback, waiting-for-retention behavior and action descriptors.
+The shared core now builds the generic `weak / waiting / route / complete` daily-plan state and returns the keys whose `lastAssignedDate` must be updated. `app.js` applies that Waseda state mutation and persists it, so the shared helper remains deterministic and does not write browser state directly.
+
+The shared core also selects generic Today action descriptors in the frozen order:
+
+1. due confirmation
+2. in-progress weakness
+3. active exam resume
+4. untouched weakness
+5. next route year
+6. out-of-goal upgrade suggestion
+
+Waseda-specific display text, route-role wording and goal labels remain in `app.js` / the Waseda policy adapter. The no-core legacy paths remain intact. Characterization, old-vs-shared parity, fake-shared runtime-delegation, real-browser, Cloud Sync and AI suites are all CLEAN.
+
+## Next extraction boundary — practice pool / confirmation reservation
+
+Before changing runtime selection, freeze the current semantics for:
+
+- exact target pool first, widening to same skill only when the exact pool has fewer than five distinct families
+- minimum five-family requirement for immediate 3 + next-day 2
+- confirmation reservation deduplication by ID and family, capped at two
+- least-recently-used reservation ranking
+- confirmation questions using reserved IDs only
+- training excluding confirmation families and already-used questions
+- exhausted-pool reset behavior
+- level 1/2 preference during training until streak 2, then level 3 allowed
+- unfinished-drill resume / cross-weakness blocking
+- future confirmation cannot be started before its due date
+
+Only after those fixtures are green should pool/reservation selection be extracted into the shared core.
 
 ## Future Rikkyo relationship
 
