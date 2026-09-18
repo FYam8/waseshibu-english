@@ -46,18 +46,19 @@ assert.match(compat,/Waseda compatibility bridge/);
 assert.match(compat,/ENGLISH_ENGINE_COMPAT/);
 
 const index=read('index.html');
-const order=[
-  'engine/contract.js',
-  'schools/waseshibu/config.js',
-  'schools/waseshibu/policy.js',
-  'engine/bootstrap.js',
-  'engine/core.js',
-  'app.js',
-  'schools/waseshibu/compat.js',
-  'progress-sync.js'
-].map(src=>index.indexOf(`<script src="${src}"></script>`));
-assert.ok(order.every(x=>x>=0),'candidate load-order script missing');
-for(let i=1;i<order.length;i++)assert.ok(order[i]>order[i-1],`script load order changed at index ${i}`);
+const scriptPos=src=>index.indexOf(`<script src="${src}"></script>`);
+for(const src of [
+  'engine/core.js','learning-model.js','engine/contract.js','schools/waseshibu/config.js',
+  'schools/waseshibu/policy.js','engine/bootstrap.js','app.js','schools/waseshibu/compat.js','progress-sync.js'
+])assert.ok(scriptPos(src)>=0,`candidate load-order script missing: ${src}`);
+assert.ok(scriptPos('engine/core.js')<scriptPos('learning-model.js'),'shared core must load before learning-model.js');
+assert.ok(scriptPos('learning-model.js')<scriptPos('app.js'),'learning-model.js must load before app.js');
+assert.ok(scriptPos('engine/contract.js')<scriptPos('schools/waseshibu/config.js'));
+assert.ok(scriptPos('schools/waseshibu/config.js')<scriptPos('schools/waseshibu/policy.js'));
+assert.ok(scriptPos('schools/waseshibu/policy.js')<scriptPos('engine/bootstrap.js'));
+assert.ok(scriptPos('engine/bootstrap.js')<scriptPos('app.js'),'validated adapter must exist before app.js');
+assert.ok(scriptPos('app.js')<scriptPos('schools/waseshibu/compat.js'),'compatibility bridge must load after app.js');
+assert.ok(scriptPos('schools/waseshibu/compat.js')<scriptPos('progress-sync.js'),'progress sync must load after compatibility bridge');
 assert.ok(!index.includes('engine/waseda-compat.js'),'school compatibility bridge must stay outside shared artifact');
 
 const configCtx={};configCtx.window=configCtx;configCtx.globalThis=configCtx;vm.createContext(configCtx);
