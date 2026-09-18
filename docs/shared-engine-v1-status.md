@@ -97,7 +97,7 @@ The progress projection also sources configured exam years, goal tiers/default g
 
 ## Current candidate level
 
-`engine/manifest.json` is **0.1.0-alpha.18** with status `candidate-exam-scoring-weakness-delegation-clean`.
+`engine/manifest.json` is **0.1.0-alpha.19** with status `candidate-day-rollover-delegation-clean`.
 
 The current feature branch has passed the full permanent verification suite after app score-model parameterization, including:
 
@@ -232,11 +232,25 @@ The audit-selected exam boundary is now extracted only at the deterministic stat
 
 The new runtime-delegation gate plus all prior characterization/parity gates, real-browser smoke, Cloud Sync and AI suites are CLEAN.
 
-## Next boundary — day rollover
+## Gate 13 — local-day rollover
 
-The common-runtime audit is complete, and the next lower-risk generic candidate is local-day rollover state handling. Before extraction, freeze the exact behavior for stale daily plan/progress invalidation, unanswered-drill deferral, rendered-date advancement and rollover notices. Browser visibility/focus listeners and Japanese notice text remain app-owned.
+Status: **CHARACTERIZED + DELEGATED / CLEAN**
 
-Import/merge remains a later high-risk persistence gate. AI writing integration also remains separate until its request/response and endpoint/skill compatibility boundary is explicitly characterized.
+The shared core now owns the deterministic rollover decision and stale daily-state cleanup:
+
+- same local date -> no-op
+- unanswered drill on a date change -> defer rollover to protect the in-progress answer
+- answered drill / other views -> apply rollover
+- stale `dailyPlan` and `dailyProgress` are cleared only when their date differs from the current local date
+- drill-view notice intent is returned to the app rather than rendered by the engine
+
+`app.js` keeps the browser focus/visibility listeners, timer scheduling, Japanese notice text, render/save calls and `dayChangeAnswerMoved` presentation flag. Exact no-core fallbacks remain present. Characterization, old-vs-shared parity, fake-shared runtime delegation, real-browser smoke, Cloud Sync and AI suites are CLEAN.
+
+## Next boundary — AI writing integration compatibility
+
+The next safe step is characterization only: freeze the AI writing endpoint, supported skills, request/response schema, validation, answer fingerprint/stale-feedback semantics, Cloudflare error classification and app-owned opt-in behavior before deciding what belongs in the shared engine versus school adapter.
+
+No AI endpoint or supported-skill wiring should be parameterized until that compatibility test is in place. Import/merge remains a later high-risk persistence gate.
 
 ## Future Rikkyo relationship
 
