@@ -25,8 +25,9 @@ function functionSource(source,name){
 function plain(v){return JSON.parse(JSON.stringify(v))}
 
 const app=read('app.js');
-assert.match(app,/const AI_GRADING_API="https:\/\/waseshibu-writing-grader\.fyam8\.workers\.dev"/);
-assert.match(app,/const AI_GRADING_SKILLS=new Set\(\["writing_completion","summary","rebuttal"\]\)/);
+assert.match(app,/const SCHOOL_AI_WRITING_CONFIG=window\.ENGLISH_ENGINE_ADAPTER\?\.config\?\.aiWriting\|\|null/);
+assert.match(app,/AI_GRADING_API=String\(SCHOOL_AI_WRITING_CONFIG\?\.endpoint\|\|"https:\/\/waseshibu-writing-grader\.fyam8\.workers\.dev"\)/);
+assert.match(app,/\["writing_completion","summary","rebuttal"\]/,'Waseda AI skill fallback changed');
 const limitsMatch=app.match(/const AI_EXAM_LIMITS=(\{[^;]+\});/);
 assert.ok(limitsMatch,'AI_EXAM_LIMITS missing');
 const limits=plain(vm.runInNewContext(`(${limitsMatch[1]})`));
