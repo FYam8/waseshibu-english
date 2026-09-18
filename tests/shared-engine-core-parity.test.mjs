@@ -33,7 +33,7 @@ assert.equal(typeof core.ensureFamilyIds,'function','shared family-ID helper mis
 assert.match(functionSource(app,'normalizeDrillState'),/ENGLISH_ENGINE_CORE\?\.normalizeDrillState/,'startup normalization wrapper must delegate when shared core is loaded');
 
 const index=read('index.html');
-const coreTag='<script src="engine/core.js"></script>',appTag='<script src="app.js"></script>',compatTag='<script src="engine/waseda-compat.js"></script>',syncTag='<script src="progress-sync.js"></script>';
+const coreTag='<script src="engine/core.js"></script>',appTag='<script src="app.js"></script>',compatTag='<script src="schools/waseshibu/compat.js"></script>',syncTag='<script src="progress-sync.js"></script>';
 const corePos=index.indexOf(coreTag),appPos=index.indexOf(appTag),compatPos=index.indexOf(compatTag),syncPos=index.indexOf(syncTag);
 assert.ok(corePos>=0,'index.html must load engine/core.js in the candidate runtime');
 assert.ok(appPos>=0&&corePos<appPos,'engine/core.js must load before app.js');
@@ -82,7 +82,7 @@ assert.equal(core.ensureFamilyIds(sharedFamily),sharedFamily,'family-ID helper m
 assert.deepEqual(sharedFamily,legacyFamily,'shared family-ID completion must match the Waseda startup hotfix exactly');
 assert.equal(sharedFamily[1].familyId,'existing-family','existing family IDs must never be replaced');
 
-const bridgeCtx={ENGLISH_ENGINE_CORE:core,wordCount:old.wordCount,familyCount:old.familyCount,localDate:old.localDate,plusDays:old.plusDays,normalizeDrillState:old.normalizeDrillState};bridgeCtx.globalThis=bridgeCtx;bridgeCtx.window=bridgeCtx;vm.createContext(bridgeCtx);vm.runInContext(read('engine/waseda-compat.js'),bridgeCtx,{filename:'engine/waseda-compat.js'});
+const bridgeCtx={ENGLISH_ENGINE_CORE:core,wordCount:old.wordCount,familyCount:old.familyCount,localDate:old.localDate,plusDays:old.plusDays,normalizeDrillState:old.normalizeDrillState};bridgeCtx.globalThis=bridgeCtx;bridgeCtx.window=bridgeCtx;vm.createContext(bridgeCtx);vm.runInContext(read('schools/waseshibu/compat.js'),bridgeCtx,{filename:'schools/waseshibu/compat.js'});
 for(const name of ['wordCount','familyCount','localDate','plusDays','normalizeDrillState'])assert.equal(bridgeCtx[name],core[name],`${name} was not delegated`);
 assert.deepEqual(plain(bridgeCtx.ENGLISH_ENGINE_COMPAT.delegated),['wordCount','familyCount','localDate','plusDays','normalizeDrillState']);
 assert.equal(bridgeCtx.ENGLISH_ENGINE_COMPAT.stage,'gate2-pure-helper-delegation-3');
