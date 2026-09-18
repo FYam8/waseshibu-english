@@ -61,7 +61,7 @@ The complete Waseda verification suite, including existing real-browser smoke, C
 
 ## UI2 — shared view primitives
 
-Status: **FRAME LAYER WIRED / EXACT-HEAD FULL VERIFY CLEAN**
+Status: **PRODUCTION / CLEAN**
 
 `ui/components.js` is loaded before `app.js`. Waseda now delegates the following reusable presentation primitives while retaining exact no-Shared-UI fallbacks:
 
@@ -122,3 +122,16 @@ Rikkyo must not merge/deploy its prototype UI. After a Waseda Shared UI release:
 5. plug in Rikkyo renderers,
 6. run desktop/mobile parity,
 7. require two consecutive CLEAN loops.
+
+
+## UI4 — production cutover
+
+Status: **MERGED / CLEAN**
+
+Shared UI v1 was merged to production `main` at commit `ab46ccd86b7bae6ecbedb9ae2acfa7814f38f13d`.
+
+Post-merge verification:
+- full verify run `35357854853`: SUCCESS
+- GitHub Pages run `35357854834`: SUCCESS
+
+The stable release marker is now Shared UI `1.0.0`. The next consumer is Rikkyo through a pinned `ui.lock.json`; no live imports are allowed.
