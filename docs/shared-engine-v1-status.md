@@ -1,6 +1,6 @@
 # Shared English Engine v1 — Gate Status
 
-Last updated: 2026-09-17
+Last updated: 2026-09-18
 
 ## Production safety
 
@@ -97,7 +97,7 @@ The progress projection also sources configured exam years, goal tiers/default g
 
 ## Current candidate level
 
-`engine/manifest.json` is **0.1.0-alpha.11** with status `candidate-app-score-config-clean`.
+`engine/manifest.json` is **0.1.0-alpha.12** with status `candidate-remediation-mastery-delegation-clean`.
 
 The current feature branch has passed the full permanent verification suite after app score-model parameterization, including:
 
@@ -115,9 +115,11 @@ The current feature branch has passed the full permanent verification suite afte
 
 Production `main` remains unchanged and PR #11 remains Draft.
 
-## Next extraction boundary — remediation mastery transition
+## Gate 6 — remediation mastery transition
 
-The next safe step is to move the deterministic remediation mastery transition out of `app.js` into `engine/core.js` while preserving exact Waseda behavior:
+Status: **DELEGATED / CLEAN**
+
+`engine/core.js` now owns the deterministic remediation mastery state transition through `advanceRemediationMastery`:
 
 - training correct increments streak
 - training wrong resets streak
@@ -126,7 +128,15 @@ The next safe step is to move the deterministic remediation mastery transition o
 - 2 consecutive confirmation correct -> mastered
 - confirmation wrong -> active training reset, clears reserved confirmations and requests a new confirmation reserve
 
-The shared helper should return transition flags so the Waseda app can continue to own side effects such as choosing/reserving concrete practice questions. Before runtime wiring, parity fixtures should cover every transition above. After wiring, run the complete browser/sync/AI suite again.
+`app.js` now delegates only that deterministic state transition to the shared core. Waseda-specific side effects such as selecting/reserving concrete confirmation questions remain in the app and are triggered from the helper's transition flags. The exact legacy transition remains as a no-core fallback.
+
+The first runtime wiring attempt exposed one compatibility issue in the non-browser characterization harness because it referenced `window` directly. The candidate was not merged or deployed; the access was changed to a guarded `typeof window!=="undefined"` path, preserving the browser shared-core path and the existing non-browser fallback. After that fix, the permanent runtime-delegation gate, learning-flow characterization, real-browser smoke, Cloud Sync and AI suites all passed.
+
+## Next extraction boundary — daily remediation scheduling
+
+The next safe step is to characterize the deterministic parts of daily remediation scheduling before extracting them: due-confirmation eligibility, active-vs-pending ordering, streak-aware priority, daily target accounting and the Today action selection order. Waseda-specific labels, route roles and concrete practice-question selection should remain in the school/app layer.
+
+No scheduling runtime wiring should change until the current Waseda Today behavior is frozen with dedicated parity fixtures.
 
 ## Future Rikkyo relationship
 
