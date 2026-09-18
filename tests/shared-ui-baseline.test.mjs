@@ -9,7 +9,7 @@ function compact(s){return String(s).replace(/\s+/g,' ').replace(/> </g,'><').tr
 
 const manifest=JSON.parse(read('ui/manifest.json'));
 assert.equal(manifest.name,'shared-english-ui');
-assert.equal(manifest.uiVersion,'0.1.0-alpha.2');
+assert.equal(manifest.uiVersion,'0.1.0-alpha.3');
 assert.equal(manifest.contractVersion,1);
 assert.deepEqual(manifest.artifactRoots,['ui/']);
 assert.equal(manifest.runtimeWiring,true);
