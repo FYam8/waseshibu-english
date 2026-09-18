@@ -1,6 +1,6 @@
 (function(root){
 'use strict';
-function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]))}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function headerMarkup(ui){
   return '<header><div><div class="eyebrow">'+esc(ui.brand.eyebrow)+'</div><h1>'+esc(ui.brand.heading)+'</h1></div><button id="dark">◐</button></header>';
 }
