@@ -294,7 +294,41 @@ function applyDailyRolloverState(state,currentDate){
   return state;
 }
 
-const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan,selectDailyLearningActionDescriptors,selectPracticePool,reserveConfirmationIds,selectNextPracticeQuestion,rankPracticeQuestions,practiceSessionStartDecision,createPracticeSessionState,applyPracticeQuestionState,isExamAttemptComparable,interruptExamAttempt,scoreObjectiveQuestion,buildWrongWeaknessState,markWeaknessesActuallyCorrect,decideDayRollover,applyDailyRolloverState});
+function mergeImportedWeakState(a={},b={}){
+  if(a.status==='mastered'&&b.status!=='mastered')return a;
+  if(b.status==='mastered'&&a.status!=='mastered')return b;
+  const ap=(a.confirmStreak||0)*10+(a.streak||0),bp=(b.confirmStreak||0)*10+(b.streak||0);
+  return bp>=ap?{...a,...b}:{...b,...a};
+}
+function mergeImportedAnswerMaps(current={},incoming={}){
+  const out={...incoming};
+  Object.entries(current).forEach(([key,value])=>{if(String(value??'').trim()||!String(out[key]??'').trim())out[key]=value});
+  return out;
+}
+function mergeImportedManualMaps(current={},incoming={}){
+  const out={...incoming};
+  Object.entries(current).forEach(([key,value])=>{
+    const other=out[key]||{},currentHas=value?.score!==''&&value?.score!==undefined,incomingHas=other?.score!==''&&other?.score!==undefined;
+    out[key]={...(currentHas||!incomingHas?other:value),...(currentHas||!incomingHas?value:other),components:[...new Set([...(other.components||[]),...(value?.components||[])])]};
+  });
+  return out;
+}
+function mergeImportedExposure(a={},b={}){
+  const rank={first:0,unknown:1,partial:2,done:3},out={...a};
+  Object.entries(b).forEach(([year,value])=>{if(out[year]===undefined||rank[value]>=rank[out[year]])out[year]=value});
+  return out;
+}
+function dedupeImportedRows(rows,keyFn){
+  if(!Array.isArray(rows))throw new TypeError('rows must be an array');
+  if(typeof keyFn!=='function')throw new TypeError('keyFn must be a function');
+  const map=new Map();rows.forEach(row=>map.set(keyFn(row),row));return [...map.values()];
+}
+function mergeImportedDailyProgress(a,b,todayValue){
+  if(a?.date===todayValue||b?.date===todayValue)return {date:todayValue,answeredCount:Math.max(a?.date===todayValue?Number(a.answeredCount)||0:0,b?.date===todayValue?Number(b.answeredCount)||0:0)};
+  return a||b||null;
+}
+
+const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan,selectDailyLearningActionDescriptors,selectPracticePool,reserveConfirmationIds,selectNextPracticeQuestion,rankPracticeQuestions,practiceSessionStartDecision,createPracticeSessionState,applyPracticeQuestionState,isExamAttemptComparable,interruptExamAttempt,scoreObjectiveQuestion,buildWrongWeaknessState,markWeaknessesActuallyCorrect,decideDayRollover,applyDailyRolloverState,mergeImportedWeakState,mergeImportedAnswerMaps,mergeImportedManualMaps,mergeImportedExposure,dedupeImportedRows,mergeImportedDailyProgress});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.ENGLISH_ENGINE_CORE=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
