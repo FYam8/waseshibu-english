@@ -97,7 +97,7 @@ The progress projection also sources configured exam years, goal tiers/default g
 
 ## Current candidate level
 
-`engine/manifest.json` is **0.1.0-alpha.14** with status `candidate-today-planning-delegation-clean`.
+`engine/manifest.json` is **0.1.0-alpha.15** with status `candidate-practice-selection-delegation-clean`.
 
 The current feature branch has passed the full permanent verification suite after app score-model parameterization, including:
 
@@ -165,22 +165,39 @@ The shared core also selects generic Today action descriptors in the frozen orde
 
 Waseda-specific display text, route-role wording and goal labels remain in `app.js` / the Waseda policy adapter. The no-core legacy paths remain intact. Characterization, old-vs-shared parity, fake-shared runtime-delegation, real-browser, Cloud Sync and AI suites are all CLEAN.
 
-## Next extraction boundary — practice pool / confirmation reservation
+## Gate 9 — practice pool / confirmation reservation / next-question selection
 
-Before changing runtime selection, freeze the current semantics for:
+Status: **CHARACTERIZED + DELEGATED / CLEAN**
 
-- exact target pool first, widening to same skill only when the exact pool has fewer than five distinct families
-- minimum five-family requirement for immediate 3 + next-day 2
-- confirmation reservation deduplication by ID and family, capped at two
-- least-recently-used reservation ranking
-- confirmation questions using reserved IDs only
-- training excluding confirmation families and already-used questions
-- exhausted-pool reset behavior
-- level 1/2 preference during training until streak 2, then level 3 allowed
-- unfinished-drill resume / cross-weakness blocking
-- future confirmation cannot be started before its due date
+The current Waseda practice selection behavior is now frozen and delegated for:
 
-Only after those fixtures are green should pool/reservation selection be extracted into the shared core.
+- exact target pool first, widening to the same skill only when the exact target has fewer than five distinct families
+- retired drill exclusion
+- confirmation reservation de-duplication by ID and family, capped at two families
+- invalid reservation removal and deterministic refill through the existing Waseda ranking callback
+- confirmation mode selecting reserved IDs only
+- training mode excluding reserved confirmation families and already-used questions
+- the existing exhausted-pool reset behavior, including the current fallback that excludes reserved IDs rather than whole reserved families after a training reset
+- level 1/2 preference before training streak 2, with level 3 allowed from streak 2 onward
+- preservation of the available higher-level question when no lower-level candidate exists
+
+The shared core owns the deterministic pool/reservation/candidate mechanics. Waseda still owns the ranking callback (`leastRecentlyUsed`), concrete drill data, UI/session mutations and explanatory text. `app.js` delegates through guarded helpers and retains the exact previous implementation as the no-core fallback.
+
+Dedicated characterization, shared-vs-legacy parity and fake-shared runtime-delegation tests are permanent CI gates. The full real-browser, Cloud Sync and AI suites are CLEAN after runtime wiring.
+
+## Next extraction boundary — practice ranking and session-start gates
+
+The next safe step is to freeze and then separate the deterministic ranking and session-start decisions:
+
+- focusTag / confirmation level / examFormat ranking weights
+- immediate-repeat penalty and drill-log recency tie-break
+- five-family readiness check
+- same-weakness resume behavior
+- cross-weakness unfinished-session blocking
+- future pending confirmation blocking
+- train vs confirm initial mode
+
+Presentation strings, alerts, navigation and concrete state persistence should remain in the Waseda app layer.
 
 ## Future Rikkyo relationship
 
