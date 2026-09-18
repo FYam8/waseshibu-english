@@ -17,6 +17,7 @@ jobs:
       - run: node tests/shared-ui-baseline.test.mjs
       - run: node tests/shared-ui-components.test.mjs
       - run: node tests/shared-ui-component-delegation.test.mjs
+      - run: node tests/shared-ui-final-readiness.test.mjs
       - run: node tests/shared-engine-consumer-contract-v1.1.test.mjs
       - run: node tests/shared-engine-bootstrap.test.mjs
       - run: node tests/shared-engine-core-parity.test.mjs
