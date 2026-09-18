@@ -70,7 +70,9 @@ assert.match(todayAction,/drillState\?\.key.*return \{kind:"resume"/s,'an unfini
 // Daily planning distinguishes available weaknesses, waiting-for-retention, route work, and completion.
 const plan=compact(functionSource(app,'ensureDailyPlan'));
 assert.ok(plan.includes('kind:"weak"'));assert.ok(plan.includes('kind:"waiting"'));assert.ok(plan.includes('kind:"route"'));assert.ok(plan.includes('kind:"complete"'));
-assert.match(app,/function eligibleToday\(\[_?,?w\]\)\{return w\.status==="active"\|\|\(w\.status==="pending"&&\(!w\.next\|\|w\.next<=today\(\)\)\)\}/);
+const eligible=compact(functionSource(app,'eligibleToday'));
+assert.ok(eligible.includes('ENGLISH_ENGINE_CORE?.isRemediationEligible'),'Today eligibility must use shared helper when available');
+assert.ok(eligible.includes('returnw.status==="active"||(w.status==="pending"&&(!w.next||w.next<=today()))'),'Today eligibility legacy fallback changed');
 
 // Starting a weakness may not bypass an unfinished drill or start next-day confirmation early.
 const start=functionSource(app,'startSkill');
