@@ -114,7 +114,23 @@ function remediationDailyTargetReached(answered,target){
   return Number(answered)>=Number(target);
 }
 
-const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached});
+function buildRemediationDailyPlan({entries,goal,today,answeredCount,routeYear,nowIso,isInGoal,isEligible,compareEntries}={}){
+  if(!Array.isArray(entries))throw new TypeError('entries must be an array');
+  if(typeof isInGoal!=='function')throw new TypeError('isInGoal must be a function');
+  if(typeof isEligible!=='function')throw new TypeError('isEligible must be a function');
+  if(typeof compareEntries!=='function')throw new TypeError('compareEntries must be a function');
+  const all=entries.filter(([,w])=>isInGoal(w));
+  const candidates=all.filter(entry=>isEligible(entry)).sort(compareEntries);
+  if(candidates.length){
+    const assignedKeys=candidates.map(([key])=>key);
+    return {plan:{date:today,goal,kind:'weak',weakKeys:[...assignedKeys],answeredCount:Number(answeredCount)||0,createdAt:nowIso},assignedKeys};
+  }
+  if(all.length)return {plan:{date:today,goal,kind:'waiting',weakKeys:[],createdAt:nowIso},assignedKeys:[]};
+  if(routeYear)return {plan:{date:today,goal,kind:'route',weakKeys:[],routeYear,createdAt:nowIso},assignedKeys:[]};
+  return {plan:{date:today,goal,kind:'complete',weakKeys:[],createdAt:nowIso},assignedKeys:[]};
+}
+
+const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.ENGLISH_ENGINE_CORE=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
