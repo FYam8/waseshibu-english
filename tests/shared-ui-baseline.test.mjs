@@ -9,10 +9,10 @@ function compact(s){return String(s).replace(/\s+/g,' ').replace(/> </g,'><').tr
 
 const manifest=JSON.parse(read('ui/manifest.json'));
 assert.equal(manifest.name,'shared-english-ui');
-assert.equal(manifest.uiVersion,'0.1.0-alpha.1');
+assert.equal(manifest.uiVersion,'0.1.0-alpha.2');
 assert.equal(manifest.contractVersion,1);
 assert.deepEqual(manifest.artifactRoots,['ui/']);
-assert.equal(manifest.runtimeWiring,false);
+assert.equal(manifest.runtimeWiring,true);
 assert.equal(manifest.consumerPolicy,'pinned-vendor-pr-only');
 
 const contract=run('ui/contract.js').ENGLISH_UI_CONTRACT;
@@ -46,8 +46,14 @@ for(const file of ['ui/contract.js','ui/shell.js','ui/base.css']){
   assert.doesNotMatch(read(file),/waseshibu|rikkyo|早稲|立教|fyam8|workers\.dev/i,file+' leaks school/provider identity');
 }
 assert.doesNotMatch(read('ui/base.css'),/\.A\{|\.B\{|\.C\{/,'shared base CSS must not encode Waseda A/B/C strategy classes');
-assert.ok(!index.includes('ui/base.css'),'UI0 must not change production loading yet');
-assert.ok(!index.includes('ui/shell.js'),'UI0 must not change production loading yet');
+assert.ok(index.includes('href="ui/base.css"'),'Waseda candidate must load shared base CSS');
+assert.ok(index.includes('href="schools/waseshibu/theme.css"'),'Waseda candidate must load school theme');
+assert.ok(index.includes('href="schools/waseshibu/ui-compat.css"'),'Waseda candidate must load school policy CSS');
+assert.ok(index.includes('src="ui/contract.js"'));
+assert.ok(index.includes('src="schools/waseshibu/ui.js"'));
+assert.ok(index.includes('src="ui/shell.js"'));
+assert.ok(index.includes('ENGLISH_UI_SHELL.mount'));
+assert.ok(!index.includes('href="styles.css"'),'candidate must not double-load legacy CSS');
 
 const bad=plain(school);bad.views[0].id='exam';
 assert.equal(contract.validateSchoolUi(bad).ok,false);
