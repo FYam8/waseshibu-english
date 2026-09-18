@@ -45,6 +45,6 @@ for(const bad of [
   ()=>build({entries:[],isInGoal:null,isEligible,compareEntries:compare}),
   ()=>build({entries:[],isInGoal,isEligible:null,compareEntries:compare}),
   ()=>build({entries:[],isInGoal,isEligible,compareEntries:null})
-])assert.throws(bad,TypeError);
+])assert.throws(bad,/entries must be an array|isInGoal must be a function|isEligible must be a function|compareEntries must be a function/);
 
 console.log('shared daily plan construction parity: CLEAN');
