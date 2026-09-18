@@ -109,6 +109,12 @@ assert.equal(policy.goalLabel(75),'C 75点');
 assert.match(policy.goalAdvice(60),/60点/);
 assert.equal(policy.skillName('reason'),'理由');
 
+assert.deepEqual(plain(config.aiWriting),{
+  enabled:true,
+  endpoint:'https://waseshibu-writing-grader.fyam8.workers.dev',
+  skills:['writing_completion','summary','rebuttal']
+});
+
 for(const mutate of [
   x=>{x.schoolId='Rikkyo UK'},
   x=>{x.exam.goalTiers=42},
@@ -122,7 +128,12 @@ for(const mutate of [
   x=>{x.storage.schemaVersion='8'},
   x=>{x.storage.syncDbVersion=0},
   x=>{x.progress.enabled='yes'},
-  x=>{x.progress.endpoint='http://example.invalid'}
+  x=>{x.progress.endpoint='http://example.invalid'},
+  x=>{x.aiWriting.enabled='yes'},
+  x=>{x.aiWriting.endpoint='http://example.invalid'},
+  x=>{x.aiWriting.skills='summary'},
+  x=>{x.aiWriting.skills=['summary','summary']},
+  x=>{x.aiWriting.skills=[]}
 ]){
   const invalid=plain(config);mutate(invalid);
   assert.doesNotThrow(()=>contract.validateSchoolConfig(invalid));
