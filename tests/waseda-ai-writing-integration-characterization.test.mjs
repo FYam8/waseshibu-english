@@ -44,9 +44,9 @@ assert.deepEqual(Object.keys(limits).sort(),['2019:4','2020:4','2021:4','2022:4'
     {...valid,maxScore:24},
     {...valid,semantic:[1,1]},
     {...valid,breakdown:null},
-    {...valid,issues:null},
-    null
+    {...valid,issues:null}
   ])assert.equal(ctx.f(bad,12),false);
+  assert.equal(ctx.f(null,12),null,'current validator preserves null for a null payload');
 }
 
 // Fingerprints are persisted with AI feedback and define stale-answer detection.
