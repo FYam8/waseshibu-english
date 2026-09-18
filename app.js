@@ -164,6 +164,15 @@ function dailyTargetReached(plan=ensureDailyPlan()){
 }
 function ensureDailyPlan(){
  if(dailyPlanValid())return S.dailyPlan;
+ const sharedBuild=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.buildRemediationDailyPlan;
+ if(sharedBuild){
+   const planToday=today(),result=sharedBuild({
+     entries:activeWeak(),goal:S.goal,today:planToday,answeredCount:dailyProgressCount(),routeYear:nextRouteYear(),nowIso:new Date().toISOString(),
+     isInGoal:w=>gradeInGoal(w.priority),isEligible:eligibleToday,compareEntries:sortWeakEntries
+   });
+   for(const key of result.assignedKeys||[]){const w=S.weak[key];if(w)w.lastAssignedDate=planToday}
+   S.dailyPlan=result.plan;save();return S.dailyPlan;
+ }
  const candidates=activeWeak().filter(([_,w])=>gradeInGoal(w.priority)).filter(eligibleToday).sort(sortWeakEntries),all=activeWeak().filter(([_,w])=>gradeInGoal(w.priority)),routeYear=nextRouteYear();
  if(candidates.length){
    const weakKeys=candidates.map(([key,w])=>{w.lastAssignedDate=today();return key});
