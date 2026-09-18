@@ -42,6 +42,7 @@ jobs:
       - run: node tests/shared-engine-day-rollover-parity.test.mjs
       - run: node tests/waseda-day-rollover-delegation.test.mjs
       - run: node tests/waseda-ai-writing-integration-characterization.test.mjs
+      - run: node tests/waseda-ai-writing-config-delegation.test.mjs
       - run: node tests/waseda-policy-delegation.test.mjs
       - run: node tests/waseda-runtime-config-delegation.test.mjs
       - run: node tests/waseda-score-model-characterization.test.mjs
