@@ -6,7 +6,9 @@ const app=read('app.js'),index=read('index.html');
 
 for(const [helper,component] of [
   ['uiMetricCard','metricCard'],
-  ['uiProgressBar','progressBar']
+  ['uiProgressBar','progressBar'],
+  ['uiCompletionMark','completionMark'],
+  ['uiBackupPanel','backupPanel']
 ]){
   assert.ok(app.includes('function '+helper+'('),helper+' wrapper missing');
   assert.ok(app.includes('SHARED_UI_COMPONENTS?.'+component),helper+' must delegate to shared component');
@@ -17,6 +19,9 @@ assert.match(app,/function uiProgressBar[\s\S]*?<div class=progress><span style=
 assert.ok(app.includes('uiMetricCard(last?'),'home metric cards not delegated');
 assert.ok(app.includes('uiMetricCard(a.length,"A未克服")'),'stats metric cards not delegated');
 assert.ok(app.includes('uiProgressBar(streak,target)'),'drill progress bar not delegated');
+assert.ok(app.includes('uiCompletionMark(`✓ ${h(action.label)}`)'),'Today completion marker not delegated');
+assert.ok(app.includes('uiCompletionMark(`✓ 今日の目安${DAILY_TASK_TARGET}問を達成`)'),'review completion marker not delegated');
+assert.ok(app.includes('uiBackupPanel("この端末では、アプリを更新しても学習履歴を自動で引き継ぎます。'),'backup panel not delegated');
 
 const compPos=index.indexOf('<script src="ui/components.js"></script>');
 const appPos=index.indexOf('<script src="app.js"></script>');
