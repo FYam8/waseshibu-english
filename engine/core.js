@@ -205,7 +205,25 @@ function selectNextPracticeQuestion({pool,reservedIds,usedIds,mode,streak,rankCh
   return {question,usedIds:nextUsed,resetUsed};
 }
 
-const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan,selectDailyLearningActionDescriptors,selectPracticePool,reserveConfirmationIds,selectNextPracticeQuestion});
+function rankPracticeQuestions(items,{weak,lastId,confirm=false,lastUse}={}){
+  if(!Array.isArray(items))throw new TypeError('items must be an array');
+  if(!weak||typeof weak!=='object')throw new TypeError('weak must be an object');
+  if(typeof lastUse!=='function')throw new TypeError('lastUse must be a function');
+  return [...items].sort((a,b)=>{
+    const rank=q=>(q.focusTag===weak.focusTag?-30:0)+(confirm&&q.level===3?-20:0)+(q.examFormat===weak.examFormat?-6:0);
+    return rank(a)-rank(b)||(a.id===lastId?1:b.id===lastId?-1:0)||Number(lastUse(a.id))-Number(lastUse(b.id))||String(a.id).localeCompare(String(b.id));
+  });
+}
+function practiceSessionStartDecision({weak,key,currentDrill,familyTotal,today,minFamilies=5}={}){
+  if(!weak||typeof weak!=='object')return {kind:'missing'};
+  if(currentDrill?.key===key&&currentDrill.q&&!currentDrill.q.retired)return {kind:'resume'};
+  if(currentDrill?.key&&currentDrill.key!==key)return {kind:'blocked-other'};
+  if(Number(familyTotal)<Number(minFamilies))return {kind:'insufficient-families',familyTotal:Number(familyTotal)||0,minFamilies:Number(minFamilies)};
+  if(weak.status==='pending'&&weak.next>today)return {kind:'too-early',date:weak.next};
+  return {kind:'start',mode:weak.status==='pending'?'confirm':'train'};
+}
+
+const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan,selectDailyLearningActionDescriptors,selectPracticePool,reserveConfirmationIds,selectNextPracticeQuestion,rankPracticeQuestions,practiceSessionStartDecision});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.ENGLISH_ENGINE_CORE=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
