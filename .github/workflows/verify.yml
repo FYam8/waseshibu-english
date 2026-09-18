@@ -36,6 +36,7 @@ jobs:
       - run: node tests/shared-engine-practice-session-state-parity.test.mjs
       - run: node tests/waseda-practice-session-state-delegation.test.mjs
       - run: node tests/waseda-exam-state-scoring-characterization.test.mjs
+      - run: node tests/shared-engine-exam-state-scoring-parity.test.mjs
       - run: node tests/waseda-policy-delegation.test.mjs
       - run: node tests/waseda-runtime-config-delegation.test.mjs
       - run: node tests/waseda-score-model-characterization.test.mjs
