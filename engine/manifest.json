@@ -1,8 +1,8 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.13",
+  "engineVersion": "0.1.0-alpha.14",
   "contractVersion": 1,
-  "status": "candidate-daily-remediation-scheduling-delegation-clean",
+  "status": "candidate-today-planning-delegation-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": [
     "engine/"
@@ -24,7 +24,9 @@
     "remediationDailyProgressCount",
     "remediationDailyAnsweredCount",
     "remediationDailyTargetRemaining",
-    "remediationDailyTargetReached"
+    "remediationDailyTargetReached",
+    "buildRemediationDailyPlan",
+    "selectDailyLearningActionDescriptors"
   ],
   "schoolPolicyDelegated": true,
   "delegatedPolicyFunctions": [
@@ -84,8 +86,10 @@
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "The candidate branch now delegates deterministic remediation mastery plus daily eligibility, ordering and daily-target accounting to the shared core while preserving exact Waseda fallback behavior. Waseda exam, persistence, progress-sync and score configuration remain adapter-backed with unchanged identity values. Characterization, parity, runtime delegation, real-browser, cloud-sync and AI suites are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "characterize-and-extract-daily-plan-construction-and-action-selection",
+  "notes": "The candidate branch now delegates deterministic remediation mastery, daily eligibility/order/target accounting, daily-plan construction and Today action-kind selection to the shared core. Waseda presentation strings, route/goal wording and concrete practice-question selection remain school/app-owned. Exact legacy fallbacks remain. Full characterization, parity, runtime-delegation, real-browser, Cloud Sync and AI suites are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
+  "nextGate": "characterize-practice-pool-and-confirmation-reservation-before-extraction",
   "remediationMasteryDelegated": true,
-  "dailyRemediationSchedulingDelegated": true
+  "dailyRemediationSchedulingDelegated": true,
+  "dailyPlanConstructionDelegated": true,
+  "todayActionSelectionDelegated": true
 }
