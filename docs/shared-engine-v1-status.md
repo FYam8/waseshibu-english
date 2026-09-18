@@ -97,7 +97,7 @@ The progress projection also sources configured exam years, goal tiers/default g
 
 ## Current candidate level
 
-`engine/manifest.json` is **0.1.0-alpha.17** with status `candidate-practice-session-state-delegation-clean`.
+`engine/manifest.json` is **0.1.0-alpha.18** with status `candidate-exam-scoring-weakness-delegation-clean`.
 
 The current feature branch has passed the full permanent verification suite after app score-model parameterization, including:
 
@@ -215,16 +215,28 @@ The shared session shape covers the common learning-state fields: key/skill/targ
 
 Random option-order generation intentionally remains in the app so the shared state helper stays deterministic. Persistence, navigation and Waseda-specific error text also remain app-owned. Exact legacy fallback state construction/reset remains present. The first source-only regression assertion was updated to recognize the guarded shared helper plus the retained fallback; full real-browser, Cloud Sync and AI suites are CLEAN.
 
-## Next boundary — common runtime audit
+## Gate 12 — exam attempt / objective scoring / weakness-state primitives
 
-Before extracting more code, audit the remaining `app.js` functions by responsibility and classify each as:
+Status: **CHARACTERIZED + DELEGATED / CLEAN**
 
-- generic engine behavior that Rikkyo should inherit,
-- school policy/data mapping that must stay adapter-owned,
-- presentation/branding that must stay school-owned,
-- external integration behavior that needs its own compatibility boundary.
+The audit-selected exam boundary is now extracted only at the deterministic state layer:
 
-The next extraction should be selected from that audit rather than continuing mechanically through the file.
+- comparable attempt = first exposure + timed + not interrupted + not overtime
+- interrupting an attempt switches it to interrupted / untimed while the app keeps alert/save/render side effects
+- objective scoring supports Waseda's existing multi-answer partial credit and delegates answer matching back to the app
+- the Waseda-specific `peanut(s)` accepted-answer exception remains outside the shared engine
+- wrong-answer weakness reconstruction resets mastery state, clears confirmation reservation, increments wrong count and preserves prior seen-drill history
+- a later actually-correct source answer updates matching weakness components without deleting their remediation history
+
+`app.js` now delegates these primitives through guarded shared-core calls and retains the exact legacy implementations as no-core fallbacks. Waseda metadata mapping, manual-component mapping, strategy priority, scoring orchestration, dialogs, persistence and navigation remain app/policy owned.
+
+The new runtime-delegation gate plus all prior characterization/parity gates, real-browser smoke, Cloud Sync and AI suites are CLEAN.
+
+## Next boundary — day rollover
+
+The common-runtime audit is complete, and the next lower-risk generic candidate is local-day rollover state handling. Before extraction, freeze the exact behavior for stale daily plan/progress invalidation, unanswered-drill deferral, rendered-date advancement and rollover notices. Browser visibility/focus listeners and Japanese notice text remain app-owned.
+
+Import/merge remains a later high-risk persistence gate. AI writing integration also remains separate until its request/response and endpoint/skill compatibility boundary is explicitly characterized.
 
 ## Future Rikkyo relationship
 
