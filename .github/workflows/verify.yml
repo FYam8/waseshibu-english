@@ -38,6 +38,7 @@ jobs:
       - run: node tests/waseda-exam-state-scoring-characterization.test.mjs
       - run: node tests/shared-engine-exam-state-scoring-parity.test.mjs
       - run: node tests/waseda-exam-state-scoring-delegation.test.mjs
+      - run: node tests/waseda-day-rollover-characterization.test.mjs
       - run: node tests/waseda-policy-delegation.test.mjs
       - run: node tests/waseda-runtime-config-delegation.test.mjs
       - run: node tests/waseda-score-model-characterization.test.mjs
