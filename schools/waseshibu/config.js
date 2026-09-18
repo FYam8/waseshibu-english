@@ -34,6 +34,11 @@ root.ENGLISH_SCHOOL_CONFIG=Object.freeze({
     enabled:true,
     endpoint:'https://waseshibu-progress-api.fyam8.workers.dev',
     appId:'english'
+  }),
+  aiWriting:Object.freeze({
+    enabled:true,
+    endpoint:'https://waseshibu-writing-grader.fyam8.workers.dev',
+    skills:Object.freeze(['writing_completion','summary','rebuttal'])
   })
 });
 })(typeof globalThis!=='undefined'?globalThis:this);
