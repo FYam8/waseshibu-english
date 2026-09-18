@@ -66,6 +66,14 @@ function uiProgressBar(value,max){
  if(SHARED_UI_COMPONENTS?.progressBar)return SHARED_UI_COMPONENTS.progressBar(value,max);
  return `<div class=progress><span style="width:${Math.min(100,Math.max(0,(Number(value)||0)/(Number(max)||1)*100))}%"></span></div>`
 }
+function uiCompletionMark(text){
+ if(SHARED_UI_COMPONENTS?.completionMark)return SHARED_UI_COMPONENTS.completionMark(text);
+ return `<span class=completion-mark>${text}</span>`
+}
+function uiBackupPanel(description){
+ if(SHARED_UI_COMPONENTS?.backupPanel)return SHARED_UI_COMPONENTS.backupPanel({description,exportOnclick:"exportData()",importOnchange:"importData(this)"});
+ return `<section class=backup-box><h3>学習データのバックアップ</h3><p>${description}</p><div class=row><button onclick="exportData()">バックアップを書き出す</button><label>復元方法 <select id=importMode><option value=merge>現在データへ統合</option><option value=replace>現在データと置換</option></select></label><label class=file-button>バックアップを選ぶ<input type=file accept="application/json,.json" onchange="importData(this)"></label></div></section>`
+}
 function save(){if(Number(S.schemaVersion)>SCHEMA_VERSION)return false;S.schemaVersion=SCHEMA_VERSION;try{localStorage.setItem(STORAGE_KEY,JSON.stringify(S));return true}catch(e){if(!storageWarningShown){storageWarningShown=true;alert("学習履歴を端末に保存できませんでした。ブラウザの空き容量またはプライベートブラウズ設定を確認してください。")}return false}}
 function h(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function norm(s){return String(s||"").trim().replace(/\s+/g,"").replace(/，/g,",").toLowerCase()}
@@ -263,7 +271,7 @@ function futureConfirmationMarkup(){
 function learningActionsMarkup(action){
  const hasDrill=action.kind==="resume",available=availableLearningActions();
  if(hasDrill)return `<div class=resume-action><button class=primary onclick="${action.action}">${h(action.label)}</button><span>${h(action.note)}</span></div>${available.length?`<div class=queued-actions><b>この1問の完了後</b>${available.slice(0,3).map(x=>`<span>${h(x.label)}：${h(x.note)}</span>`).join("")}</div>`:""}`;
- if(action.complete)return `<div class=row><span class=completion-mark>✓ ${h(action.label)}</span><button onclick="goto('route')">学習ルートを見る</button></div>`;
+ if(action.complete)return `<div class=row>${uiCompletionMark(`✓ ${h(action.label)}`)}<button onclick="goto('route')">学習ルートを見る</button></div>`;
  return `<div class=learning-actions><div class=resume-action><button class=primary onclick="${action.action}">${h(action.label)}</button><span>${h(action.note)}</span></div>${available.slice(1,4).length?`<div class=alternative-actions><b>ほかにできること</b>${available.slice(1,4).map(x=>`<button onclick="${actionCommand(x)}">${h(x.label)}</button>`).join("")}</div>`:""}<button onclick="goto('route')">学習ルートを見る</button></div>`;
 }
 function home(){
@@ -583,7 +591,7 @@ function review(){
  const arr=activeWeak().sort(sortWeakEntries).map(([key,w])=>({key,w}));
  if(!arr.length)return `<section class="card hero"><h2>現在、未克服の誤答はありません。</h2><p>A問題を維持しながらB問題の上積みに進めます。</p></section>`;
  const plan=ensureDailyPlan(),remaining=planRemaining(plan),assigned=new Set(plan.weakKeys||[]),backlog=planBacklog(plan);
- return `<section class=card><div class="row space"><div><div class=eyebrow>ERROR → DRILL → RETEST</div><h2>間違い対策 ${arr.length}件</h2></div>${remaining.length?`<button class=primary onclick="startTodayTasks()">目安まであと${dailyTargetRemaining(plan)}問</button>`:dailyTargetReached(plan)?`<span class=completion-mark>✓ 今日の目安${DAILY_TASK_TARGET}問を達成</span>`:`<span class=completion-mark>✓ 現在できる課題は完了</span>`}</div>
+ return `<section class=card><div class="row space"><div><div class=eyebrow>ERROR → DRILL → RETEST</div><h2>間違い対策 ${arr.length}件</h2></div>${remaining.length?`<button class=primary onclick="startTodayTasks()">目安まであと${dailyTargetRemaining(plan)}問</button>`:dailyTargetReached(plan)?uiCompletionMark(`✓ 今日の目安${DAILY_TASK_TARGET}問を達成`):uiCompletionMark("✓ 現在できる課題は完了")}</div>
  <p>${goalLabel()}の範囲を優先し、1日${DAILY_TASK_TARGET}問を標準目安にします。同じ論点の類題を3連続正解→翌日2連続正解で克服です。${backlog?` 目安達成後も、取り組める${backlog}件を任意で続けられます。`:""}</p></section>
  ${arr.map(({key,w})=>{const isAssigned=assigned.has(key),future=w.status==="pending"&&w.next>today(),buttonLabel=future?`${w.next} まで待つ`:isAssigned?(w.status==="pending"?"今日の定着チェック":"今日の克服ドリル"):(w.status==="pending"?"定着チェック":"追加練習");return `<section class="card wrong ${isAssigned?"today-assigned":""}"><div class="row space"><div><b>${w.year} ${h(w.label)}</b><div class="tiny"><span class=skill>${skillName(w.skill)}</span> ／ ${h(w.category)} ／ ${w.component&&w.component!=="main"?`元設問 ${w.points}点`:`${w.points}点`}</div></div>${badge(w.priority)}</div>
  <p>誤答：<b>${h(w.user||"未入力")}</b>　${w.status==="pending"?`<span class=badge>翌日確認待ち</span>`:""}</p>
@@ -1067,7 +1075,7 @@ function guide(){
  <div class=notice><b>英単語・リスニング</b><p>通常の英単語学習とリスニングは別アプリ想定です。過去問中の英文定義問題は本番演習として残しますが、単語そのものの大量反復はこのアプリの中心にはしていません。</p></div>
  <div class=bluebox><b>類題について</b><p>${BANK.filter(x=>!x.retired).length}問の有効なオリジナル類題を収録しています。元設問の論点を優先し、翌日確認には異なる問題系統を2問確保します。</p></div>
  <div class=warnbox><b>A・B・Cについて</b><p>学校公式の分類ではなく、合格戦略上の分類です。A＝60点を守る、B＝70点への上積み、C＝75点で選ぶ高コスト問題です。</p></div>
- <section class=backup-box><h3>学習データのバックアップ</h3><p>この端末では、アプリを更新しても学習履歴を自動で引き継ぎます。機種変更、ブラウザ変更、端末故障への備えにはバックアップを使ってください。復元前の状態は端末内にも3世代まで退避します。</p><div class=row><button onclick="exportData()">バックアップを書き出す</button><label>復元方法 <select id=importMode><option value=merge>現在データへ統合</option><option value=replace>現在データと置換</option></select></label><label class=file-button>バックアップを選ぶ<input type=file accept="application/json,.json" onchange="importData(this)"></label></div></section>${S.recoveredDrills?.length?`<section class=backup-box><h3>退避した途中ドリル</h3><p>バックアップ統合時に重なった途中データです。</p>${S.recoveredDrills.map((d,i)=>`<div class="row space"><span>${h(S.weak[d.key]?.label||d.key||"不明なドリル")} ／ ${h(d.q?.id||"問題不明")}</span><span><button onclick="restoreRecoveredDrill(${i})">再開</button><button onclick="deleteRecoveredDrill(${i})">削除</button></span></div>`).join("")}</section>`:""}</section>`;
+ ${uiBackupPanel("この端末では、アプリを更新しても学習履歴を自動で引き継ぎます。機種変更、ブラウザ変更、端末故障への備えにはバックアップを使ってください。復元前の状態は端末内にも3世代まで退避します。")}${S.recoveredDrills?.length?`<section class=backup-box><h3>退避した途中ドリル</h3><p>バックアップ統合時に重なった途中データです。</p>${S.recoveredDrills.map((d,i)=>`<div class="row space"><span>${h(S.weak[d.key]?.label||d.key||"不明なドリル")} ／ ${h(d.q?.id||"問題不明")}</span><span><button onclick="restoreRecoveredDrill(${i})">再開</button><button onclick="deleteRecoveredDrill(${i})">削除</button></span></div>`).join("")}</section>`:""}</section>`;
 }
 function scheduleDayRefresh(){if(dayRefreshHandle)clearTimeout(dayRefreshHandle);const next=new Date();next.setHours(24,0,1,0);dayRefreshHandle=setTimeout(()=>{checkDayChange();scheduleDayRefresh()},Math.max(1000,next-Date.now()))}
 function applyDayChange(){const current=today();renderedDate=current;dayChangePending=false;const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.applyDailyRolloverState;if(shared)shared(S,current);else{if(S.dailyPlan?.date!==current)S.dailyPlan=null;if(S.dailyProgress?.date!==current)S.dailyProgress=null}save()}
