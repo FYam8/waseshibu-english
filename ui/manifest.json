@@ -1,0 +1,41 @@
+{
+  "name": "shared-english-ui",
+  "uiVersion": "0.1.0-alpha.1",
+  "contractVersion": 1,
+  "status": "baseline-characterized-no-runtime-wiring",
+  "sourceRepository": "FYam8/waseshibu-english",
+  "artifactRoots": [
+    "ui/"
+  ],
+  "consumerPolicy": "pinned-vendor-pr-only",
+  "sourceOfTruth": "Waseda production UI/UX",
+  "runtimeWiring": false,
+  "sharedViewOrder": [
+    "home",
+    "route",
+    "exam",
+    "review",
+    "drill",
+    "stats",
+    "guide"
+  ],
+  "scope": [
+    "design tokens and responsive layout",
+    "application shell and navigation",
+    "Today cards and learning-action presentation",
+    "route cards",
+    "past-paper attempt shell and answer panel",
+    "weakness/review list",
+    "remediation drill shell and feedback",
+    "progress/stats shell",
+    "backup/import presentation"
+  ],
+  "excluded": [
+    "school branding/theme values",
+    "school-specific question data",
+    "school-specific scoring wording",
+    "school-specific question renderers where format differs",
+    "cloud and AI endpoints"
+  ],
+  "releaseGate": "waseda-ui-parity-before-consumer-sync"
+}
