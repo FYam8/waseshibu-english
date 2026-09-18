@@ -84,7 +84,37 @@ function advanceRemediationMastery(weak,drill,correct,{today,nextDay,nowIso,trai
   return result;
 }
 
-const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery});
+function isRemediationEligible(weak,todayValue){
+  if(!weak||typeof weak!=='object')return false;
+  return weak.status==='active'||(weak.status==='pending'&&(!weak.next||weak.next<=todayValue));
+}
+function compareRemediationEntries(a,b,priorityOrder){
+  if(typeof priorityOrder!=='function')throw new TypeError('priorityOrder must be a function');
+  const aw=a?.[1]||{},bw=b?.[1]||{};
+  const aDue=aw.status==='pending'?0:1,bDue=bw.status==='pending'?0:1;
+  if(aDue!==bDue)return aDue-bDue;
+  const priority=Number(priorityOrder(aw))-Number(priorityOrder(bw));
+  if(priority)return priority;
+  const next=String(aw.next||'').localeCompare(String(bw.next||''));
+  if(next)return next;
+  const assigned=String(aw.lastAssignedDate||'').localeCompare(String(bw.lastAssignedDate||''));
+  if(assigned)return assigned;
+  return String(a?.[0]||'').localeCompare(String(b?.[0]||''));
+}
+function remediationDailyProgressCount(state,todayValue){
+  return state?.dailyProgress?.date===todayValue?Math.max(0,Number(state.dailyProgress.answeredCount)||0):0;
+}
+function remediationDailyAnsweredCount(state,plan,todayValue){
+  return Math.max(remediationDailyProgressCount(state,todayValue),plan?.date===todayValue?Number(plan.answeredCount)||0:0);
+}
+function remediationDailyTargetRemaining(answered,target){
+  return Math.max(0,Number(target)-Number(answered));
+}
+function remediationDailyTargetReached(answered,target){
+  return Number(answered)>=Number(target);
+}
+
+const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.ENGLISH_ENGINE_CORE=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
