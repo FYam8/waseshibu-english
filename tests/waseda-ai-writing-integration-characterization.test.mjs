@@ -29,7 +29,7 @@ assert.match(app,/const AI_GRADING_API="https:\/\/waseshibu-writing-grader\.fyam
 assert.match(app,/const AI_GRADING_SKILLS=new Set\(\["writing_completion","summary","rebuttal"\]\)/);
 const limitsMatch=app.match(/const AI_EXAM_LIMITS=(\{[^;]+\});/);
 assert.ok(limitsMatch,'AI_EXAM_LIMITS missing');
-const limits=JSON.parse(limitsMatch[1]);
+const limits=plain(vm.runInNewContext(`(${limitsMatch[1]})`));
 assert.deepEqual(Object.keys(limits).sort(),['2019:4','2020:4','2021:4','2022:4','2023:4','2024:4','2025:4','2026:6']);
 
 // Feedback response validation is part of the browser/worker compatibility boundary.
