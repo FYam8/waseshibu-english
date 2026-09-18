@@ -5,13 +5,15 @@ Last updated: 2026-09-18
 ## Production safety
 
 - Production branch: `main`
-- Baseline production commit for this branch: `44154a777b2d6c584a1eba4a38bb782c6b70d0bb`
-- Shared-engine branch: `feat/shared-engine-v1`
-- Production `main` wiring changed: **No**
-- PR #11 remains Draft and must not merge until final Waseda parity gates are complete.
+- Pre-cutover baseline: `44154a777b2d6c584a1eba4a38bb782c6b70d0bb`
+- Shared-engine cutover commit: `70644a9bb891f7c99bd7a08f7beeb941b3ed6807`
+- PR #11 merged: **2026-09-18 10:20:45Z**
+- Production `main` wiring changed: **Yes — Shared English Engine v1 is now the Waseda production runtime.**
+- Post-merge full `verify`: **SUCCESS**
+- GitHub Pages build/deployment for the cutover commit: **SUCCESS**
 - Exam/drill content and stable problem IDs remain frozen.
-- Waseda local/cloud identity values remain exactly the same even where their source is now the validated school adapter.
-- Rikkyo does **not** consume this candidate yet.
+- Waseda local/cloud identity values and learner-history semantics remain unchanged.
+- Rikkyo has **not** been connected yet; consumption remains pinned-vendor only.
 
 ## Gate 0 — contract / identity baseline
 
@@ -97,7 +99,7 @@ The progress projection also sources configured exam years, goal tiers/default g
 
 ## Current candidate level
 
-`engine/manifest.json` is **0.1.0-alpha.22** with status `candidate-final-readiness-clean`.
+`engine/manifest.json` is **1.0.0** with status `production-clean`.
 
 The current feature branch has passed the full permanent verification suite after app score-model parameterization, including:
 
@@ -113,7 +115,7 @@ The current feature branch has passed the full permanent verification suite afte
 - progress cloud-sync guards
 - AI writing UI/grader/goldset guards
 
-Production `main` remains unchanged and PR #11 remains Draft.
+Production `main` now contains the shared-engine runtime. PR #11 is merged; the cutover verify and Pages deployment both succeeded.
 
 ## Gate 6 — remediation mastery transition
 
@@ -307,11 +309,21 @@ The permanent readiness gate now verifies:
 
 After correcting the browser smoke fixture to load the relocated school compatibility bridge, the final readiness test and complete browser/sync/AI suite are CLEAN.
 
-## Next boundary — two consecutive CLEAN loops
+## Gate 17 — production cutover
 
-Do not add further runtime refactoring in this candidate. Run the complete permanent verification suite twice consecutively on this exact head with no corrective changes between the runs. Both runs must include the final readiness audit, real-browser smoke, persistence/recovery, Cloud Sync and AI grading suites.
+Status: **MERGED / CLEAN**
 
-Only after both loops are CLEAN should PR #11 be considered for squash-merge to production `main`. After merge, run the same suite on `main` and verify GitHub Pages before enabling any Rikkyo consumption.
+The shared-engine candidate completed the required two consecutive CLEAN pre-merge loops and PR #11 was merged to production `main` at commit `70644a9bb891f7c99bd7a08f7beeb941b3ed6807`.
+
+The post-merge permanent verification suite completed successfully, including final readiness, browser smoke, persistence/recovery, Cloud Sync and AI grading checks. GitHub Pages also built and deployed the same cutover commit successfully.
+
+The production manifest is now promoted to Shared English Engine **1.0.0 / production-clean**. This promotion changes release metadata only; it does not change Waseda learning behavior, problem data, storage keys, schema, Cloud Sync identity or stable problem IDs.
+
+## Next boundary — separate Rikkyo English consumer
+
+Create/use a separate `FYam8/rikkyo-uk-english` repository. It must vendor a pinned copy of the production `engine/` artifact and record the exact Waseda source commit in an engine lock. Rikkyo school config/policy/data stay local to the Rikkyo repository.
+
+Before any Rikkyo deployment, inventory existing Rikkyo English analysis/problem data, preserve it as-is where compatible, fill only true contract gaps, and run Rikkyo compatibility tests. Waseda-specific config, policy, problem data, branding, storage identities and cloud identities must never be copied automatically.
 
 ## Future Rikkyo relationship
 
