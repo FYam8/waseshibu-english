@@ -78,21 +78,38 @@ Shared components own layout/classes only. Waseda continues to supply goal/scori
 
 The exact same runtime head passed both push and PR full verification. Existing Waseda real-browser smoke, persistence/recovery, Cloud Sync and AI suites are CLEAN.
 
-## Still not shared
+## UI3 — past-paper shell
 
-The next presentation boundary is the past-paper experience:
+Status: **WIRED / EXACT-HEAD FULL VERIFY CLEAN**
 
-- attempt bar / timer shell
-- paper + answer-panel layout
-- answer-jump navigation
-- reusable choice/text/multi/manual renderer primitives
-- common correct/wrong feedback framing
+Shared UI now owns reusable presentation frames for:
 
-School-specific question formats, scoring rules and content stay pluggable through adapter/data.
+- attempt bar
+- paper page
+- answer panel shell
 
-## Next gate — UI3 past-paper and answer shell
+Waseda still supplies timer behavior, score wording, answer jumps, question rows, grading actions and question-type renderers. This is intentional: Rikkyo has additional listening-short-answer, correction-group and short-answer reading formats that should plug into the shared shell without importing Waseda scoring assumptions.
 
-Characterize the current Waseda attempt/answer-panel DOM first, then extract small renderer/layout primitives. Do not copy Waseda scoring assumptions into the shared UI.
+The exact same UI3 runtime head passed push and PR full verification, including real-browser smoke.
+
+## Shared UI v1 boundary
+
+Shared UI v1 now covers the common cross-school UX frame needed for Rikkyo onboarding:
+
+- responsive visual system
+- header/nav/footer
+- Today frame and status metrics
+- learning route cards
+- weakness/review cards
+- remediation drill frame/progress/completion
+- backup/import presentation
+- past-paper attempt/paper/answer-panel shell
+
+Question-type renderers remain school-pluggable by design.
+
+## Next gate — final readiness / two CLEAN loops
+
+Do not add more runtime extraction before release. Run final structural readiness plus the complete Waseda browser/persistence/Cloud/AI suite twice on the exact same head. Only then merge Shared UI into Waseda production and pin it from Rikkyo.
 
 ## Rikkyo gate
 
