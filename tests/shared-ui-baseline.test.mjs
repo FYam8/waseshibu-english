@@ -37,12 +37,15 @@ const currentNav=compact(index.match(/<nav>[\s\S]*?<\/nav>/)[0]);
 assert.equal(shellNav,currentNav,'shared nav helper must reproduce current Waseda nav');
 assert.equal(compact(shell.footerMarkup(school)),compact(index.match(/<footer>[\s\S]*?<\/footer>/)[0]));
 
-const reconstructed=(read('schools/waseshibu/theme.css')+read('ui/base.css')).trimStart();
-assert.equal(reconstructed,read('styles.css').trimStart(),'theme.css + ui/base.css must exactly reconstruct current styles.css');
+const sourceCss=read('styles.css').trimStart();
+const theme=read('schools/waseshibu/theme.css'),compat=read('schools/waseshibu/ui-compat.css').trim();
+const sourceWithoutSchoolPolicy=sourceCss.replace(theme,'').replace(compat,'');
+assert.equal(read('ui/base.css'),sourceWithoutSchoolPolicy,'shared base CSS must equal Waseda CSS minus school-owned theme/policy rules');
 
 for(const file of ['ui/contract.js','ui/shell.js','ui/base.css']){
   assert.doesNotMatch(read(file),/waseshibu|rikkyo|早稲|立教|fyam8|workers\.dev/i,file+' leaks school/provider identity');
 }
+assert.doesNotMatch(read('ui/base.css'),/\.A\{|\.B\{|\.C\{/,'shared base CSS must not encode Waseda A/B/C strategy classes');
 assert.ok(!index.includes('ui/base.css'),'UI0 must not change production loading yet');
 assert.ok(!index.includes('ui/shell.js'),'UI0 must not change production loading yet');
 
