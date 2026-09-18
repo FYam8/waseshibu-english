@@ -86,6 +86,18 @@ function uiDrillCard(contentHtml){
  if(SHARED_UI_COMPONENTS?.drillCard)return SHARED_UI_COMPONENTS.drillCard({contentHtml});
  return `<section class="card drill-card">${contentHtml||""}</section>`
 }
+function uiAttemptBar(options){
+ if(SHARED_UI_COMPONENTS?.attemptBar)return SHARED_UI_COMPONENTS.attemptBar(options);
+ return `<section class="attempt-bar ${options.compact?"attempt-compact":""}">${options.summaryHtml||""}${options.timerHtml||""}${options.actionsHtml||""}</section>`
+}
+function uiAnswerPanel(options){
+ if(SHARED_UI_COMPONENTS?.answerPanel)return SHARED_UI_COMPONENTS.answerPanel(options);
+ return `<aside id=answerPanel class="card answerpanel ${options.open?"sheet-open":"sheet-collapsed"} ${options.expanded?"sheet-expanded":""}">${options.headerHtml||""}${options.bodyHtml||""}</aside>`
+}
+function uiPaperPage(options){
+ if(SHARED_UI_COMPONENTS?.paperPage)return SHARED_UI_COMPONENTS.paperPage(options);
+ return `<article class=paper-page><div class=page-label><b>${options.year}年度</b><span>${options.label}</span></div><div class=paper-text>${options.bodyHtml||""}</div></article>`
+}
 function uiBackupPanel(description){
  if(SHARED_UI_COMPONENTS?.backupPanel)return SHARED_UI_COMPONENTS.backupPanel({description,exportOnclick:"exportData()",importOnchange:"importData(this)"});
  return `<section class=backup-box><h3>学習データのバックアップ</h3><p>${description}</p><div class=row><button onclick="exportData()">バックアップを書き出す</button><label>復元方法 <select id=importMode><option value=merge>現在データへ統合</option><option value=replace>現在データと置換</option></select></label><label class=file-button>バックアップを選ぶ<input type=file accept="application/json,.json" onchange="importData(this)"></label></div></section>`
@@ -428,7 +440,7 @@ function renderPaperPages(y,pages){
  return pages.map((p,i)=>{
    const majors=majorNumbers(p.text),formatted=formatPaperText(p.text,y,current,p.page);current=formatted.lastMajor;
    const label=majors.length?`大問 ${majors.join("・")}`:current?`大問 ${current}（続き）`:`筆記ページ ${i+1}`;
-   return `<article class=paper-page><div class=page-label><b>${y}年度</b><span>${label}</span></div><div class=paper-text>${formatted.html}</div></article>`;
+   return uiPaperPage({year:y,label,bodyHtml:formatted.html});
  }).join("");
 }
 function answerMajors(rows){return [...new Set(rows.map(q=>(q.label.match(/大問(\d+)/)||[])[1]).filter(Boolean))]}
@@ -455,15 +467,20 @@ function questionWeak(y,id){return Object.values(S.weak).find(w=>w.year===Number
 function exam(){
  const y=Number(S.year), rows=D[y], pages=P[y];
  const attempt=S.currentAttempt;if(!attempt||attempt.year!==y||attempt.status!=="active")return `<div class=tabs>${ROUTE.map(n=>`<button class="year ${n===y?"selected":""}" onclick="openYear(${n})">${n}</button>`).join("")}</div>${examGate(y)}`;
- return `<div class=tabs>${ROUTE.map(n=>`<button class="year ${n===y?"selected":""}" onclick="openYear(${n})">${n}</button>`).join("")}</div>
- <section class="attempt-bar ${S.examInfoCompact?"attempt-compact":""}"><div class=attempt-summary><b>${y}年度 <span class=attempt-role>${routeRole(y)}</span></b><span class=attempt-detail>${exposureLabel(attempt.exposure)}／${attempt.mode==="timed"?"本番時間":"時間無制限"}</span></div>${timerMarkup(attempt)}<div class=attempt-actions><button class=interrupt-button onclick="interruptAttempt()">中断を記録</button><button class=attempt-toggle onclick="toggleExamInfo()">${S.examInfoCompact?"開く":"小さくする"}</button></div></section>
- <section class=notice><b>${y}年度 実際の筆記問題</b><br><span class=muted>問題冊子PDFではなく、問題冊子から抽出した実際の本文・設問をそのまま表示しています。大問1・2（リスニング）は別アプリ対象です。</span></section>
- <div class=examgrid><section class=problem-column>${renderPaperPages(y,pages)}</section>
- <aside id=answerPanel class="card answerpanel ${S.answerSheetOpen?"sheet-open":"sheet-collapsed"} ${S.answerSheetExpanded?"sheet-expanded":""}"><div class=answer-sheet-head><div><h3>解答欄</h3><span>筆記${WRITTEN_MAX_SCORE}点</span></div><div class=sheet-actions>${S.answerSheetOpen?`<button type=button class="sheet-toggle size-toggle" onclick="toggleAnswerSize()">${S.answerSheetExpanded?"標準":"広げる"}</button>`:""}<button type=button class=sheet-toggle onclick="toggleAnswerSheet()">${S.answerSheetOpen?"閉じる":"解答欄を開く"}</button></div></div>
- <div class=answer-sheet-body><div class=answer-help><b>スマホでは問題を上側、解答欄を下側に同時表示</b><span>「問題へ」を押すと、該当箇所へすぐ移動します。</span></div>
+ const summaryHtml=`<div class=attempt-summary><b>${y}年度 <span class=attempt-role>${routeRole(y)}</span></b><span class=attempt-detail>${exposureLabel(attempt.exposure)}／${attempt.mode==="timed"?"本番時間":"時間無制限"}</span></div>`;
+ const actionsHtml=`<div class=attempt-actions><button class=interrupt-button onclick="interruptAttempt()">中断を記録</button><button class=attempt-toggle onclick="toggleExamInfo()">${S.examInfoCompact?"開く":"小さくする"}</button></div>`;
+ const attemptBarHtml=uiAttemptBar({compact:S.examInfoCompact,summaryHtml,timerHtml:timerMarkup(attempt),actionsHtml});
+ const answerHeader=`<div class=answer-sheet-head><div><h3>解答欄</h3><span>筆記${WRITTEN_MAX_SCORE}点</span></div><div class=sheet-actions>${S.answerSheetOpen?`<button type=button class="sheet-toggle size-toggle" onclick="toggleAnswerSize()">${S.answerSheetExpanded?"標準":"広げる"}</button>`:""}<button type=button class=sheet-toggle onclick="toggleAnswerSheet()">${S.answerSheetOpen?"閉じる":"解答欄を開く"}</button></div></div>`;
+ const answerBody=`<div class=answer-sheet-body><div class=answer-help><b>スマホでは問題を上側、解答欄を下側に同時表示</b><span>「問題へ」を押すと、該当箇所へすぐ移動します。</span></div>
  <div class=answer-jumps>${answerMajors(rows).map(m=>`<button type=button onclick="jumpAnswerMajor(${y},'${m}')">大問${m}</button>`).join("")}</div>
  ${rows.map(q=>answerRow(y,q)).join("")}
- <button class="primary grade-button" onclick="grade(${y})">採点して弱点分析</button></div></aside></div>`;
+ <button class="primary grade-button" onclick="grade(${y})">採点して弱点分析</button></div>`;
+ const answerPanelHtml=uiAnswerPanel({open:S.answerSheetOpen,expanded:S.answerSheetExpanded,headerHtml:answerHeader,bodyHtml:answerBody});
+ return `<div class=tabs>${ROUTE.map(n=>`<button class="year ${n===y?"selected":""}" onclick="openYear(${n})">${n}</button>`).join("")}</div>
+ ${attemptBarHtml}
+ <section class=notice><b>${y}年度 実際の筆記問題</b><br><span class=muted>問題冊子PDFではなく、問題冊子から抽出した実際の本文・設問をそのまま表示しています。大問1・2（リスニング）は別アプリ対象です。</span></section>
+ <div class=examgrid><section class=problem-column>${renderPaperPages(y,pages)}</section>
+ ${answerPanelHtml}</div>`;
 }
 function answerRow(y,q){
  const key=k(y,q.id), rawVal=S.answers[key]??"", wr=questionWeak(y,q.id), cls=wr?.last==="wrong"?"bad":wr?.last==="correct"?"good":q.type==="manual"?"manual":"";
