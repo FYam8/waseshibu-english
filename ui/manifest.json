@@ -1,0 +1,56 @@
+{
+  "name": "shared-english-ui",
+  "uiVersion": "1.0.0-rc.1",
+  "contractVersion": 1,
+  "status": "candidate-final-readiness",
+  "sourceRepository": "FYam8/waseshibu-english",
+  "artifactRoots": [
+    "ui/"
+  ],
+  "consumerPolicy": "pinned-vendor-pr-only",
+  "sourceOfTruth": "Waseda production UI/UX",
+  "runtimeWiring": true,
+  "sharedViewOrder": [
+    "home",
+    "route",
+    "exam",
+    "review",
+    "drill",
+    "stats",
+    "guide"
+  ],
+  "scope": [
+    "design tokens and responsive layout",
+    "application shell and navigation",
+    "Today cards and learning-action presentation",
+    "route cards",
+    "past-paper attempt shell and answer panel",
+    "weakness/review list",
+    "remediation drill shell and feedback",
+    "progress/stats shell",
+    "backup/import presentation"
+  ],
+  "excluded": [
+    "school branding/theme values",
+    "school-specific question data",
+    "school-specific scoring wording",
+    "school-specific question renderers where format differs",
+    "cloud and AI endpoints"
+  ],
+  "releaseGate": "waseda-ui-parity-before-consumer-sync",
+  "notes": "Shared English UI v1 candidate now owns the Waseda-compatible shell, responsive base CSS, Today/route/review/drill frames, metric/completion/progress primitives, backup/import panel, and past-paper attempt/answer/paper-page shells. School branding, policy wording, exam content, scoring behavior and question-type renderers remain school-owned. Waseda app delegates through guarded wrappers with local fallbacks.",
+  "nextGate": "two-consecutive-full-clean-loops-before-ui-production-merge",
+  "sharedComponents": [
+    "metricCard",
+    "progressBar",
+    "completionMark",
+    "routeStepCard",
+    "todayCard",
+    "weaknessCard",
+    "drillCard",
+    "attemptBar",
+    "answerPanel",
+    "paperPage",
+    "backupPanel"
+  ]
+}

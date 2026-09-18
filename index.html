@@ -9,21 +9,12 @@
 <meta name="bingbot" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
 <meta name="description" content="早稲田渋谷シンガポール校 英語 2019〜2026実際の過去問＋誤答克服ドリル">
 <title>早稲渋 英語｜過去問×弱点克服</title>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="schools/waseshibu/theme.css">\n<link rel="stylesheet" href="ui/base.css">\n<link rel="stylesheet" href="schools/waseshibu/ui-compat.css">
 </head>
 <body>
-<header><div><div class="eyebrow">WASEDA SHIBUYA ENGLISH</div><h1>過去問 × 弱点克服</h1></div><button id="dark">◐</button></header>
-<nav>
-<button data-v="home" class="active">今日やること</button>
-<button data-v="route">学習ルート</button>
-<button data-v="exam">過去問</button>
-<button data-v="review">間違い対策</button>
-<button data-v="drill">克服ドリル</button>
-<button data-v="stats">成績・到達度</button>
-<button data-v="guide">使い方</button>
-</nav>
+<div id="shared-ui-header"></div>\n<div id="shared-ui-nav"></div>
 <main id="app"></main>
-<footer>2019〜2026年度の実際の筆記問題をテキスト収録。英単語・リスニングは別アプリ想定。</footer>
+<div id="shared-ui-footer"></div>
 <script src="data.js"></script><script src="paper-underlines.js"></script><script src="manual-guides.js"></script><script src="extra-drills.js"></script><script src="detail-drills-v2.js"></script><script src="engine/core.js"></script><script src="learning-model.js"></script>
 <script src="original-drills-loop3.js"></script><script src="original-drills-loop4.js"></script><script src="detail20-fix-loop1.js"></script><script src="rebuttal16-loop2.js"></script><script src="rebuttal16-loop3-afterturn.js"></script>
   <script src="summary15-loop2.js"></script>
@@ -48,6 +39,11 @@
 <script src="schools/waseshibu/config.js"></script>
 <script src="schools/waseshibu/policy.js"></script>
 <script src="engine/bootstrap.js"></script>
+<script src="ui/contract.js"></script>
+<script src="schools/waseshibu/ui.js"></script>
+<script src="ui/shell.js"></script>
+<script src="ui/components.js"></script>
+<script>window.ENGLISH_UI_SHELL.mount(window.ENGLISH_SCHOOL_UI);</script>
 
 <script src="app.js"></script>
 <script src="schools/waseshibu/compat.js"></script>

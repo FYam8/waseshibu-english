@@ -57,6 +57,51 @@ let storageWarningShown=false;
 const app=document.getElementById("app"), kana=["ア","イ","ウ","エ","オ","カ","キ","ク"];
 const fullwidthDigits="０１２３４５６７８９";
 const skillNames={pronunciation:"発音",stress:"アクセント",reorder:"語句整序",vocab_definition:"英文定義",writing_completion:"短文完成",summary:"要約",rebuttal:"要約＋反論",paraphrase:"言い換え",context:"文脈",emotion:"心情",reason:"理由",extract:"本文抜出",content_match:"内容一致",sentence_completion:"英語完成",reference:"指示語",connector:"接続語",insertion:"文挿入",detail:"内容把握",example:"具体例"};
+const SHARED_UI_COMPONENTS=typeof window!=="undefined"?window.ENGLISH_UI_COMPONENTS:null;
+function uiMetricCard(value,label){
+ if(SHARED_UI_COMPONENTS?.metricCard)return SHARED_UI_COMPONENTS.metricCard(value,label);
+ return `<div class=card><div class=metric>${value}</div><div class=muted>${label}</div></div>`
+}
+function uiProgressBar(value,max){
+ if(SHARED_UI_COMPONENTS?.progressBar)return SHARED_UI_COMPONENTS.progressBar(value,max);
+ return `<div class=progress><span style="width:${Math.min(100,Math.max(0,(Number(value)||0)/(Number(max)||1)*100))}%"></span></div>`
+}
+function uiCompletionMark(text){
+ if(SHARED_UI_COMPONENTS?.completionMark)return SHARED_UI_COMPONENTS.completionMark(text);
+ return `<span class=completion-mark>${text}</span>`
+}
+function uiRouteStepCard(options){
+ if(SHARED_UI_COMPONENTS?.routeStepCard)return SHARED_UI_COMPONENTS.routeStepCard(options);
+ return `<article class="card route-step ${options.protectedCard?"protected":""}"><div class=route-number>${options.index}</div><div class=route-main><div class="row space"><div><h3>${options.title}</h3><b>${options.role}</b></div><span class="status-pill">${options.status}</span></div><p>${options.description}</p>${options.recommendationsHtml||""}${options.detailHtml||""}${options.actionHtml||""}</div></article>`
+}
+function uiTodayCard(options){
+ if(SHARED_UI_COMPONENTS?.todayCard)return SHARED_UI_COMPONENTS.todayCard(options);
+ return `<section class="card hero today-card ${options.complete?"today-complete":""}">${options.contentHtml||""}</section>`
+}
+function uiWeaknessCard(options){
+ if(SHARED_UI_COMPONENTS?.weaknessCard)return SHARED_UI_COMPONENTS.weaknessCard(options);
+ return `<section class="card wrong ${options.assigned?"today-assigned":""}">${options.contentHtml||""}</section>`
+}
+function uiDrillCard(contentHtml){
+ if(SHARED_UI_COMPONENTS?.drillCard)return SHARED_UI_COMPONENTS.drillCard({contentHtml});
+ return `<section class="card drill-card">${contentHtml||""}</section>`
+}
+function uiAttemptBar(options){
+ if(SHARED_UI_COMPONENTS?.attemptBar)return SHARED_UI_COMPONENTS.attemptBar(options);
+ return `<section class="attempt-bar ${options.compact?"attempt-compact":""}">${options.summaryHtml||""}${options.timerHtml||""}${options.actionsHtml||""}</section>`
+}
+function uiAnswerPanel(options){
+ if(SHARED_UI_COMPONENTS?.answerPanel)return SHARED_UI_COMPONENTS.answerPanel(options);
+ return `<aside id=answerPanel class="card answerpanel ${options.open?"sheet-open":"sheet-collapsed"} ${options.expanded?"sheet-expanded":""}">${options.headerHtml||""}${options.bodyHtml||""}</aside>`
+}
+function uiPaperPage(options){
+ if(SHARED_UI_COMPONENTS?.paperPage)return SHARED_UI_COMPONENTS.paperPage(options);
+ return `<article class=paper-page><div class=page-label><b>${options.year}年度</b><span>${options.label}</span></div><div class=paper-text>${options.bodyHtml||""}</div></article>`
+}
+function uiBackupPanel(description){
+ if(SHARED_UI_COMPONENTS?.backupPanel)return SHARED_UI_COMPONENTS.backupPanel({description,exportOnclick:"exportData()",importOnchange:"importData(this)"});
+ return `<section class=backup-box><h3>学習データのバックアップ</h3><p>${description}</p><div class=row><button onclick="exportData()">バックアップを書き出す</button><label>復元方法 <select id=importMode><option value=merge>現在データへ統合</option><option value=replace>現在データと置換</option></select></label><label class=file-button>バックアップを選ぶ<input type=file accept="application/json,.json" onchange="importData(this)"></label></div></section>`
+}
 function save(){if(Number(S.schemaVersion)>SCHEMA_VERSION)return false;S.schemaVersion=SCHEMA_VERSION;try{localStorage.setItem(STORAGE_KEY,JSON.stringify(S));return true}catch(e){if(!storageWarningShown){storageWarningShown=true;alert("学習履歴を端末に保存できませんでした。ブラウザの空き容量またはプライベートブラウズ設定を確認してください。")}return false}}
 function h(s=""){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function norm(s){return String(s||"").trim().replace(/\s+/g,"").replace(/，/g,",").toLowerCase()}
@@ -254,21 +299,20 @@ function futureConfirmationMarkup(){
 function learningActionsMarkup(action){
  const hasDrill=action.kind==="resume",available=availableLearningActions();
  if(hasDrill)return `<div class=resume-action><button class=primary onclick="${action.action}">${h(action.label)}</button><span>${h(action.note)}</span></div>${available.length?`<div class=queued-actions><b>この1問の完了後</b>${available.slice(0,3).map(x=>`<span>${h(x.label)}：${h(x.note)}</span>`).join("")}</div>`:""}`;
- if(action.complete)return `<div class=row><span class=completion-mark>✓ ${h(action.label)}</span><button onclick="goto('route')">学習ルートを見る</button></div>`;
+ if(action.complete)return `<div class=row>${uiCompletionMark(`✓ ${h(action.label)}`)}<button onclick="goto('route')">学習ルートを見る</button></div>`;
  return `<div class=learning-actions><div class=resume-action><button class=primary onclick="${action.action}">${h(action.label)}</button><span>${h(action.note)}</span></div>${available.slice(1,4).length?`<div class=alternative-actions><b>ほかにできること</b>${available.slice(1,4).map(x=>`<button onclick="${actionCommand(x)}">${h(x.label)}</button>`).join("")}</div>`:""}<button onclick="goto('route')">学習ルートを見る</button></div>`;
 }
 function home(){
  const active=activeWeak();
  const last=S.history.at(-1);
  const action=todayAction(),plan=ensureDailyPlan(),answered=dailyAnswered(plan),targetReached=dailyTargetReached(plan),extra=Math.max(0,answered-DAILY_TASK_TARGET),etas=GOAL_TIERS.map(t=>[t,goalEstimate(t)]);
- return `${S.recoveryNotice?`<section class="card okbox recovery-notice"><b>学習履歴を自動復元しました</b><p>${h(S.recoveryNotice)}</p><button onclick="dismissRecoveryNotice()">確認</button></section>`:""}<section class="card hero today-card ${action.complete?"today-complete":""}"><div class=today-head><div><div class=eyebrow>${action.complete?"AVAILABLE WORK COMPLETE":targetReached?"TARGET ACHIEVED · KEEP GOING":"TODAY · STANDARD 10 QUESTIONS"}</div><h2>今日やること</h2><p>${h(action.note)}</p></div><div class=goal-block><span>学習目標</span><strong>${goalLabel()}</strong><small>得点・履歴とは別に管理</small></div></div>
+ const todayContent=`<div class=today-head><div><div class=eyebrow>${action.complete?"AVAILABLE WORK COMPLETE":targetReached?"TARGET ACHIEVED · KEEP GOING":"TODAY · STANDARD 10 QUESTIONS"}</div><h2>今日やること</h2><p>${h(action.note)}</p></div><div class=goal-block><span>学習目標</span><strong>${goalLabel()}</strong><small>得点・履歴とは別に管理</small></div></div>
  <div class="target-row goal-selector"><span>目標を変更</span>${GOAL_TIERS.map((t,i)=>`<button class="target-chip ${S.goal===t?"selected":""}" onclick="setGoal(${t})">${String.fromCharCode(65+i)} ${t}点</button>`).join("")}</div>
  <div class=daily-summary><article><b>${answered}問</b><small>今日の克服ドリル</small></article><article><b>${DAILY_TASK_TARGET}問</b><small>標準目安</small></article><article><b>${targetReached?`${extra}問`:`あと${dailyTargetRemaining(plan)}問`}</b><small>${targetReached?"目安達成後":"目安まで"}</small></article></div>
  <div class=goal-eta>${etas.map(([t,e])=>`<article class="${S.goal===t?"selected":""}"><div><b>${goalLabel(t)}</b><small>${e.count}弱点を対象</small></div><strong>${e.days?`約${e.days}日`:"達成"}</strong></article>`).join("")}</div><p class=goal-eta-note>1日${DAILY_TASK_TARGET}問のペースで進めた場合の目安です。追加学習で短くなることがあります。得点到達を保証する日数ではありません。</p>
- ${learningActionsMarkup(action)}${futureConfirmationMarkup()}</section>
- <section class="grid three"><div class=card><div class=metric>${last?`${last.score}/${WRITTEN_MAX_SCORE}`:"--"}</div><div class=muted>${last?`${last.year}年度の筆記得点`:"過去問未実施"}</div></div>
- <div class=card><div class=metric>${goalLabel()}</div><div class=muted>現在の学習目標</div></div>
- <div class=card><div class=metric>${active.filter(([_,w])=>w.priority==="A").length}</div><div class=muted>A問題の未克服</div></div></section>
+ ${learningActionsMarkup(action)}${futureConfirmationMarkup()}`;
+ return `${S.recoveryNotice?`<section class="card okbox recovery-notice"><b>学習履歴を自動復元しました</b><p>${h(S.recoveryNotice)}</p><button onclick="dismissRecoveryNotice()">確認</button></section>`:""}${uiTodayCard({complete:action.complete,contentHtml:todayContent})}
+ <section class="grid three">${uiMetricCard(last?`${last.score}/${WRITTEN_MAX_SCORE}`:"--",last?`${last.year}年度の筆記得点`:"過去問未実施")}${uiMetricCard(goalLabel(),"現在の学習目標")}${uiMetricCard(active.filter(([_,w])=>w.priority==="A").length,"A問題の未克服")}</section>
  <section class=card><div class="row space"><div><div class=eyebrow>CURRENT STATUS</div><h3>現在の到達状況</h3></div><b>未克服 ${active.length} ／ 克服済み ${mastered()}</b></div><p>${goalAdvice()}</p><p class=muted>A＝60点、B＝70点、C＝75点。目標を変えても、これまでの得点・正誤・類題履歴は消しません。</p></section>
  <section class=card><h3>推奨する過去問ルート</h3><p class=route-inline>${ROUTE.map(y=>`<span class="${S.attempts.some(a=>a.year===y&&a.status==="graded")?"done":""}">${y}</span>`).join("<b>→</b>")}</p><p class=muted>2024で診断し、2023～2019で補強。2025で実戦確認し、2026を最終判定に残します。</p></section>
  <section class=card><h3>${goalLabel()}の学習方針</h3><p>${goalAdvice()}</p><h3>克服ルール</h3><div class="grid three">
@@ -279,7 +323,7 @@ function home(){
 }
 function route(){
  return `<section class="card hero"><div class=eyebrow>DIAGNOSE → REMEDIATE → VERIFY</div><h2>過去問学習ルート</h2><p>年度ごとの目的を変え、2025・2026の初見性を守ります。</p></section>
- <section class=route-list>${ROUTE.map((y,i)=>{const attempts=S.attempts.filter(a=>a.year===y),last=[...attempts].reverse().find(a=>a.status==="graded"),exp=S.exposure[y],status=last?"採点済み":S.currentAttempt?.year===y&&S.currentAttempt.status==="active"?"解答中":exp?"一部既出":"未着手",protectedYear=y>=2025&&!attempts.length&&!exp,recs=routeRecommendations(y);return `<article class="card route-step ${protectedYear?"protected":""}"><div class=route-number>${i+1}</div><div class=route-main><div class="row space"><div><h3>${y}年度</h3><b>${routeRole(y)}</b></div><span class="status-pill">${protectedYear?"初見温存中":status}</span></div><p>${y===2024?"現在地を測り、全問を弱点分析します。":y<2024?"2024で見つかった弱点に対応する実際の過去問を使います。":y===2025?"補強が直近型に通用するか確認します。":"本番前の最後の完全初見判定です。"}</p>${recs.length?`<div class=route-recs><b>現在の弱点に対応</b><p>${recs.map(q=>`${h(q.label)}（${skillName(q.skill)}・${strategyPriority(q)}）`).join(" ／ ")}</p></div>`:""}${last?`<p class=tiny>最新：筆記 ${last.writtenScore}/${WRITTEN_MAX_SCORE}　${exposureLabel(last.exposure)}　${last.comparable?"比較対象":"練習記録"}</p>`:""}<button class="${y===nextRouteYear()?"primary":""}" onclick="openYear(${y})">${S.currentAttempt?.year===y&&S.currentAttempt.status==="active"?"続きを解く":"年度を開く"}</button></div></article>`}).join("")}</section>`;
+ <section class=route-list>${ROUTE.map((y,i)=>{const attempts=S.attempts.filter(a=>a.year===y),last=[...attempts].reverse().find(a=>a.status==="graded"),exp=S.exposure[y],status=last?"採点済み":S.currentAttempt?.year===y&&S.currentAttempt.status==="active"?"解答中":exp?"一部既出":"未着手",protectedYear=y>=2025&&!attempts.length&&!exp,recs=routeRecommendations(y),description=y===2024?"現在地を測り、全問を弱点分析します。":y<2024?"2024で見つかった弱点に対応する実際の過去問を使います。":y===2025?"補強が直近型に通用するか確認します。":"本番前の最後の完全初見判定です。",recommendationsHtml=recs.length?`<div class=route-recs><b>現在の弱点に対応</b><p>${recs.map(q=>`${h(q.label)}（${skillName(q.skill)}・${strategyPriority(q)}）`).join(" ／ ")}</p></div>`:"",detailHtml=last?`<p class=tiny>最新：筆記 ${last.writtenScore}/${WRITTEN_MAX_SCORE}　${exposureLabel(last.exposure)}　${last.comparable?"比較対象":"練習記録"}</p>`:"",actionHtml=`<button class="${y===nextRouteYear()?"primary":""}" onclick="openYear(${y})">${S.currentAttempt?.year===y&&S.currentAttempt.status==="active"?"続きを解く":"年度を開く"}</button>`;return uiRouteStepCard({index:i+1,title:`${y}年度`,role:routeRole(y),status:protectedYear?"初見温存中":status,description,protectedCard:protectedYear,recommendationsHtml,detailHtml,actionHtml})}).join("")}</section>`;
 }
 function openYear(y){y=Number(y);if(!ROUTE.includes(y))return goto("home");if(completedDrillCycle())endDrillSession();S.year=y;save();goto("exam")}
 function clearYearWork(y){yearKeys(S.answers,y).forEach(x=>delete S.answers[x]);yearKeys(S.manual,y).forEach(x=>delete S.manual[x])}
@@ -396,7 +440,7 @@ function renderPaperPages(y,pages){
  return pages.map((p,i)=>{
    const majors=majorNumbers(p.text),formatted=formatPaperText(p.text,y,current,p.page);current=formatted.lastMajor;
    const label=majors.length?`大問 ${majors.join("・")}`:current?`大問 ${current}（続き）`:`筆記ページ ${i+1}`;
-   return `<article class=paper-page><div class=page-label><b>${y}年度</b><span>${label}</span></div><div class=paper-text>${formatted.html}</div></article>`;
+   return uiPaperPage({year:y,label,bodyHtml:formatted.html});
  }).join("");
 }
 function answerMajors(rows){return [...new Set(rows.map(q=>(q.label.match(/大問(\d+)/)||[])[1]).filter(Boolean))]}
@@ -423,15 +467,20 @@ function questionWeak(y,id){return Object.values(S.weak).find(w=>w.year===Number
 function exam(){
  const y=Number(S.year), rows=D[y], pages=P[y];
  const attempt=S.currentAttempt;if(!attempt||attempt.year!==y||attempt.status!=="active")return `<div class=tabs>${ROUTE.map(n=>`<button class="year ${n===y?"selected":""}" onclick="openYear(${n})">${n}</button>`).join("")}</div>${examGate(y)}`;
- return `<div class=tabs>${ROUTE.map(n=>`<button class="year ${n===y?"selected":""}" onclick="openYear(${n})">${n}</button>`).join("")}</div>
- <section class="attempt-bar ${S.examInfoCompact?"attempt-compact":""}"><div class=attempt-summary><b>${y}年度 <span class=attempt-role>${routeRole(y)}</span></b><span class=attempt-detail>${exposureLabel(attempt.exposure)}／${attempt.mode==="timed"?"本番時間":"時間無制限"}</span></div>${timerMarkup(attempt)}<div class=attempt-actions><button class=interrupt-button onclick="interruptAttempt()">中断を記録</button><button class=attempt-toggle onclick="toggleExamInfo()">${S.examInfoCompact?"開く":"小さくする"}</button></div></section>
- <section class=notice><b>${y}年度 実際の筆記問題</b><br><span class=muted>問題冊子PDFではなく、問題冊子から抽出した実際の本文・設問をそのまま表示しています。大問1・2（リスニング）は別アプリ対象です。</span></section>
- <div class=examgrid><section class=problem-column>${renderPaperPages(y,pages)}</section>
- <aside id=answerPanel class="card answerpanel ${S.answerSheetOpen?"sheet-open":"sheet-collapsed"} ${S.answerSheetExpanded?"sheet-expanded":""}"><div class=answer-sheet-head><div><h3>解答欄</h3><span>筆記${WRITTEN_MAX_SCORE}点</span></div><div class=sheet-actions>${S.answerSheetOpen?`<button type=button class="sheet-toggle size-toggle" onclick="toggleAnswerSize()">${S.answerSheetExpanded?"標準":"広げる"}</button>`:""}<button type=button class=sheet-toggle onclick="toggleAnswerSheet()">${S.answerSheetOpen?"閉じる":"解答欄を開く"}</button></div></div>
- <div class=answer-sheet-body><div class=answer-help><b>スマホでは問題を上側、解答欄を下側に同時表示</b><span>「問題へ」を押すと、該当箇所へすぐ移動します。</span></div>
+ const summaryHtml=`<div class=attempt-summary><b>${y}年度 <span class=attempt-role>${routeRole(y)}</span></b><span class=attempt-detail>${exposureLabel(attempt.exposure)}／${attempt.mode==="timed"?"本番時間":"時間無制限"}</span></div>`;
+ const actionsHtml=`<div class=attempt-actions><button class=interrupt-button onclick="interruptAttempt()">中断を記録</button><button class=attempt-toggle onclick="toggleExamInfo()">${S.examInfoCompact?"開く":"小さくする"}</button></div>`;
+ const attemptBarHtml=uiAttemptBar({compact:S.examInfoCompact,summaryHtml,timerHtml:timerMarkup(attempt),actionsHtml});
+ const answerHeader=`<div class=answer-sheet-head><div><h3>解答欄</h3><span>筆記${WRITTEN_MAX_SCORE}点</span></div><div class=sheet-actions>${S.answerSheetOpen?`<button type=button class="sheet-toggle size-toggle" onclick="toggleAnswerSize()">${S.answerSheetExpanded?"標準":"広げる"}</button>`:""}<button type=button class=sheet-toggle onclick="toggleAnswerSheet()">${S.answerSheetOpen?"閉じる":"解答欄を開く"}</button></div></div>`;
+ const answerBody=`<div class=answer-sheet-body><div class=answer-help><b>スマホでは問題を上側、解答欄を下側に同時表示</b><span>「問題へ」を押すと、該当箇所へすぐ移動します。</span></div>
  <div class=answer-jumps>${answerMajors(rows).map(m=>`<button type=button onclick="jumpAnswerMajor(${y},'${m}')">大問${m}</button>`).join("")}</div>
  ${rows.map(q=>answerRow(y,q)).join("")}
- <button class="primary grade-button" onclick="grade(${y})">採点して弱点分析</button></div></aside></div>`;
+ <button class="primary grade-button" onclick="grade(${y})">採点して弱点分析</button></div>`;
+ const answerPanelHtml=uiAnswerPanel({open:S.answerSheetOpen,expanded:S.answerSheetExpanded,headerHtml:answerHeader,bodyHtml:answerBody});
+ return `<div class=tabs>${ROUTE.map(n=>`<button class="year ${n===y?"selected":""}" onclick="openYear(${n})">${n}</button>`).join("")}</div>
+ ${attemptBarHtml}
+ <section class=notice><b>${y}年度 実際の筆記問題</b><br><span class=muted>問題冊子PDFではなく、問題冊子から抽出した実際の本文・設問をそのまま表示しています。大問1・2（リスニング）は別アプリ対象です。</span></section>
+ <div class=examgrid><section class=problem-column>${renderPaperPages(y,pages)}</section>
+ ${answerPanelHtml}</div>`;
 }
 function answerRow(y,q){
  const key=k(y,q.id), rawVal=S.answers[key]??"", wr=questionWeak(y,q.id), cls=wr?.last==="wrong"?"bad":wr?.last==="correct"?"good":q.type==="manual"?"manual":"";
@@ -576,13 +625,13 @@ function review(){
  const arr=activeWeak().sort(sortWeakEntries).map(([key,w])=>({key,w}));
  if(!arr.length)return `<section class="card hero"><h2>現在、未克服の誤答はありません。</h2><p>A問題を維持しながらB問題の上積みに進めます。</p></section>`;
  const plan=ensureDailyPlan(),remaining=planRemaining(plan),assigned=new Set(plan.weakKeys||[]),backlog=planBacklog(plan);
- return `<section class=card><div class="row space"><div><div class=eyebrow>ERROR → DRILL → RETEST</div><h2>間違い対策 ${arr.length}件</h2></div>${remaining.length?`<button class=primary onclick="startTodayTasks()">目安まであと${dailyTargetRemaining(plan)}問</button>`:dailyTargetReached(plan)?`<span class=completion-mark>✓ 今日の目安${DAILY_TASK_TARGET}問を達成</span>`:`<span class=completion-mark>✓ 現在できる課題は完了</span>`}</div>
+ return `<section class=card><div class="row space"><div><div class=eyebrow>ERROR → DRILL → RETEST</div><h2>間違い対策 ${arr.length}件</h2></div>${remaining.length?`<button class=primary onclick="startTodayTasks()">目安まであと${dailyTargetRemaining(plan)}問</button>`:dailyTargetReached(plan)?uiCompletionMark(`✓ 今日の目安${DAILY_TASK_TARGET}問を達成`):uiCompletionMark("✓ 現在できる課題は完了")}</div>
  <p>${goalLabel()}の範囲を優先し、1日${DAILY_TASK_TARGET}問を標準目安にします。同じ論点の類題を3連続正解→翌日2連続正解で克服です。${backlog?` 目安達成後も、取り組める${backlog}件を任意で続けられます。`:""}</p></section>
- ${arr.map(({key,w})=>{const isAssigned=assigned.has(key),future=w.status==="pending"&&w.next>today(),buttonLabel=future?`${w.next} まで待つ`:isAssigned?(w.status==="pending"?"今日の定着チェック":"今日の克服ドリル"):(w.status==="pending"?"定着チェック":"追加練習");return `<section class="card wrong ${isAssigned?"today-assigned":""}"><div class="row space"><div><b>${w.year} ${h(w.label)}</b><div class="tiny"><span class=skill>${skillName(w.skill)}</span> ／ ${h(w.category)} ／ ${w.component&&w.component!=="main"?`元設問 ${w.points}点`:`${w.points}点`}</div></div>${badge(w.priority)}</div>
+ ${arr.map(({key,w})=>{const isAssigned=assigned.has(key),future=w.status==="pending"&&w.next>today(),buttonLabel=future?`${w.next} まで待つ`:isAssigned?(w.status==="pending"?"今日の定着チェック":"今日の克服ドリル"):(w.status==="pending"?"定着チェック":"追加練習"),contentHtml=`<div class="row space"><div><b>${w.year} ${h(w.label)}</b><div class="tiny"><span class=skill>${skillName(w.skill)}</span> ／ ${h(w.category)} ／ ${w.component&&w.component!=="main"?`元設問 ${w.points}点`:`${w.points}点`}</div></div>${badge(w.priority)}</div>
  <p>誤答：<b>${h(w.user||"未入力")}</b>　${w.status==="pending"?`<span class=badge>翌日確認待ち</span>`:""}</p>
  <p class=muted>${w.status==="pending"?`次の定着チェック：${w.next}`:`類題連続正解：${w.streak||0}/3`}</p>
  <label>失点原因 <select onchange="setCause('${key}',this.value)"><option value="">選択</option>${["ケアレスミス","知識不足","語順・構文","本文根拠の見落とし","選択肢の読み違い","推論しすぎ","時間不足","記述条件漏れ"].map(c=>`<option ${S.cause[key]===c?"selected":""}>${c}</option>`).join("")}</select></label>
- <div class=row style="margin-top:10px"><button ${future?"disabled":""} class="${isAssigned&&!future?"primary":""}" onclick="startSkill('${key}')">${buttonLabel}</button><button onclick="openYear(${w.year})">過去問本文を確認</button></div></section>`}).join("")}`;
+ <div class=row style="margin-top:10px"><button ${future?"disabled":""} class="${isAssigned&&!future?"primary":""}" onclick="startSkill('${key}')">${buttonLabel}</button><button onclick="openYear(${w.year})">過去問本文を確認</button></div>`;return uiWeaknessCard({assigned:isAssigned,contentHtml})}).join("")}`;
 }
 function setCause(key,v){S.cause[key]=v;save()}
 function startTodayTasks(){const remaining=planRemaining();if(!remaining.length)return alert(dailyTargetReached()?"今日の目安分は完了しています。引き続き、一覧から任意の弱点を選べます。":"現在取り組める目安課題はありません。");if(S.currentSkill&&remaining.includes(S.currentSkill))return startSkill(S.currentSkill);const entries=remaining.map(key=>[key,S.weak[key]]).sort(sortWeakEntries),last=entries.findIndex(([key])=>key===S.lastStartedWeakKey),chosen=entries[(last+1)%entries.length];startSkill(chosen[0])}
@@ -683,12 +732,12 @@ function drill(){
  const w=S.weak[drillState.key], q=drillState.q;
  if(!w||!q)return `<section class=card><h2>ドリルを開始できませんでした</h2><p>${h(drillState.error||"ドリル対象がありません。")}</p><button onclick="finishSession()">間違い対策へ戻る</button></section>`;
  const target=drillState.mode==="confirm"?2:3, streak=drillState.mode==="confirm"?(w.confirmStreak||0):(w.streak||0);
- return `<section class="card drill-card"><div class="row space drill-head"><div><div class=drill-mode>${drillState.mode==="confirm"?"翌日の定着チェック":"類題反復"}</div><h2>${skillName(drillState.skill)} 克服ドリル</h2></div><span class=streak-label>${streak}/${target} 連続正解</span></div>
- <div class=progress><span style="width:${Math.min(100,streak/target*100)}%"></span></div>
+ const contentHtml=`<div class="row space drill-head"><div><div class=drill-mode>${drillState.mode==="confirm"?"翌日の定着チェック":"類題反復"}</div><h2>${skillName(drillState.skill)} 克服ドリル</h2></div><span class=streak-label>${streak}/${target} 連続正解</span></div>
+ ${uiProgressBar(streak,target)}
  <p class=drill-origin>元の誤答：${w.year} ${h(w.label)} ／ ${h(w.category)} ／ ${h(w.trap||w.focusTag||"")}</p>
  <hr><h3 class=drill-prompt>${h(displayedDrillPrompt(q))}</h3>${drillInput(q)}
- ${drillState.answered?drillFeedback(q):""}
- </section>`;
+ ${drillState.answered?drillFeedback(q):""}`;
+ return uiDrillCard(contentHtml);
 }
 function drillChoiceMark(original,isCorrect){
  if(!drillState.answered)return "";
@@ -1012,7 +1061,7 @@ function stats(){
  const recent=S.drillLog.slice(-20), rate=recent.length?Math.round(recent.filter(x=>x.ok).length/recent.length*100):0;
  const comparable=S.attempts.filter(x=>x.status==="graded"&&x.comparable),latest=[...comparable].reverse()[0];
  const statusFor=t=>{const eligible=comparable.filter(x=>x.totalScore!==null&&x.totalScore!==undefined),reached=eligible.at(-1)?.totalScore>=t,stable=eligible.length>=2&&eligible.at(-1).year!==eligible.at(-2).year&&eligible.at(-1).totalScore>=t&&eligible.at(-2).totalScore>=t;return stable?"安定":reached?"到達":"未到達"};
- return `<section class="grid four"><div class=card><div class=metric>${a.length}</div><div class=muted>A未克服</div></div><div class=card><div class=metric>${b.length}</div><div class=muted>B未克服</div></div><div class=card><div class=metric>${c.length}</div><div class=muted>C未克服</div></div><div class=card><div class=metric>${rate}%</div><div class=muted>直近20類題</div></div></section>
+ return `<section class="grid four">${uiMetricCard(a.length,"A未克服")}${uiMetricCard(b.length,"B未克服")}${uiMetricCard(c.length,"C未克服")}${uiMetricCard(`${rate}%`,"直近20類題")}</section>
  <section class=card><h2>総合点の到達度</h2><div class=goal-grid>${GOAL_TIERS.map(t=>`<div class="goal-card ${statusFor(t)==="安定"?"stable":""} ${S.goal===t?"selected":""}"><b>${goalLabel(t)}</b><span>${statusFor(t)}</span></div>`).join("")}</div><p class=muted>「安定」は、異なる年度の完全初見・本番時間・通し演習で2回連続到達した場合のみです。${latest&&!latest.totalScore?" リスニング未入力のため総合判定は保留です。":""}</p></section>
  <section class=card><h2>年度別記録</h2><div class=table><table><tr><th>年度</th><th>役割</th><th>筆記</th><th>総合</th><th>条件</th></tr>${ROUTE.map(y=>{const x=latestAttempt(y);return `<tr><td>${y}</td><td>${routeRole(y)}</td><td>${x?`${x.writtenScore}/${WRITTEN_MAX_SCORE}`:"－"}</td><td>${x?.totalScore!==null&&x?.totalScore!==undefined?`${x.totalScore}/${TOTAL_MAX_SCORE}`:"－"}</td><td>${x?(x.comparable?"比較対象":"練習記録"):"未着手"}</td></tr>`}).join("")}</table></div></section>
  <section class=card><h2>弱点分野</h2><div class=table><table><tr><th>分野</th><th>未克服</th><th>対策</th></tr>${Object.entries(bySkill).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`<tr><td>${skillName(s)}</td><td>${n}</td><td><button onclick="startFirstSkill('${s}')">類題を解く</button></td></tr>`).join("")||"<tr><td colspan=3>未克服なし</td></tr>"}</table></div></section>
@@ -1060,7 +1109,7 @@ function guide(){
  <div class=notice><b>英単語・リスニング</b><p>通常の英単語学習とリスニングは別アプリ想定です。過去問中の英文定義問題は本番演習として残しますが、単語そのものの大量反復はこのアプリの中心にはしていません。</p></div>
  <div class=bluebox><b>類題について</b><p>${BANK.filter(x=>!x.retired).length}問の有効なオリジナル類題を収録しています。元設問の論点を優先し、翌日確認には異なる問題系統を2問確保します。</p></div>
  <div class=warnbox><b>A・B・Cについて</b><p>学校公式の分類ではなく、合格戦略上の分類です。A＝60点を守る、B＝70点への上積み、C＝75点で選ぶ高コスト問題です。</p></div>
- <section class=backup-box><h3>学習データのバックアップ</h3><p>この端末では、アプリを更新しても学習履歴を自動で引き継ぎます。機種変更、ブラウザ変更、端末故障への備えにはバックアップを使ってください。復元前の状態は端末内にも3世代まで退避します。</p><div class=row><button onclick="exportData()">バックアップを書き出す</button><label>復元方法 <select id=importMode><option value=merge>現在データへ統合</option><option value=replace>現在データと置換</option></select></label><label class=file-button>バックアップを選ぶ<input type=file accept="application/json,.json" onchange="importData(this)"></label></div></section>${S.recoveredDrills?.length?`<section class=backup-box><h3>退避した途中ドリル</h3><p>バックアップ統合時に重なった途中データです。</p>${S.recoveredDrills.map((d,i)=>`<div class="row space"><span>${h(S.weak[d.key]?.label||d.key||"不明なドリル")} ／ ${h(d.q?.id||"問題不明")}</span><span><button onclick="restoreRecoveredDrill(${i})">再開</button><button onclick="deleteRecoveredDrill(${i})">削除</button></span></div>`).join("")}</section>`:""}</section>`;
+ ${uiBackupPanel("この端末では、アプリを更新しても学習履歴を自動で引き継ぎます。機種変更、ブラウザ変更、端末故障への備えにはバックアップを使ってください。復元前の状態は端末内にも3世代まで退避します。")}${S.recoveredDrills?.length?`<section class=backup-box><h3>退避した途中ドリル</h3><p>バックアップ統合時に重なった途中データです。</p>${S.recoveredDrills.map((d,i)=>`<div class="row space"><span>${h(S.weak[d.key]?.label||d.key||"不明なドリル")} ／ ${h(d.q?.id||"問題不明")}</span><span><button onclick="restoreRecoveredDrill(${i})">再開</button><button onclick="deleteRecoveredDrill(${i})">削除</button></span></div>`).join("")}</section>`:""}</section>`;
 }
 function scheduleDayRefresh(){if(dayRefreshHandle)clearTimeout(dayRefreshHandle);const next=new Date();next.setHours(24,0,1,0);dayRefreshHandle=setTimeout(()=>{checkDayChange();scheduleDayRefresh()},Math.max(1000,next-Date.now()))}
 function applyDayChange(){const current=today();renderedDate=current;dayChangePending=false;const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.applyDailyRolloverState;if(shared)shared(S,current);else{if(S.dailyPlan?.date!==current)S.dailyPlan=null;if(S.dailyProgress?.date!==current)S.dailyProgress=null}save()}
