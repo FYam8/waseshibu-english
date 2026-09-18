@@ -1,8 +1,8 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.14",
+  "engineVersion": "0.1.0-alpha.15",
   "contractVersion": 1,
-  "status": "candidate-today-planning-delegation-clean",
+  "status": "candidate-practice-selection-delegation-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": [
     "engine/"
@@ -26,7 +26,10 @@
     "remediationDailyTargetRemaining",
     "remediationDailyTargetReached",
     "buildRemediationDailyPlan",
-    "selectDailyLearningActionDescriptors"
+    "selectDailyLearningActionDescriptors",
+    "selectPracticePool",
+    "reserveConfirmationIds",
+    "selectNextPracticeQuestion"
   ],
   "schoolPolicyDelegated": true,
   "delegatedPolicyFunctions": [
@@ -86,10 +89,11 @@
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "The candidate branch now delegates deterministic remediation mastery, daily eligibility/order/target accounting, daily-plan construction and Today action-kind selection to the shared core. Waseda presentation strings, route/goal wording and concrete practice-question selection remain school/app-owned. Exact legacy fallbacks remain. Full characterization, parity, runtime-delegation, real-browser, Cloud Sync and AI suites are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "characterize-practice-pool-and-confirmation-reservation-before-extraction",
+  "notes": "The candidate branch now delegates deterministic remediation mastery, Today scheduling/planning, practice-pool selection, confirmation reservation and next-practice-question candidate selection to the shared core. Waseda ranking inputs, presentation, policy wording and persistence side effects remain app/school-owned. Exact legacy fallbacks remain. Full characterization, parity, runtime-delegation, real-browser, Cloud Sync and AI suites are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
+  "nextGate": "characterize-and-extract-practice-ranking-and-session-start-gates",
   "remediationMasteryDelegated": true,
   "dailyRemediationSchedulingDelegated": true,
   "dailyPlanConstructionDelegated": true,
-  "todayActionSelectionDelegated": true
+  "todayActionSelectionDelegated": true,
+  "practiceSelectionDelegated": true
 }
