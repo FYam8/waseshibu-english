@@ -23,10 +23,19 @@ function weaknessCard({assigned=false,contentHtml=''}={}){
 function drillCard({contentHtml=''}={}){
   return '<section class="card drill-card">'+String(contentHtml||'')+'</section>';
 }
+function attemptBar({compact=false,summaryHtml='',timerHtml='',actionsHtml=''}={}){
+  return '<section class="attempt-bar '+(compact?'attempt-compact':'')+'">'+String(summaryHtml||'')+String(timerHtml||'')+String(actionsHtml||'')+'</section>';
+}
+function answerPanel({open=true,expanded=false,headerHtml='',bodyHtml=''}={}){
+  return '<aside id=answerPanel class="card answerpanel '+(open?'sheet-open':'sheet-collapsed')+' '+(expanded?'sheet-expanded':'')+'">'+String(headerHtml||'')+String(bodyHtml||'')+'</aside>';
+}
+function paperPage({year,label,bodyHtml=''}={}){
+  return '<article class=paper-page><div class=page-label><b>'+esc(year)+'年度</b><span>'+esc(label)+'</span></div><div class=paper-text>'+String(bodyHtml||'')+'</div></article>';
+}
 function backupPanel({title='学習データのバックアップ',description='',exportOnclick='exportData()',importOnchange='importData(this)',mergeLabel='現在データへ統合',replaceLabel='現在データと置換',fileLabel='バックアップを選ぶ'}={}){
   return '<section class=backup-box><h3>'+esc(title)+'</h3><p>'+esc(description)+'</p><div class=row><button onclick="'+esc(exportOnclick)+'">バックアップを書き出す</button><label>復元方法 <select id=importMode><option value=merge>'+esc(mergeLabel)+'</option><option value=replace>'+esc(replaceLabel)+'</option></select></label><label class=file-button>'+esc(fileLabel)+'<input type=file accept="application/json,.json" onchange="'+esc(importOnchange)+'"></label></div></section>';
 }
-const api=Object.freeze({metricCard,progressBar,completionMark,routeStepCard,todayCard,weaknessCard,drillCard,backupPanel});
+const api=Object.freeze({metricCard,progressBar,completionMark,routeStepCard,todayCard,weaknessCard,drillCard,attemptBar,answerPanel,paperPage,backupPanel});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.ENGLISH_UI_COMPONENTS=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
