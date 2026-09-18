@@ -20,7 +20,7 @@ assert.equal(adapter.policy.isPriorityInGoal('C',70),false);
 
 const index=read('index.html');
 const tagPos=path=>index.indexOf(`<script src="${path}"></script>`);
-const adapterTags=['engine/contract.js','schools/waseshibu/config.js','schools/waseshibu/policy.js','engine/bootstrap.js','app.js','engine/waseda-compat.js','progress-sync.js'];
+const adapterTags=['engine/contract.js','schools/waseshibu/config.js','schools/waseshibu/policy.js','engine/bootstrap.js','app.js','schools/waseshibu/compat.js','progress-sync.js'];
 let previous=-1;
 for(const path of adapterTags){const pos=tagPos(path);assert.ok(pos>=0,`missing runtime script ${path}`);assert.ok(pos>previous,`adapter/runtime script order changed at ${path}`);previous=pos;}
 const corePos=tagPos('engine/core.js'),modelPos=tagPos('learning-model.js'),appPos=tagPos('app.js');
