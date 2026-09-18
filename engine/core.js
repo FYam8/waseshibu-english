@@ -130,7 +130,27 @@ function buildRemediationDailyPlan({entries,goal,today,answeredCount,routeYear,n
   return {plan:{date:today,goal,kind:'complete',weakKeys:[],createdAt:nowIso},assignedKeys:[]};
 }
 
-const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan});
+function selectDailyLearningActionDescriptors({entries,currentAttempt,routeYear,isInGoal,isEligible,compareEntries}={}){
+  if(!Array.isArray(entries))throw new TypeError('entries must be an array');
+  if(typeof isInGoal!=='function')throw new TypeError('isInGoal must be a function');
+  if(typeof isEligible!=='function')throw new TypeError('isEligible must be a function');
+  if(typeof compareEntries!=='function')throw new TypeError('compareEntries must be a function');
+  const rows=entries.filter(entry=>isInGoal(entry[1])&&isEligible(entry)).sort(compareEntries);
+  const due=rows.filter(([,w])=>w.status==='pending');
+  const progressed=rows.filter(([,w])=>w.status==='active'&&(w.streak||0)>0);
+  const other=rows.filter(([,w])=>w.status==='active'&&!(w.streak||0));
+  const actions=[];
+  if(due[0])actions.push({kind:'weak',stage:'confirm',key:due[0][0]});
+  if(progressed[0])actions.push({kind:'weak',stage:'continue',key:progressed[0][0]});
+  if(currentAttempt?.status==='active')actions.push({kind:'attempt',year:currentAttempt.year});
+  if(other[0])actions.push({kind:'weak',stage:'new',key:other[0][0]});
+  if(routeYear&&!actions.some(x=>x.kind==='attempt'&&x.year===routeYear))actions.push({kind:'route',year:routeYear});
+  const outside=entries.filter(isEligible).filter(([,w])=>!isInGoal(w)).sort(compareEntries)[0];
+  if(outside)actions.push({kind:'upgrade',key:outside[0],priority:outside[1].priority});
+  return actions;
+}
+
+const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan,selectDailyLearningActionDescriptors});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.ENGLISH_ENGINE_CORE=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
