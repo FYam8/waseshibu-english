@@ -581,6 +581,8 @@ function startTodayTasks(){const remaining=planRemaining();if(!remaining.length)
 function startDue(){startTodayTasks()}
 function familyCount(items){return new Set(items.map(x=>x.familyId)).size}
 function poolForWeak(w){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.selectPracticePool;
+ if(shared)return shared(BANK,w,{minFamilies:5});
  const active=BANK.filter(x=>!x.retired);
  const exact=active.filter(x=>x.targetId===w.targetId);
  // Some legitimate target subtypes have fewer than five drills.
@@ -593,6 +595,11 @@ function poolForWeak(w){
 function lastDrillUse(key,id){for(let i=S.drillLog.length-1;i>=0;i--){const x=S.drillLog[i];if(x.key===key&&x.q===id)return i}return -1}
 function leastRecentlyUsed(key,items,lastId,w,confirm=false){return [...items].sort((a,b)=>{const rank=q=>(q.focusTag===w.focusTag?-30:0)+(confirm&&q.level===3?-20:0)+(q.examFormat===w.examFormat?-6:0);return rank(a)-rank(b)||(a.id===lastId?1:b.id===lastId?-1:0)||lastDrillUse(key,a.id)-lastDrillUse(key,b.id)||a.id.localeCompare(b.id)})}
 function ensureConfirmationReserve(key,w,pool){
+ const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.reserveConfirmationIds;
+ if(shared){
+   const reserved=shared({currentReserved:w.reservedConfirm,pool,limit:2,rankChoices:items=>leastRecentlyUsed(key,items,w.lastDrillId,w,true)});
+   w.reservedConfirm=reserved;return reserved;
+ }
  const byId=new Map(pool.map(x=>[x.id,x])),reserved=[];
  for(const id of [...new Set(Array.isArray(w.reservedConfirm)?w.reservedConfirm:[])]){const q=byId.get(id);if(q&&!reserved.some(x=>byId.get(x)?.familyId===q.familyId))reserved.push(id);if(reserved.length===2)break}
  if(reserved.length<2){const families=new Set(reserved.map(id=>byId.get(id)?.familyId)),choices=leastRecentlyUsed(key,pool.filter(x=>!reserved.includes(x.id)&&!families.has(x.familyId)),w.lastDrillId,w,true);while(reserved.length<2&&choices.length){const q=choices.shift();if(families.has(q.familyId))continue;families.add(q.familyId);reserved.push(q.id)}}
@@ -616,7 +623,16 @@ function startSkill(key){
 function nextDrill(){
  if(!drillState)return;
  const w=S.weak[drillState.key],pool=poolForWeak(w);
- const reserved=ensureConfirmationReserve(drillState.key,w,pool),reservedFamilies=new Set(pool.filter(x=>reserved.includes(x.id)).map(x=>x.familyId));
+ const reserved=ensureConfirmationReserve(drillState.key,w,pool),shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.selectNextPracticeQuestion;
+ if(shared){
+   const selection=shared({pool,reservedIds:reserved,usedIds:drillState.used,mode:drillState.mode,streak:w.streak,rankChoices:(items,confirm)=>leastRecentlyUsed(drillState.key,items,w.lastDrillId,w,confirm)});
+   drillState.used=[...(selection.usedIds||[])];
+   const q=selection.question;
+   if(!q){drillState.q=null;drillState.error="出題できる類題を確保できませんでした。間違い対策へ戻って、もう一度開始してください。";persistDrill();return}
+   drillState.error=null;
+   drillState.q=q;w.lastDrillId=q.id;w.seenDrills=[...new Set([...(w.seenDrills||[]),q.id])];drillState.answered=false;drillState.selected=null;drillState.selectedMany=[];drillState.order=[];drillState.orderIndices=[];drillState.textInputs=[];drillState.selfText="";drillState.selfParts=[];drillState.selfChecks=[];drillState.selfcheck=false;drillState.aiFeedback=null;drillState.aiFeedbackStale=false;drillState.choiceOrder=q.options?q.options.map((_,i)=>i).sort(()=>Math.random()-.5):[];persistDrill();return;
+ }
+ const reservedFamilies=new Set(pool.filter(x=>reserved.includes(x.id)).map(x=>x.familyId));
  let candidates=drillState.mode==="confirm"?pool.filter(x=>reserved.includes(x.id)&&!drillState.used.includes(x.id)):pool.filter(x=>!reservedFamilies.has(x.familyId)&&!drillState.used.includes(x.id));
  if(!candidates.length){drillState.used=[];candidates=drillState.mode==="confirm"?pool.filter(x=>reserved.includes(x.id)):pool.filter(x=>!reserved.includes(x.id))}
  // During training, introduce level 1/2 first; confirmation may use any level.
