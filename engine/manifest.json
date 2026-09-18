@@ -1,8 +1,8 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.22",
+  "engineVersion": "1.0.0",
   "contractVersion": 1,
-  "status": "candidate-final-readiness-clean",
+  "status": "production-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": [
     "engine/"
@@ -102,13 +102,13 @@
   "scoreModelCharacterized": true,
   "learningModelCharacterized": true,
   "persistenceCharacterized": true,
-  "productionWiring": false,
+  "productionWiring": true,
   "consumerPolicy": "pinned-vendor-pr-only",
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "Shared English Engine v1 candidate has completed the planned extraction and final readiness audit. The engine artifact now contains only generic contract/bootstrap/core/manifest files; the Waseda compatibility bridge lives under schools/waseshibu. Deterministic learning, Today planning, remediation, practice selection/session, exam scoring/weakness, day rollover, import merge and school-config integration are delegated with exact Waseda fallbacks. Stable Waseda data/identity fingerprints, persistence/recovery, browser, Cloud Sync and AI suites remain clean. Production main is still unchanged and Rikkyo consumption remains blocked until production cutover is clean.",
-  "nextGate": "two-consecutive-full-clean-loops-before-production-merge",
+  "notes": "Shared English Engine v1 is wired in Waseda production main. Generic engine files remain school-neutral; Waseda config/policy/compatibility, problem data, identity values and presentation remain school-owned. Production cutover verification and GitHub Pages deployment succeeded at the cutover commit. Rikkyo may consume only a pinned vendored engine revision through its own compatibility gates; there is no live cross-repository runtime import.",
+  "nextGate": "bootstrap-separate-rikkyo-english-repo-with-pinned-engine-lock",
   "remediationMasteryDelegated": true,
   "dailyRemediationSchedulingDelegated": true,
   "dailyPlanConstructionDelegated": true,
@@ -129,5 +129,7 @@
   "importMergeCharacterized": true,
   "importMergeDelegated": true,
   "finalReadinessAudit": true,
-  "schoolCompatibilityBridge": "schools/waseshibu/compat.js"
+  "schoolCompatibilityBridge": "schools/waseshibu/compat.js",
+  "productionCutoverCommit": "70644a9bb891f7c99bd7a08f7beeb941b3ed6807",
+  "productionCutoverAt": "2026-09-18T10:20:45Z"
 }
