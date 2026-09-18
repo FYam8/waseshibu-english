@@ -328,7 +328,40 @@ function mergeImportedDailyProgress(a,b,todayValue){
   return a||b||null;
 }
 
-const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan,selectDailyLearningActionDescriptors,selectPracticePool,reserveConfirmationIds,selectNextPracticeQuestion,rankPracticeQuestions,practiceSessionStartDecision,createPracticeSessionState,applyPracticeQuestionState,isExamAttemptComparable,interruptExamAttempt,scoreObjectiveQuestion,buildWrongWeaknessState,markWeaknessesActuallyCorrect,decideDayRollover,applyDailyRolloverState,mergeImportedWeakState,mergeImportedAnswerMaps,mergeImportedManualMaps,mergeImportedExposure,dedupeImportedRows,mergeImportedDailyProgress});
+function mergeImportedLearningState(current,incoming,{schemaVersion,todayValue,nowIso}={}){
+  const stamp=typeof nowIso==='function'?nowIso:()=>String(nowIso||new Date().toISOString());
+  const attemptMap=new Map([...(incoming?.attempts||[]),...(current?.attempts||[])].map(x=>[x.id,x]));
+  const weak={...(current?.weak||{})};
+  Object.entries(incoming?.weak||{}).forEach(([key,value])=>weak[key]=mergeImportedWeakState(weak[key],value));
+  let currentAttempt=current?.currentAttempt||null;
+  let recoveredDrills=[...(current?.recoveredDrills||[]),...(incoming?.recoveredDrills||[])];
+  if(currentAttempt&&incoming?.currentAttempt&&currentAttempt.id!==incoming.currentAttempt.id){
+    const archived={...incoming.currentAttempt,status:'interrupted',interrupted:true,endedAt:stamp(),recoveredFromImport:true};
+    attemptMap.set(archived.id,archived);
+  }else if(!currentAttempt)currentAttempt=incoming?.currentAttempt||null;
+  let currentDrill=current?.currentDrill||null;
+  if(currentDrill&&incoming?.currentDrill&&(currentDrill.key!==incoming.currentDrill.key||currentDrill.q?.id!==incoming.currentDrill.q?.id)){
+    recoveredDrills.push({...incoming.currentDrill,recoveredAt:stamp()});
+  }else if(!currentDrill)currentDrill=incoming?.currentDrill||null;
+  return {
+    ...(incoming||{}),...(current||{}),
+    answers:mergeImportedAnswerMaps(current?.answers,incoming?.answers),
+    manual:mergeImportedManualMaps(current?.manual,incoming?.manual),
+    weak,
+    cause:{...(incoming?.cause||{}),...(current?.cause||{})},
+    exposure:mergeImportedExposure(incoming?.exposure,current?.exposure),
+    attempts:[...attemptMap.values()],
+    history:dedupeImportedRows([...(incoming?.history||[]),...(current?.history||[])],x=>x.attemptId||`${x.year}:${x.at}:${x.score}`),
+    drillLog:dedupeImportedRows([...(incoming?.drillLog||[]),...(current?.drillLog||[])],x=>`${x.key}:${x.q}:${x.at}:${x.ok}`),
+    currentAttempt,currentDrill,
+    recoveredDrills:dedupeImportedRows(recoveredDrills,x=>`${x.key}:${x.q?.id}:${x.recoveredAt||'saved'}`),
+    dailyPlan:null,
+    dailyProgress:mergeImportedDailyProgress(current?.dailyProgress,incoming?.dailyProgress,todayValue),
+    schemaVersion
+  };
+}
+
+const api=Object.freeze({localDate,plusDays,normalizeDrillState,wordCount,familyCount,ensureFamilyIds,migrateLearningState,advanceRemediationMastery,isRemediationEligible,compareRemediationEntries,remediationDailyProgressCount,remediationDailyAnsweredCount,remediationDailyTargetRemaining,remediationDailyTargetReached,buildRemediationDailyPlan,selectDailyLearningActionDescriptors,selectPracticePool,reserveConfirmationIds,selectNextPracticeQuestion,rankPracticeQuestions,practiceSessionStartDecision,createPracticeSessionState,applyPracticeQuestionState,isExamAttemptComparable,interruptExamAttempt,scoreObjectiveQuestion,buildWrongWeaknessState,markWeaknessesActuallyCorrect,decideDayRollover,applyDailyRolloverState,mergeImportedWeakState,mergeImportedAnswerMaps,mergeImportedManualMaps,mergeImportedExposure,dedupeImportedRows,mergeImportedDailyProgress,mergeImportedLearningState});
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.ENGLISH_ENGINE_CORE=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
