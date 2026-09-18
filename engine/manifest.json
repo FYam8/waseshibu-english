@@ -1,8 +1,8 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.21",
+  "engineVersion": "0.1.0-alpha.22",
   "contractVersion": 1,
-  "status": "candidate-import-merge-delegation-clean",
+  "status": "candidate-final-readiness-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": [
     "engine/"
@@ -107,8 +107,8 @@
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "The candidate branch now characterizes and delegates deterministic backup/import merge primitives and the composite state merge to the shared core while leaving validation, backup identity, pre-import recovery snapshots, learning-model migration, drill rebinding, confirmation UI and persistence side effects in the Waseda app. Existing storage keys/schema/recovery semantics are unchanged. All prior learning, Today, practice, exam, day-rollover, progress-sync and AI-writing gates plus full real-browser/Cloud Sync/AI verification remain clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "final-shared-engine-readiness-audit-and-two-consecutive-clean-loops",
+  "notes": "Shared English Engine v1 candidate has completed the planned extraction and final readiness audit. The engine artifact now contains only generic contract/bootstrap/core/manifest files; the Waseda compatibility bridge lives under schools/waseshibu. Deterministic learning, Today planning, remediation, practice selection/session, exam scoring/weakness, day rollover, import merge and school-config integration are delegated with exact Waseda fallbacks. Stable Waseda data/identity fingerprints, persistence/recovery, browser, Cloud Sync and AI suites remain clean. Production main is still unchanged and Rikkyo consumption remains blocked until production cutover is clean.",
+  "nextGate": "two-consecutive-full-clean-loops-before-production-merge",
   "remediationMasteryDelegated": true,
   "dailyRemediationSchedulingDelegated": true,
   "dailyPlanConstructionDelegated": true,
@@ -127,5 +127,7 @@
     "skills"
   ],
   "importMergeCharacterized": true,
-  "importMergeDelegated": true
+  "importMergeDelegated": true,
+  "finalReadinessAudit": true,
+  "schoolCompatibilityBridge": "schools/waseshibu/compat.js"
 }
