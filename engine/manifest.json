@@ -1,8 +1,8 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.17",
+  "engineVersion": "0.1.0-alpha.18",
   "contractVersion": 1,
-  "status": "candidate-practice-session-state-delegation-clean",
+  "status": "candidate-exam-scoring-weakness-delegation-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": [
     "engine/"
@@ -33,7 +33,12 @@
     "rankPracticeQuestions",
     "practiceSessionStartDecision",
     "createPracticeSessionState",
-    "applyPracticeQuestionState"
+    "applyPracticeQuestionState",
+    "isExamAttemptComparable",
+    "interruptExamAttempt",
+    "scoreObjectiveQuestion",
+    "buildWrongWeaknessState",
+    "markWeaknessesActuallyCorrect"
   ],
   "schoolPolicyDelegated": true,
   "delegatedPolicyFunctions": [
@@ -93,8 +98,8 @@
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "The candidate branch now delegates deterministic remediation mastery, Today scheduling/planning, practice pool/reservation/ranking/next-question selection, session readiness, new-session state creation and selected-question state reset/application to the shared core. Waseda random option shuffling, alerts/navigation, ranking history source and persistence side effects remain app-owned. Exact legacy fallbacks remain. Full characterization, parity, runtime-delegation, real-browser, Cloud Sync and AI suites are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "audit-next-common-runtime-boundary-before-more-extraction",
+  "notes": "The candidate branch now delegates deterministic exam-attempt comparability/interruption, objective scoring and weakness-state reset/actual-correct mutation to the shared core while keeping Waseda matching exceptions, metadata mapping, strategy priority and orchestration in the app. Existing remediation, Today planning, practice selection/session, persistence, progress-sync and score config delegation remain clean with exact legacy fallbacks. Full real-browser, Cloud Sync and AI suites pass. Production main remains unchanged and Rikkyo consumption is still blocked.",
+  "nextGate": "characterize-day-rollover-boundary-before-extraction",
   "remediationMasteryDelegated": true,
   "dailyRemediationSchedulingDelegated": true,
   "dailyPlanConstructionDelegated": true,
@@ -102,5 +107,6 @@
   "practiceSelectionDelegated": true,
   "practiceRankingDelegated": true,
   "practiceSessionReadinessDelegated": true,
-  "practiceSessionStateDelegated": true
+  "practiceSessionStateDelegated": true,
+  "examStateScoringDelegated": true
 }
