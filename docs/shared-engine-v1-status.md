@@ -97,7 +97,7 @@ The progress projection also sources configured exam years, goal tiers/default g
 
 ## Current candidate level
 
-`engine/manifest.json` is **0.1.0-alpha.19** with status `candidate-day-rollover-delegation-clean`.
+`engine/manifest.json` is **0.1.0-alpha.20** with status `candidate-ai-writing-config-delegation-clean`.
 
 The current feature branch has passed the full permanent verification suite after app score-model parameterization, including:
 
@@ -246,11 +246,31 @@ The shared core now owns the deterministic rollover decision and stale daily-sta
 
 `app.js` keeps the browser focus/visibility listeners, timer scheduling, Japanese notice text, render/save calls and `dayChangeAnswerMoved` presentation flag. Exact no-core fallbacks remain present. Characterization, old-vs-shared parity, fake-shared runtime delegation, real-browser smoke, Cloud Sync and AI suites are CLEAN.
 
-## Next boundary — AI writing integration compatibility
+## Gate 14 — AI writing integration compatibility and adapter config
 
-The next safe step is characterization only: freeze the AI writing endpoint, supported skills, request/response schema, validation, answer fingerprint/stale-feedback semantics, Cloudflare error classification and app-owned opt-in behavior before deciding what belongs in the shared engine versus school adapter.
+Status: **CHARACTERIZED + CONFIG-DELEGATED / CLEAN**
 
-No AI endpoint or supported-skill wiring should be parameterized until that compatibility test is in place. Import/merge remains a later high-risk persistence gate.
+The browser/worker compatibility boundary is now frozen for:
+
+- current Waseda AI endpoint and opt-in request path
+- supported skills: `writing_completion`, `summary`, `rebuttal`
+- eight Waseda exam writing-task IDs and their school-specific word/part limits
+- drill task construction and 12/24-point skill maxima
+- POST JSON shape `{task, answer}`
+- safe feedback validation fields
+- FNV-1a answer fingerprint and stale-feedback detection
+- Cloudflare usage-limit / temporary-rate-limit error handling
+- no legacy client-tracking header
+
+The Waseda school adapter now explicitly declares `aiWriting.enabled`, `aiWriting.endpoint` and `aiWriting.skills`. `app.js` sources only those integration settings from the adapter, retaining exact Waseda fallbacks. A consumer school can provide a different endpoint/skill set or disable AI writing entirely.
+
+School-specific exam/drill task construction, Waseda source-paper mapping, manual guides, answer aliases, UI wording and the Worker scoring implementation remain outside the shared core. Contract validation covers malformed optional AI-writing config. Full browser, Cloud Sync and existing AI grader/UI/goldset suites remain CLEAN.
+
+## Next boundary — high-risk import / merge
+
+The next remaining behavior candidate is backup/import merge. Because this can affect existing learner history, it must begin with characterization only. Freeze weak-state merge preference, attempt/history de-duplication, answer/manual/exposure merge behavior, same-day daily-progress merge, current-attempt/drill conflict archiving and recovery-snapshot retention before deciding whether any part should move into the shared engine.
+
+No import/merge runtime wiring should change until those fixtures pass. Existing production Waseda storage keys/schema/recovery semantics remain non-negotiable.
 
 ## Future Rikkyo relationship
 
