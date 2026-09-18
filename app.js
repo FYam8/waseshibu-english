@@ -631,7 +631,8 @@ function startSkill(key){
  }
  ensureConfirmationReserve(key,w,pool);
  S.currentSkill=key;S.lastStartedWeakKey=key;
- drillState={key,skill:w.skill,targetId:w.targetId,focusTag:w.focusTag,mode,used:[],q:null,error:null,answered:false,selected:null,selectedMany:[],order:[],orderIndices:[],textInputs:[],selfText:"",selfParts:[],selfChecks:[]};
+ const sharedCreate=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.createPracticeSessionState;
+ drillState=sharedCreate?sharedCreate({key,weak:w,mode}):{key,skill:w.skill,targetId:w.targetId,focusTag:w.focusTag,mode,used:[],q:null,error:null,answered:false,selected:null,selectedMany:[],order:[],orderIndices:[],textInputs:[],selfText:"",selfParts:[],selfChecks:[]};
  nextDrill();goto("drill");
 }
 function nextDrill(){
@@ -643,8 +644,13 @@ function nextDrill(){
    drillState.used=[...(selection.usedIds||[])];
    const q=selection.question;
    if(!q){drillState.q=null;drillState.error="出題できる類題を確保できませんでした。間違い対策へ戻って、もう一度開始してください。";persistDrill();return}
-   drillState.error=null;
-   drillState.q=q;w.lastDrillId=q.id;w.seenDrills=[...new Set([...(w.seenDrills||[]),q.id])];drillState.answered=false;drillState.selected=null;drillState.selectedMany=[];drillState.order=[];drillState.orderIndices=[];drillState.textInputs=[];drillState.selfText="";drillState.selfParts=[];drillState.selfChecks=[];drillState.selfcheck=false;drillState.aiFeedback=null;drillState.aiFeedbackStale=false;drillState.choiceOrder=q.options?q.options.map((_,i)=>i).sort(()=>Math.random()-.5):[];persistDrill();return;
+   const choiceOrder=q.options?q.options.map((_,i)=>i).sort(()=>Math.random()-.5):[],sharedApply=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.applyPracticeQuestionState;
+   if(sharedApply)sharedApply(drillState,w,q,{usedIds:selection.usedIds,choiceOrder});
+   else{
+     drillState.error=null;
+     drillState.q=q;w.lastDrillId=q.id;w.seenDrills=[...new Set([...(w.seenDrills||[]),q.id])];drillState.answered=false;drillState.selected=null;drillState.selectedMany=[];drillState.order=[];drillState.orderIndices=[];drillState.textInputs=[];drillState.selfText="";drillState.selfParts=[];drillState.selfChecks=[];drillState.selfcheck=false;drillState.aiFeedback=null;drillState.aiFeedbackStale=false;drillState.choiceOrder=choiceOrder;
+   }
+   persistDrill();return;
  }
  const reservedFamilies=new Set(pool.filter(x=>reserved.includes(x.id)).map(x=>x.familyId));
  let candidates=drillState.mode==="confirm"?pool.filter(x=>reserved.includes(x.id)&&!drillState.used.includes(x.id)):pool.filter(x=>!reservedFamilies.has(x.familyId)&&!drillState.used.includes(x.id));
