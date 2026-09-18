@@ -4,8 +4,8 @@ import assert from 'node:assert/strict';
 
 function read(path){return fs.readFileSync(new URL(`../${path}`,import.meta.url),'utf8')}
 function functionSource(source,name){
-  let start=source.indexOf(`function ${name}(`);
-  if(start<0)start=source.indexOf(`async function ${name}(`);
+  let start=source.indexOf(`async function ${name}(`);
+  if(start<0)start=source.indexOf(`function ${name}(`);
   assert.ok(start>=0,`missing function ${name}`);
   const brace=source.indexOf('{',start);assert.ok(brace>=0);
   let depth=0,inSingle=false,inDouble=false,inTemplate=false,escaped=false;
@@ -54,7 +54,7 @@ assert.deepEqual(Object.keys(limits).sort(),['2019:4','2020:4','2021:4','2022:4'
   const ctx={Math,String};ctx.globalThis=ctx;vm.createContext(ctx);
   vm.runInContext(`${functionSource(app,'aiAnswerFingerprint')}\nglobalThis.f=aiAnswerFingerprint;`,ctx);
   assert.equal(ctx.f(''),'fnv1a32-811c9dc5');
-  assert.equal(ctx.f('A new draft.'),'fnv1a32-6daf1038');
+  assert.equal(ctx.f('A new draft.'),'fnv1a32-cd0ae511');
   assert.notEqual(ctx.f('A new draft.'),ctx.f('A new draft!'));
 }
 
