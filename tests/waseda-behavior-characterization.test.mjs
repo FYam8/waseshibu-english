@@ -78,7 +78,9 @@ assert.ok(eligible.includes('returnw.status==="active"||(w.status==="pending"&&(
 const start=functionSource(app,'startSkill');
 assert.match(start,/drillState\?\.key&&drillState\.key!==key.*別の克服ドリルが途中/s);
 assert.match(start,/w\.status==="pending"&&w\.next>today\(\).*予定日までは開始できません/s);
-assert.match(start,/mode:w\.status==="pending"\?"confirm":"train"/);
+assert.match(start,/ENGLISH_ENGINE_CORE\?\.practiceSessionStartDecision/,'practice session readiness must use shared helper when available');
+assert.match(start,/mode=w\.status==="pending"\?"confirm":"train"/,'practice session readiness legacy mode fallback changed');
+assert.match(start,/drillState=\{key,skill:w\.skill,targetId:w\.targetId,focusTag:w\.focusTag,mode,/,'startSkill must apply the resolved mode');
 assert.match(start,/families\.size<5.*即時3問＋翌日2問を別問題で確保できない/s);
 
 // The present mastery state machine is the core parity target: immediate 3, next-day 2,
