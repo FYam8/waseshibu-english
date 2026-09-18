@@ -59,33 +59,37 @@ The complete Waseda verification suite, including existing real-browser smoke, C
 4. **Runtime shell extraction initially invalidated source-only baseline assumptions.**
    - Tests now freeze the school UI adapter and generated DOM rather than requiring static duplicated markup in `index.html`.
 
-## Not yet shared
+## UI2 — shared view primitives
 
-UI/UX commonization is **not complete** at shell/CSS level. These still live as school app markup and are the next extraction boundary:
+Status: **FIRST SLICE WIRED / FULL VERIFY CLEAN**
 
-- Today action/metric cards
-- learning route cards
-- past-paper attempt/answer-panel shell
-- weakness/review rows
-- remediation drill question/feedback shell
-- progress/stat cards
-- backup/import panel
+`ui/components.js` is now loaded before `app.js`. Waseda delegates the following reusable presentation primitives while retaining exact no-Shared-UI fallbacks:
+
+- metric cards used by Today and Stats
+- progress bar used by remediation
+- completion marks used by Today/Review
+- learning-route step card frame
+- backup/import panel frame
+
+The route component owns only shared layout/classes. Waseda still supplies route-role wording, protected-year policy, recommendations, score detail and button action.
+
+The complete Waseda permanent suite and real-browser smoke remain CLEAN after the runtime delegation.
+
+## Still not shared
+
+The next UI2 slices are:
+
+- Today hero/action frame and daily summary frame
+- weakness/review row frame
+- remediation header/question/feedback frame
+- past-paper attempt/answer-panel frame
 - common question-renderer primitives
 
-School-specific question formats and score wording remain pluggable through adapter/data.
+School-specific question formats, goal/scoring wording and data remain pluggable through adapter/data.
 
-## Next gate — UI2 view primitives
+## Next gate — UI2 Today / weakness / remediation frames
 
-Extract Waseda view markup in small parity-guarded slices. Start with the lowest-risk reusable components:
-
-1. metric/status cards
-2. Today primary action card
-3. route step card
-4. weakness row
-5. remediation header/progress/feedback shell
-6. backup/import panel
-
-Do not rewrite all Waseda view functions at once.
+Continue with small parity-guarded frame extraction. Do not rewrite all Waseda view functions at once.
 
 ## Rikkyo gate
 
