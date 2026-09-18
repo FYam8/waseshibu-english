@@ -1,8 +1,8 @@
 {
   "name": "shared-english-ui",
-  "uiVersion": "0.1.0-alpha.3",
+  "uiVersion": "0.1.0-alpha.4",
   "contractVersion": 1,
-  "status": "candidate-ui2-primitives-partial-clean",
+  "status": "candidate-ui2-frames-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": [
     "ui/"
@@ -38,13 +38,16 @@
     "cloud and AI endpoints"
   ],
   "releaseGate": "waseda-ui-parity-before-consumer-sync",
-  "notes": "Waseda candidate uses Shared UI for shell/CSS plus metric cards, drill progress, completion markers, learning-route cards and backup/import presentation. Each delegated primitive retains a local Waseda fallback and the full Waseda browser/sync/AI suite is clean.",
-  "nextGate": "ui2-today-weakness-drill-frames",
+  "notes": "Waseda candidate uses Shared UI for shell/CSS plus metric, completion, route, Today, weakness, remediation drill and backup/import presentation frames. School-specific content/actions remain supplied by app/policy. Every delegated primitive retains a Waseda fallback and exact-head push+PR full verification, including real-browser smoke, is clean.",
+  "nextGate": "ui3-past-paper-answer-shell-and-renderer-primitives",
   "sharedComponents": [
     "metricCard",
     "progressBar",
     "completionMark",
     "routeStepCard",
+    "todayCard",
+    "weaknessCard",
+    "drillCard",
     "backupPanel"
   ]
 }
