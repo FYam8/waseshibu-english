@@ -12,6 +12,9 @@ for(const [helper,component] of [
   ['uiTodayCard','todayCard'],
   ['uiWeaknessCard','weaknessCard'],
   ['uiDrillCard','drillCard'],
+  ['uiAttemptBar','attemptBar'],
+  ['uiAnswerPanel','answerPanel'],
+  ['uiPaperPage','paperPage'],
   ['uiBackupPanel','backupPanel']
 ]){
   assert.ok(app.includes('function '+helper+'('),helper+' wrapper missing');
@@ -29,6 +32,9 @@ assert.ok(app.includes('uiRouteStepCard({index:i+1'),'route cards not delegated'
 assert.ok(app.includes('uiTodayCard({complete:action.complete,contentHtml:todayContent})'),'Today frame not delegated');
 assert.ok(app.includes('uiWeaknessCard({assigned:isAssigned,contentHtml})'),'weakness frame not delegated');
 assert.ok(app.includes('return uiDrillCard(contentHtml);'),'drill frame not delegated');
+assert.ok(app.includes('uiAttemptBar({compact:S.examInfoCompact'),'attempt bar not delegated');
+assert.ok(app.includes('uiAnswerPanel({open:S.answerSheetOpen'),'answer panel not delegated');
+assert.ok(app.includes('uiPaperPage({year:y,label,bodyHtml:formatted.html})'),'paper pages not delegated');
 assert.ok(app.includes('uiBackupPanel("この端末では、アプリを更新しても学習履歴を自動で引き継ぎます。'),'backup panel not delegated');
 
 const compPos=index.indexOf('<script src="ui/components.js"></script>');
