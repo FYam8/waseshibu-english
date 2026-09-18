@@ -97,7 +97,7 @@ The progress projection also sources configured exam years, goal tiers/default g
 
 ## Current candidate level
 
-`engine/manifest.json` is **0.1.0-alpha.15** with status `candidate-practice-selection-delegation-clean`.
+`engine/manifest.json` is **0.1.0-alpha.16** with status `candidate-practice-session-delegation-clean`.
 
 The current feature branch has passed the full permanent verification suite after app score-model parameterization, including:
 
@@ -185,19 +185,29 @@ The shared core owns the deterministic pool/reservation/candidate mechanics. Was
 
 Dedicated characterization, shared-vs-legacy parity and fake-shared runtime-delegation tests are permanent CI gates. The full real-browser, Cloud Sync and AI suites are CLEAN after runtime wiring.
 
-## Next extraction boundary — practice ranking and session-start gates
+## Gate 10 — practice ranking and session readiness
 
-The next safe step is to freeze and then separate the deterministic ranking and session-start decisions:
+Status: **CHARACTERIZED + DELEGATED / CLEAN**
 
-- focusTag / confirmation level / examFormat ranking weights
-- immediate-repeat penalty and drill-log recency tie-break
-- five-family readiness check
-- same-weakness resume behavior
-- cross-weakness unfinished-session blocking
-- future pending confirmation blocking
-- train vs confirm initial mode
+The shared core now owns the deterministic practice ranking weights and readiness decision after the app has handled an already-open drill:
 
-Presentation strings, alerts, navigation and concrete state persistence should remain in the Waseda app layer.
+- matching `focusTag`: -30 rank weight
+- confirmation + level 3: -20
+- matching `examFormat`: -6
+- immediate-last-question penalty
+- then drill-log last-use position
+- then stable ID ordering
+- minimum five-family readiness
+- future pending-confirmation block
+- initial `train` vs `confirm` mode
+
+The app intentionally still owns the same-weakness resume and cross-weakness unfinished-session short-circuits because those are navigation/session side effects that occur before pool construction. It also owns alert wording, navigation and persistence. The shared path and no-core fallback are both regression-tested.
+
+A source-characterization test initially caught the expected structural change in `startSkill`; the gate was updated to require both the shared readiness path and the original fallback, then the complete browser/sync/AI suite returned CLEAN. No production branch or deployed Waseda state was touched during that iteration.
+
+## Next extraction boundary — practice session state
+
+The next safe step is to extract the deterministic shape of a newly started practice session and the deterministic reset/application of a selected question. This should cover the common answer-state fields (`used`, selected answers, reorder state, text/self-check drafts, AI-feedback reset) while leaving random choice-order shuffling, persistence, navigation and Waseda-specific error text in the app layer.
 
 ## Future Rikkyo relationship
 
