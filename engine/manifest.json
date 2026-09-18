@@ -1,8 +1,8 @@
 {
   "name": "shared-english-engine",
-  "engineVersion": "0.1.0-alpha.19",
+  "engineVersion": "0.1.0-alpha.20",
   "contractVersion": 1,
-  "status": "candidate-day-rollover-delegation-clean",
+  "status": "candidate-ai-writing-config-delegation-clean",
   "sourceRepository": "FYam8/waseshibu-english",
   "artifactRoots": [
     "engine/"
@@ -100,8 +100,8 @@
   "releaseGate": "waseda-parity-before-consumer-sync",
   "schoolSpecificFilesExcluded": true,
   "baselineMain": "44154a777b2d6c584a1eba4a38bb782c6b70d0bb",
-  "notes": "The candidate branch now delegates deterministic local-day rollover decision/state cleanup to the shared core, including unanswered-drill deferral and stale daily plan/progress clearing, while keeping browser focus/visibility listeners, notices, render/save side effects and Japanese wording app-owned. Exam scoring/weakness, remediation, Today planning, practice selection/session, persistence, progress-sync and score config delegation remain clean with exact legacy fallbacks. Full browser, Cloud Sync and AI suites pass; production main remains unchanged and Rikkyo consumption is still blocked.",
-  "nextGate": "characterize-ai-writing-integration-boundary-before-parameterization",
+  "notes": "The candidate branch now also characterizes the AI writing browser/worker compatibility boundary and sources AI enablement, endpoint and supported skills from the validated school adapter with exact Waseda fallbacks. School-specific exam/drill task construction, answer aliases, grading UI and Worker scoring contract remain outside the generic core. All prior engine/state/persistence/progress gates plus full real-browser, Cloud Sync and AI suites are clean. Production main remains unchanged and Rikkyo consumption is still blocked.",
+  "nextGate": "characterize-high-risk-import-merge-boundary-before-deciding-extraction",
   "remediationMasteryDelegated": true,
   "dailyRemediationSchedulingDelegated": true,
   "dailyPlanConstructionDelegated": true,
@@ -111,5 +111,12 @@
   "practiceSessionReadinessDelegated": true,
   "practiceSessionStateDelegated": true,
   "examStateScoringDelegated": true,
-  "dayRolloverDelegated": true
+  "dayRolloverDelegated": true,
+  "aiWritingCharacterized": true,
+  "aiWritingConfigDelegated": true,
+  "delegatedAIWritingConfig": [
+    "enabled",
+    "endpoint",
+    "skills"
+  ]
 }
