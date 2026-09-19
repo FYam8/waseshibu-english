@@ -6,6 +6,7 @@ import path from 'node:path';
 import http from 'node:http';
 import crypto from 'node:crypto';
 import {createRequire} from 'node:module';
+import {runBoundaryChecks} from './g1-boundaries.mjs';
 const require=createRequire(import.meta.url);
 const {chromium}=require(process.env.G1_PLAYWRIGHT_MODULE||'playwright');
 const root=path.resolve(process.argv[2]||'_site');
@@ -23,7 +24,7 @@ const manifest=Object.fromEntries(['index.html',...assets].map(p=>{
   const local=fs.readFileSync(p),built=fs.readFileSync(path.join(root,p));
   assert.equal(sha(local),sha(built),'Jekyll changed '+p);return[p,sha(built)];
 }));
-const requests=[],blocked=[],errors=[],consoleErrors=[],checks=[];
+const requests=[],blocked=[],errors=[],consoleErrors=[],checks=[],dialogs=[];
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.txt':'text/plain'};
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
@@ -39,8 +40,8 @@ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const origin=`http://127.0.0.1:${server.address().port}`;
 const url=origin+'/waseshibu-english/';
 const browser=await chromium.launch({headless:true});
-async function context(){
-  const c=await browser.newContext({viewport:{width,height:900},serviceWorkers:'block',acceptDownloads:true});
+async function context({acceptConfirm=true}={}){
+  const c=await browser.newContext({viewport:{width,height:900},timezoneId:'UTC',serviceWorkers:'block',acceptDownloads:true});
   // No production request is ever continued, including anonymous registration.
   await c.route('**/*',route=>{
     const u=route.request().url();
@@ -56,7 +57,7 @@ async function context(){
   c.on('page',p=>{
     p.on('pageerror',e=>errors.push(e.message));
     p.on('console',m=>{if(m.type()==='error')consoleErrors.push({text:m.text(),url:m.location().url});});
-    p.on('dialog',d=>d.type()==='confirm'?d.accept():d.dismiss());
+    p.on('dialog',d=>{dialogs.push({type:d.type(),message:d.message()});return d.type()==='confirm'&&acceptConfirm?d.accept():d.dismiss();});
   });
   return c;
 }
@@ -210,6 +211,7 @@ try{
     await sentinelCheck(fp);await snapshot(fp,'format-'+q.type);
     await fc.close();checks.push(q.type+' artificial draft toggle/input and reload');
   }
+  await runBoundaryChecks({context,origin,url,key,state,sentinelCheck,snapshot,checks,dialogs,baseline:finalState});
   assert.ok(blocked.some(x=>x.url.includes('/v1/register-anonymous')),'prove production registration was intercepted');
   assert.ok(blocked.some(x=>x.url.includes('writing-grader')),'prove AI API was intercepted');
   assert.deepEqual(errors,[],'uncaught page errors');
@@ -217,6 +219,6 @@ try{
   assert.deepEqual(unexpectedConsole,[],'unexpected console errors');
   console.log(`G0/G1 representative integration PASS width=${width}; ${checks.length} groups; not full G1 or content/effectiveness proof.`);
 }finally{
-  fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({width,origin,indexSha256:sha(original),manifest,checks,blocked,requests,errors,consoleErrors,finalState},null,2));
+  fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({width,origin,indexSha256:sha(original),manifest,checks,blocked,requests,errors,consoleErrors,dialogs,finalState},null,2));
   await browser.close();await new Promise(resolve=>server.close(resolve));
 }
