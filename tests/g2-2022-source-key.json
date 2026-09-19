@@ -1,0 +1,118 @@
+{
+  "source": "2022_英語_解答.pdf",
+  "sha256": "cf3a357a263a276b65b55dd0a35c5b8ef91c434deeb50dadbda84804613673bb",
+  "page": 1,
+  "method": "Visual transcription of supplied school answer sheet; manual scoring rubrics are not asserted",
+  "rows": [
+    {
+      "id": "3-1",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "3-2",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "3-3-1",
+      "answer": "キ,ウ",
+      "points": 3
+    },
+    {
+      "id": "3-3-2",
+      "answer": "キ,ア",
+      "points": 3
+    },
+    {
+      "id": "3-4-1",
+      "answer": "gym",
+      "points": 3
+    },
+    {
+      "id": "3-4-2",
+      "answer": "improve",
+      "points": 3
+    },
+    {
+      "id": "4",
+      "answer": null,
+      "points": 12
+    },
+    {
+      "id": "5-1",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "5-2",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "5-3",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "5-4",
+      "answer": "tiger",
+      "points": 3
+    },
+    {
+      "id": "5-5",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "5-6",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "5-7",
+      "answer": "ア,カ",
+      "points": 6
+    },
+    {
+      "id": "6-1",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "6-2",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "6-3",
+      "answer": "memory",
+      "points": 3
+    },
+    {
+      "id": "6-4",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "6-5",
+      "answer": null,
+      "points": 5
+    },
+    {
+      "id": "6-6",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "6-7",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "6-8",
+      "answer": "ウ",
+      "points": 3
+    }
+  ]
+}

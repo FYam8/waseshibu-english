@@ -1,0 +1,270 @@
+[
+  {
+    "command": "node tests/shared-engine-contract.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-ui-baseline.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-ui-components.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-ui-component-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-ui-final-readiness.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-engine-consumer-contract-v1.1.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-engine-bootstrap.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-engine-core-parity.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-engine-remediation-mastery-parity.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-remediation-mastery-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-daily-remediation-scheduling-characterization.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-engine-daily-remediation-scheduling-parity.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-daily-remediation-scheduling-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-daily-plan-construction-characterization.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-engine-daily-plan-construction-parity.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-daily-plan-construction-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-engine-today-action-selection-parity.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-today-action-selection-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-practice-selection-characterization.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-engine-practice-selection-parity.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-practice-selection-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-practice-ranking-session-characterization.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-engine-practice-ranking-session-parity.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-practice-ranking-session-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-practice-session-state-characterization.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-engine-practice-session-state-parity.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-practice-session-state-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-exam-state-scoring-characterization.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-engine-exam-state-scoring-parity.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-exam-state-scoring-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-day-rollover-characterization.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-engine-day-rollover-parity.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-day-rollover-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-ai-writing-integration-characterization.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-ai-writing-config-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-import-merge-characterization.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-engine-import-merge-parity.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-engine-import-composite-parity.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-import-composite-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-engine-final-readiness.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-import-merge-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-policy-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-runtime-config-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-score-model-characterization.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-app-score-config-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-learning-model-characterization.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/shared-engine-learning-migration-parity.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-learning-migration-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-persistence-characterization.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-storage-config-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-progress-sync-characterization.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-progress-sync-config-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-progress-projection-config-delegation.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-behavior-characterization.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/waseda-learning-flow-characterization.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node --check progress-sync.js",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/progress-cloud-sync.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/ai-writing-grader.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/ai-writing-ui.test.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node --check workers/writing-grader/src/index.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/ai-grading-goldset-v1/lint.mjs tests/ai-grading-goldset-v1",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/ai-grading-goldset-v1/smoke.mjs tests/ai-grading-goldset-v1",
+    "exitCode": 0
+  },
+  {
+    "command": "node --check tests/ai-grading-goldset-v1/run-cloudflare-eval.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node --check tests/ai-grading-goldset-v1/reconcile-adjudication.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node --check tests/ai-grading-goldset-v1/compare-evals.mjs",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/ai-grading-goldset-v1/compare-smoke.mjs tests/ai-grading-goldset-v1",
+    "exitCode": 0
+  },
+  {
+    "command": "node tests/ai-grading-goldset-v1/generate-adjudication-packet.mjs tests/ai-grading-goldset-v1",
+    "exitCode": 0
+  }
+]

@@ -203,14 +203,14 @@ function migrateState(state){
      if(!meta)return null;
      return {targetId:meta.targetId,focusTag:w.component&&w.component!=="main"?`manual:${q.skill}:${w.component}`:meta.focusTag,examFormat:meta.examFormat,trap:w.component&&w.component!=="main"?w.component:meta.trap};
    },
-   validDrillIdsForTarget(targetId){return B.filter(x=>!x.retired&&x.targetId===targetId).map(x=>x.id)}
+   validDrillIdsForTarget(targetId){return [...B.filter(x=>!x.retired&&x.targetId===targetId).map(x=>x.id),...(window.ENGLISH_SCHOOL_POLICY?.additionalReservedIds?.(B,targetId)||[])]}
  });
  state.goal=[60,70,75].includes(Number(state.goal))?Number(state.goal):60;
  state.currentDrill=state.currentDrill&&typeof state.currentDrill==="object"?state.currentDrill:null;
  for(const w of Object.values(state.weak||{})){
    const q=(D[w.year]||[]).find(x=>x.id===w.id),meta=q?actualMeta(w.year,q):null;
    if(meta)Object.assign(w,{targetId:meta.targetId,focusTag:w.component&&w.component!=="main"?`manual:${q.skill}:${w.component}`:meta.focusTag,examFormat:meta.examFormat,trap:w.component&&w.component!=="main"?w.component:meta.trap});
-   const valid=new Set(B.filter(x=>!x.retired&&x.targetId===w.targetId).map(x=>x.id));
+   const valid=new Set([...B.filter(x=>!x.retired&&x.targetId===w.targetId).map(x=>x.id),...(window.ENGLISH_SCHOOL_POLICY?.additionalReservedIds?.(B,w.targetId)||[])]);
    w.reservedConfirm=[...new Set(Array.isArray(w.reservedConfirm)?w.reservedConfirm:[])].filter(id=>valid.has(id)).slice(0,2);
  }
  return state;

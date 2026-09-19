@@ -35,7 +35,7 @@ assert.deepEqual(Object.keys(limits).sort(),['2019:4','2020:4','2021:4','2022:4'
 
 // Feedback response validation is part of the browser/worker compatibility boundary.
 {
-  const ctx={};ctx.globalThis=ctx;vm.createContext(ctx);
+  const ctx={};ctx.globalThis=ctx;Object.assign(ctx,{AbortController,setTimeout,clearTimeout});vm.createContext(ctx);
   vm.runInContext(`${functionSource(app,'validateAIFeedback')}\nglobalThis.f=validateAIFeedback;`,ctx);
   const valid={score:10,maxScore:12,semantic:[1,1,1,1,1,1],breakdown:[],issues:[]};
   assert.equal(ctx.f(valid,12),true);
@@ -47,12 +47,12 @@ assert.deepEqual(Object.keys(limits).sort(),['2019:4','2020:4','2021:4','2022:4'
     {...valid,breakdown:null},
     {...valid,issues:null}
   ])assert.equal(ctx.f(bad,12),false);
-  assert.equal(ctx.f(null,12),null,'current validator preserves null for a null payload');
+  assert.equal(ctx.f(null,12),false,'invalid payloads are explicitly rejected');
 }
 
 // Fingerprints are persisted with AI feedback and define stale-answer detection.
 {
-  const ctx={Math,String};ctx.globalThis=ctx;vm.createContext(ctx);
+  const ctx={Math,String};ctx.globalThis=ctx;Object.assign(ctx,{AbortController,setTimeout,clearTimeout});vm.createContext(ctx);
   vm.runInContext(`${functionSource(app,'aiAnswerFingerprint')}\nglobalThis.f=aiAnswerFingerprint;`,ctx);
   assert.equal(ctx.f(''),'fnv1a32-811c9dc5');
   assert.equal(ctx.f('A new draft.'),'fnv1a32-cd0ae511');
@@ -67,7 +67,7 @@ assert.deepEqual(Object.keys(limits).sort(),['2019:4','2020:4','2021:4','2022:4'
     MANUAL_GUIDES:{'2024:4':{answer:'reference',note:'guide'}},
     k:(y,id)=>`${y}:${id}`
   };
-  ctx.window=ctx;ctx.globalThis=ctx;vm.createContext(ctx);
+  ctx.window=ctx;ctx.globalThis=ctx;Object.assign(ctx,{AbortController,setTimeout,clearTimeout});vm.createContext(ctx);
   vm.runInContext(`
 const AI_GRADING_SKILLS=new Set(["writing_completion","summary","rebuttal"]);
 const AI_EXAM_LIMITS=${JSON.stringify(limits)};
@@ -96,7 +96,7 @@ globalThis.api={examWritingTask,drillWritingTask};
   const ctx={
     fetch:async(url,options)=>{calls.push({url,options});return{ok:true,status:200,text:async()=>JSON.stringify(good)}}
   };
-  ctx.globalThis=ctx;vm.createContext(ctx);
+  ctx.globalThis=ctx;Object.assign(ctx,{AbortController,setTimeout,clearTimeout});vm.createContext(ctx);
   vm.runInContext(`
 const AI_GRADING_API="https://waseshibu-writing-grader.fyam8.workers.dev";
 ${validateSrc}
@@ -124,7 +124,7 @@ globalThis.f=requestWritingFeedback;
 {
   const fpSrc=functionSource(app,'aiAnswerFingerprint'),staleSrc=functionSource(app,'markDrillAIStale');
   const ctx={drillState:{selfText:'new answer',q:{},aiFeedback:{answerFingerprint:'different'},aiFeedbackStale:false},drillAIAnswer:()=>ctx.drillState.selfText};
-  ctx.globalThis=ctx;vm.createContext(ctx);
+  ctx.globalThis=ctx;Object.assign(ctx,{AbortController,setTimeout,clearTimeout});vm.createContext(ctx);
   vm.runInContext(`${fpSrc}\n${staleSrc}\nglobalThis.f=markDrillAIStale;`,ctx);
   ctx.f();assert.equal(ctx.drillState.aiFeedbackStale,true);
   ctx.drillState.aiFeedback.answerFingerprint=vm.runInContext('aiAnswerFingerprint("new answer")',ctx);

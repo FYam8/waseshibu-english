@@ -1,0 +1,939 @@
+{
+  "scope": "52 synthetic development cases; preassigned provisional AI labels, no independent human evaluation; worker postprocessing/score-policy audit only",
+  "realModelCalls": 0,
+  "rows": [
+    {
+      "id": "24-001",
+      "type": "official",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 59
+    },
+    {
+      "id": "24-002",
+      "type": "valid_paraphrase",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 45
+    },
+    {
+      "id": "24-003",
+      "type": "valid_alternative_emergency",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 50
+    },
+    {
+      "id": "24-004",
+      "type": "valid_alternative_learning",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 45
+    },
+    {
+      "id": "24-005",
+      "type": "valid_no_transition_word",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 43
+    },
+    {
+      "id": "24-006",
+      "type": "minor_grammar",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 22,
+      "workerScore": 22,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 45
+    },
+    {
+      "id": "24-007",
+      "type": "summary_only",
+      "labels": [
+        1,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 16,
+      "workerScore": 16,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 46
+    },
+    {
+      "id": "24-008",
+      "type": "counter_only",
+      "labels": [
+        0,
+        0,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 16,
+      "workerScore": 16,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 48
+    },
+    {
+      "id": "24-009",
+      "type": "wrong_summary_reversed",
+      "labels": [
+        2,
+        2,
+        0,
+        0,
+        1,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 8,
+      "workerScore": 12,
+      "adjustments": [
+        {
+          "index": 3,
+          "from": 0,
+          "to": 1
+        }
+      ],
+      "display": "withheld; manual review",
+      "words": 37
+    },
+    {
+      "id": "24-010",
+      "type": "agrees_not_rebuttal",
+      "labels": [
+        1,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 16,
+      "workerScore": 16,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 39
+    },
+    {
+      "id": "24-011",
+      "type": "rebuttal_no_reason",
+      "labels": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 19,
+      "workerScore": 19,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 27
+    },
+    {
+      "id": "24-012",
+      "type": "irrelevant_reason",
+      "labels": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 20,
+      "workerScore": 20,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 36
+    },
+    {
+      "id": "24-013",
+      "type": "mixed_contradiction",
+      "labels": [
+        1,
+        1,
+        3,
+        1,
+        1,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 12,
+      "workerScore": 12,
+      "adjustments": [
+        {
+          "index": 2,
+          "from": 3,
+          "to": 1
+        }
+      ],
+      "display": "withheld; manual review",
+      "words": 39
+    },
+    {
+      "id": "24-014",
+      "type": "fluent_source_distortion",
+      "labels": [
+        1,
+        2,
+        1,
+        1,
+        1,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 12,
+      "workerScore": 12,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 37
+    },
+    {
+      "id": "24-015",
+      "type": "very_short",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 23,
+      "workerScore": 23,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 13
+    },
+    {
+      "id": "24-016",
+      "type": "over_60",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 22,
+      "workerScore": 22,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 69
+    },
+    {
+      "id": "24-017",
+      "type": "prompt_injection",
+      "labels": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 11,
+      "workerScore": 11,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 19
+    },
+    {
+      "id": "24-018",
+      "type": "mixed_language",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        2
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 19,
+      "workerScore": 19,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 31
+    },
+    {
+      "id": "24-019",
+      "type": "fluent_irrelevant",
+      "labels": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 19,
+      "workerScore": 19,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 30
+    },
+    {
+      "id": "24-020",
+      "type": "conditional_compromise",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 49
+    },
+    {
+      "id": "24-021",
+      "type": "but_transition",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 42
+    },
+    {
+      "id": "24-022",
+      "type": "semantic_contrast_no_marker",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 43
+    },
+    {
+      "id": "24-023",
+      "type": "minor_typos",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 22,
+      "workerScore": 22,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 38
+    },
+    {
+      "id": "24-024",
+      "type": "role_reversal",
+      "labels": [
+        3,
+        3,
+        3,
+        1,
+        1,
+        2
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 12,
+      "workerScore": 12,
+      "adjustments": [
+        {
+          "index": 1,
+          "from": 3,
+          "to": 1
+        },
+        {
+          "index": 2,
+          "from": 3,
+          "to": 1
+        }
+      ],
+      "display": "withheld; manual review",
+      "words": 33
+    },
+    {
+      "id": "24-025",
+      "type": "valid_alternative_responsibility",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 45
+    },
+    {
+      "id": "24-026",
+      "type": "blank",
+      "blank": true
+    },
+    {
+      "id": "26-001",
+      "type": "official",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 50
+    },
+    {
+      "id": "26-002",
+      "type": "valid_paraphrase",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 43
+    },
+    {
+      "id": "26-003",
+      "type": "valid_alternative_respect",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 44
+    },
+    {
+      "id": "26-004",
+      "type": "valid_alternative_life_skills",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 42
+    },
+    {
+      "id": "26-005",
+      "type": "valid_alternative_cost",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 43
+    },
+    {
+      "id": "26-006",
+      "type": "valid_no_however",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 40
+    },
+    {
+      "id": "26-007",
+      "type": "summary_only",
+      "labels": [
+        1,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 15,
+      "workerScore": 15,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 38
+    },
+    {
+      "id": "26-008",
+      "type": "counter_only",
+      "labels": [
+        0,
+        0,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 15,
+      "workerScore": 15,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 38
+    },
+    {
+      "id": "26-009",
+      "type": "wrong_summary_reversed",
+      "labels": [
+        2,
+        2,
+        0,
+        0,
+        1,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 7,
+      "workerScore": 7,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 32
+    },
+    {
+      "id": "26-010",
+      "type": "agrees_not_rebuttal",
+      "labels": [
+        1,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 15,
+      "workerScore": 15,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 35
+    },
+    {
+      "id": "26-011",
+      "type": "rebuttal_no_reason",
+      "labels": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 18,
+      "workerScore": 18,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 22
+    },
+    {
+      "id": "26-012",
+      "type": "irrelevant_reason",
+      "labels": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 19,
+      "workerScore": 19,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 31
+    },
+    {
+      "id": "26-013",
+      "type": "mixed_contradiction",
+      "labels": [
+        1,
+        1,
+        3,
+        1,
+        1,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 12,
+      "workerScore": 12,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 38
+    },
+    {
+      "id": "26-014",
+      "type": "minor_grammar",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 21,
+      "workerScore": 21,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 34
+    },
+    {
+      "id": "26-015",
+      "type": "major_language_but_recoverable",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        2
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 18,
+      "workerScore": 18,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 24
+    },
+    {
+      "id": "26-016",
+      "type": "very_short",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 22,
+      "workerScore": 22,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 14
+    },
+    {
+      "id": "26-017",
+      "type": "overlong",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 22,
+      "workerScore": 22,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 74
+    },
+    {
+      "id": "26-018",
+      "type": "prompt_injection",
+      "labels": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 14,
+      "workerScore": 14,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 16
+    },
+    {
+      "id": "26-019",
+      "type": "source_distortion",
+      "labels": [
+        1,
+        2,
+        1,
+        1,
+        1,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 12,
+      "workerScore": 12,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 32
+    },
+    {
+      "id": "26-020",
+      "type": "valid_compromise",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 42
+    },
+    {
+      "id": "26-021",
+      "type": "valid_rotation",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 44
+    },
+    {
+      "id": "26-022",
+      "type": "fragmentary",
+      "labels": [
+        3,
+        1,
+        1,
+        1,
+        0,
+        2
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 16,
+      "workerScore": 16,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 15
+    },
+    {
+      "id": "26-023",
+      "type": "valid_cost_reason",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 43
+    },
+    {
+      "id": "26-024",
+      "type": "valid_fairness_community",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 45
+    },
+    {
+      "id": "26-025",
+      "type": "valid_qualified_counter",
+      "labels": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "modelCall": "mocked with provisional labels; not real model",
+      "directScore": 24,
+      "workerScore": 24,
+      "adjustments": [],
+      "display": "learning estimate",
+      "words": 45
+    },
+    {
+      "id": "26-026",
+      "type": "blank",
+      "blank": true
+    }
+  ]
+}

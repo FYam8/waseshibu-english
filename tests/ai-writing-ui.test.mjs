@@ -12,7 +12,7 @@ function storage() { const values = new Map(); return { get length() { return va
 const dummy = { innerHTML: "", textContent: "", value: "", disabled: false, className: "", style: {}, dataset: {}, classList: { add() {}, remove() {}, toggle() {} }, appendChild() {}, addEventListener() {}, querySelector() { return dummy; }, querySelectorAll() { return []; }, closest() { return null; } };
 const ctx = { console, window: null, TextDecoder, TextEncoder, crypto: { randomUUID: () => "12345678-1234-1234-1234-123456789012", subtle: {} }, document: { getElementById() { return dummy; }, querySelector() { return dummy; }, querySelectorAll() { return []; }, createElement() { return dummy; }, addEventListener() {}, body: dummy }, localStorage: storage(), navigator: {}, location: { hash: "" }, addEventListener() {}, removeEventListener() {}, setTimeout() {}, clearTimeout() {}, fetch() { throw new Error("unexpected network call"); }, alert() {} };
 ctx.window = ctx;
-vm.createContext(ctx);
+Object.assign(ctx,{AbortController});vm.createContext(ctx);
 for (const script of scripts) vm.runInContext(fs.readFileSync(path.join(root, script), "utf8"), ctx, { filename: script });
 vm.runInContext("globalThis.__state=()=>S;render=()=>{}", ctx);
 
