@@ -23,7 +23,7 @@ vm.createContext(context)
 for(const file of scripts.filter(file=>file!=="progress-sync.js"))vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),context,{filename:file})
 
 // Node VM with synthetic DOM/storage: structural audit, never a browser test.
-const data=JSON.parse(vm.runInContext('JSON.stringify({exams:D,papers:P,drills:BANK,guides:window.MANUAL_GUIDES,pools:Object.fromEntries(Object.entries(D).flatMap(([year,rows])=>rows.map(q=>[year+":"+q.id,poolForWeak(q).map(d=>d.id)])))})',context));
+const data=JSON.parse(vm.runInContext('JSON.stringify({exams:D,papers:P,drills:BANK,guides:window.MANUAL_GUIDES,pools:Object.fromEntries(Object.entries(D).flatMap(([year,rows])=>rows.map(q=>[year+":"+q.id,poolForWeak({...q,year:Number(year)}).map(d=>d.id)])))})',context));
 const sourceIds=new Set(Object.entries(data.exams).flatMap(([y,rows])=>rows.map(q=>y+':'+q.id)));
 const active=data.drills.filter(q=>!q.retired), issues=[];
 const check=(ok,id,kind)=>{if(!ok)issues.push({id,kind})};
@@ -64,14 +64,29 @@ for(const row of fixture.rows){
  if(row.answer!==null)check(q?.answer===row.answer,'2022:'+row.id,'source answer');
  const entry=mapping.find(q=>q.id==='2022:'+row.id);entry.sourceReview=row.answer===null?'points verified; manual answer not embedded':'answer and points verified';
 }
-const core=context.ENGLISH_ENGINE_CORE,weak=data.exams['2022'].find(q=>q.id==='6-2'),pool=data.pools['2022:6-2'].map(id=>data.drills.find(q=>q.id===id));
+const core=context.ENGLISH_ENGINE_CORE,weak={...data.exams['2022'].find(q=>q.id==='6-2'),year:2022,reservedConfirm:[],streak:0,status:'active'},pool=data.pools['2022:6-2'].map(id=>data.drills.find(q=>q.id===id));
 const rank=(items,confirm=false)=>core.rankPracticeQuestions(items,{weak,confirm,lastUse:()=>-1});
-const reservedIds=core.reserveConfirmationIds({pool,currentReserved:[],rankChoices:items=>rank(items,true),limit:2});
+context.auditWeak=weak;context.auditPool=pool;
+const reservedIds=JSON.parse(JSON.stringify(vm.runInContext("ensureConfirmationReserve('2022:6-2:main',auditWeak,auditPool)",context)));
 let usedIds=[];const training=[];
 for(let streak=0;streak<3;streak++){const r=core.selectNextPracticeQuestion({pool,reservedIds,usedIds,mode:'train',streak,rankChoices:rank});training.push(r.question.id);usedIds=r.usedIds;}
-const focusCase={sourceId:'2022:6-2',focus:weak.focusTag,training,reservedIds,trainingSameFocus:training.filter(id=>pool.find(q=>q.id===id).focusTag===weak.focusTag).length};
-// Characterize the gap without declaring mastery/content quality correct.
-assert.equal(focusCase.trainingSameFocus,0,'review the documented focus-gap finding if selection changes');
+const focusCase={sourceId:'2022:6-2',focus:weak.focusTag,training,reservedIds,trainingConnectorCount:training.filter(id=>pool.find(q=>q.id===id).skill==='connector').length};
+assert.equal(focusCase.trainingConnectorCount,3);
+assert.deepEqual(training,['lco21','lco23','lco27']);
+assert.deepEqual(reservedIds,['lco28','lco26']);
+assert.ok(!training.some(id=>reservedIds.includes(id)));
+for(const id of ['lco23','lco26','lco27','lco28','lco30']){
+ const q=data.drills.find(q=>q.id===id),parts=q.explanation.split('【根拠英文和訳】');
+ assert.equal(parts.length,2);assert.ok(parts[1].length>60);assert.ok(q.explanation.includes('【論理関係の確認】'));
+}
+const policy=context.ENGLISH_SCHOOL_POLICY;
+for(const fields of [{reservedConfirm:['rdt_cx03','rdt_cx04']},{status:'pending',reservedConfirm:[]},{streak:1,lastDrillId:'rdt_cx01',reservedConfirm:[]}])assert.equal(policy.practicePlan(data.drills,{...weak,...fields}),null);
+assert.equal(policy.practicePlan(data.drills,{...weak,reservedConfirm:[]},{q:{id:'rdt_cx01'}}),null);
+assert.equal(policy.practicePlan(data.drills,{...weak,year:2021}),null);
+for(const ids of [['rdt_cx03','rdt_cx04'],['lco28','lco26']]){
+ const original={goal:60,weak:{'2022:6-2:main':{...weak,component:'main',reservedConfirm:ids,status:'pending',streak:3,confirmStreak:1,seenDrills:['rdt_cx01'],next:'2026-10-02'}},currentDrill:{key:'2022:6-2:main',q:{id:ids[0]},choiceOrder:[2,0,1,3],selected:2},attempts:[{id:'keep-first',writtenScore:77,answers:{'2022:6-2':'ア'}}],drillLog:[{q:'rdt_cx01',ok:true}]};
+ const migrated=JSON.parse(JSON.stringify(original));context.ENGLISH_MODEL.migrateState(migrated);assert.deepEqual(JSON.parse(JSON.stringify(migrated)),original,'migration must retain old/new reservation, answers and progress');
+}
 const manualWithoutGuide=Object.entries(data.exams).flatMap(([y,rows])=>rows.filter(q=>q.type==='manual'&&!data.guides[y+':'+q.id]).map(q=>y+':'+q.id));
 const report={focusCase,manualWithoutGuide,scope:'Structural VM audit; source answers separately reviewed; no learner data',examCount:mapping.length,activeCount:active.length,retiredCount:data.drills.length-active.length,issues,mapping};
 if(process.argv.includes('--write'))fs.writeFileSync(path.join(root,'docs/g2-content-map.json'),JSON.stringify(report,null,2)+'\n');

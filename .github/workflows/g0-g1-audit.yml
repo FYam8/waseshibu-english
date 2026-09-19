@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: 20
       - run: node tests/g0-publication.test.mjs
-      - name: Audit structure and characterize known content gap
+      - name: Audit structure and connector remediation route
         run: node tests/g2-content-audit.mjs
       - uses: actions/jekyll-build-pages@v1
         with:

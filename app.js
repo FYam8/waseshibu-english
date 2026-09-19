@@ -638,6 +638,9 @@ function startTodayTasks(){const remaining=planRemaining();if(!remaining.length)
 function startDue(){startTodayTasks()}
 function familyCount(items){return new Set(items.map(x=>x.familyId)).size}
 function poolForWeak(w){
+ const school=window.ENGLISH_ENGINE_ADAPTER?.policy?.practicePlan;
+ const plan=school?.(BANK,w,typeof drillState!=="undefined"&&drillState&&S.weak[drillState.key]===w?drillState:null);
+ if(plan)return plan.pool;
  const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.selectPracticePool;
  if(shared)return shared(BANK,w,{minFamilies:5});
  const active=BANK.filter(x=>!x.retired);
@@ -656,14 +659,17 @@ function leastRecentlyUsed(key,items,lastId,w,confirm=false){
  return [...items].sort((a,b)=>{const rank=q=>(q.focusTag===w.focusTag?-30:0)+(confirm&&q.level===3?-20:0)+(q.examFormat===w.examFormat?-6:0);return rank(a)-rank(b)||(a.id===lastId?1:b.id===lastId?-1:0)||lastDrillUse(key,a.id)-lastDrillUse(key,b.id)||a.id.localeCompare(b.id)})
 }
 function ensureConfirmationReserve(key,w,pool){
+ const school=window.ENGLISH_ENGINE_ADAPTER?.policy?.practicePlan;
+ const plan=school?.(BANK,w,typeof drillState!=="undefined"&&drillState?.key===key?drillState:null);
+ const rank=items=>plan?[...items].sort((a,b)=>{const priority=q=>{const i=plan.confirmationIds.indexOf(q.id);return i<0?99:i};return priority(a)-priority(b)}):leastRecentlyUsed(key,items,w.lastDrillId,w,true);
  const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.reserveConfirmationIds;
  if(shared){
-   const reserved=shared({currentReserved:w.reservedConfirm,pool,limit:2,rankChoices:items=>leastRecentlyUsed(key,items,w.lastDrillId,w,true)});
+   const reserved=shared({currentReserved:w.reservedConfirm,pool,limit:2,rankChoices:rank});
    w.reservedConfirm=reserved;return reserved;
  }
  const byId=new Map(pool.map(x=>[x.id,x])),reserved=[];
  for(const id of [...new Set(Array.isArray(w.reservedConfirm)?w.reservedConfirm:[])]){const q=byId.get(id);if(q&&!reserved.some(x=>byId.get(x)?.familyId===q.familyId))reserved.push(id);if(reserved.length===2)break}
- if(reserved.length<2){const families=new Set(reserved.map(id=>byId.get(id)?.familyId)),choices=leastRecentlyUsed(key,pool.filter(x=>!reserved.includes(x.id)&&!families.has(x.familyId)),w.lastDrillId,w,true);while(reserved.length<2&&choices.length){const q=choices.shift();if(families.has(q.familyId))continue;families.add(q.familyId);reserved.push(q.id)}}
+ if(reserved.length<2){const families=new Set(reserved.map(id=>byId.get(id)?.familyId)),choices=rank(pool.filter(x=>!reserved.includes(x.id)&&!families.has(x.familyId)));while(reserved.length<2&&choices.length){const q=choices.shift();if(families.has(q.familyId))continue;families.add(q.familyId);reserved.push(q.id)}}
  w.reservedConfirm=reserved;return reserved;
 }
 function persistDrill(){S.currentDrill=drillState?JSON.parse(JSON.stringify(drillState)):null;save()}
@@ -732,7 +738,7 @@ function drill(){
  const w=S.weak[drillState.key], q=drillState.q;
  if(!w||!q)return `<section class=card><h2>ドリルを開始できませんでした</h2><p>${h(drillState.error||"ドリル対象がありません。")}</p><button onclick="finishSession()">間違い対策へ戻る</button></section>`;
  const target=drillState.mode==="confirm"?2:3, streak=drillState.mode==="confirm"?(w.confirmStreak||0):(w.streak||0);
- const contentHtml=`<div class="row space drill-head"><div><div class=drill-mode>${drillState.mode==="confirm"?"翌日の定着チェック":"類題反復"}</div><h2>${skillName(drillState.skill)} 克服ドリル</h2></div><span class=streak-label>${streak}/${target} 連続正解</span></div>
+ const contentHtml=`<div class="row space drill-head"><div><div class=drill-mode>${drillState.mode==="confirm"?"翌日の定着チェック":"類題反復"}</div><h2>${skillName(q.skill||drillState.skill)} 克服ドリル</h2></div><span class=streak-label>${streak}/${target} 連続正解</span></div>
  ${uiProgressBar(streak,target)}
  <p class=drill-origin>元の誤答：${w.year} ${h(w.label)} ／ ${h(w.category)} ／ ${h(w.trap||w.focusTag||"")}</p>
  <hr><h3 class=drill-prompt>${h(displayedDrillPrompt(q))}</h3>${drillInput(q)}
@@ -838,6 +844,17 @@ function applyLearningPointRelease2DataCorrections(){
  if(extract){
    extract.prompt=extract.prompt.replaceAll("混雑しすぎている","混雑している");
    for(const label of ["設問和訳","根拠英文和訳","なぜ正解か"])replaceExplanationPart(extract,label,(explanationParts(extract.explanation).find(part=>part.label===label)?.text||"").replaceAll("混雑しすぎている","混雑している"));
+ }
+ const connectorTranslations={
+   lco23:"学校でごみを減らすために小さな行動をしている生徒たちがいます。自分の水筒を持参し、紙の両面を使い、新しいファイルを買う代わりに古いものを修理します。例えば、あるクラスは、まだ白紙のページがたくさん残っているノートを集め、年下の生徒のための練習帳に作り替えました。",
+   lco26:"その新しいアプリは、長い講義をして生徒に教えるものではありません。各生徒がどの単語をよく忘れるかを調べ、その単語だけを追加で練習させます。言い換えると、そのアプリは、それぞれの学習者の弱点に合わせて学習内容を変えるのです。",
+   lco27:"町は駅の近くの狭い道路を、より広い歩道に変えました。さらに照明を設置し、自転車用の専用レーンを塗装で示しました。その結果、歩道の混雑のために遅刻する生徒が減り、翌月にはそこで自転車事故が一件もありませんでした。",
+   lco28:"地域のコミュニティセンターは、高齢者がほかの人たちとのつながりを保つのに役立ちます。例えば、朝の体操教室を開いたり、スマートフォンの使い方を教えたり、一人暮らしの人たちのために少人数の昼食会を設けたりしているセンターもあります。",
+   lco30:"学校は各教室のドアのそばに、透明なリサイクル用の箱を置き、生徒のリーダーに毎週金曜日に確認するよう頼みました。先生たちは、それぞれの箱に何を入れるべきかも説明しました。その結果、生徒が紙や缶、ペットボトルを捨てる際の分別ミスが減りました。"
+ };
+ for(const [id,translation] of Object.entries(connectorTranslations)){
+   const item=q(id);if(!item?.explanation)continue;
+   item.explanation=item.explanation.replace("【根拠英文和訳】","【論理関係の確認】")+`\n【根拠英文和訳】${translation}`;
  }
  const writingAnswers={
    lwc29:"animals notice danger / we should listen to warnings",

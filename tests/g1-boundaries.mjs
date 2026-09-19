@@ -174,26 +174,63 @@ export async function runBoundaryChecks(h){
     assert.equal(await row.locator('.answer-kana').first().isEnabled(),false);
     await sentinelCheck(p);checks.push('live timed expiry locks objective input; self-marking stays available; reload retains lock');await c.close();
   }
-  // G2 diagnostic: passing this characterization means the known focus gap is reproduced.
-  // It is not a content-quality acceptance test.
+  // G2 repair: actual source error -> relevant training -> later, distinct confirmation.
+  let newCycleStart,sourceScore;
   {
-    const c=await context(),p=await c.newPage();await p.goto(url);await start(p,2022);await fillCorrect(p,2022);
+    const c=await context(),p=await c.newPage();await freeze(p);await p.goto(url);await start(p,2022);await fillCorrect(p,2022);
     await p.locator('[id="answer-2022-6-2"] .answer-kana').filter({hasText:/^ア$/}).click();
     await p.getByRole('button',{name:'採点して弱点分析',exact:true}).click();
-    assert.equal((await state(p)).attempts.at(-1).writtenScore,77);
+    sourceScore=clone((await state(p)).attempts);assert.equal(sourceScore.at(-1).writtenScore,77);
     await p.locator('nav button[data-v="review"]').click();
     await p.locator('section.wrong').getByRole('button',{name:/克服ドリル|追加練習/}).click();
-    const ids=[];
+    newCycleStart=await state(p);const ids=[];
     for(let n=0;n<3;n++){
-      const d=(await state(p)).currentDrill;assert.notEqual(d.q.focusTag,'connector-context');
-      ids.push(await answerChoice(p));if(n<2)await p.locator('.drill-next button.primary').click();
+      const before=await state(p);assert.equal(before.currentDrill.q.skill,'connector');
+      await p.reload();await p.getByRole('button',{name:'途中の1問を再開',exact:true}).click();
+      const restored=await state(p);assert.deepEqual(restored.currentDrill.choiceOrder,before.currentDrill.choiceOrder);
+      assert.deepEqual(restored.weak['2022:6-2:main'].reservedConfirm,['lco28','lco26']);
+      ids.push(await answerChoice(p));
+      if(n===1){
+        await p.locator('#drillFeedback details').first().locator('summary').click();
+        assert.match(await p.locator('#drillFeedback').innerText(),/白紙のページ/);
+        await snapshot(p,'g2-connector-example-translation');
+      }
+      if(n<2)await p.locator('.drill-next button.primary').click();
     }
-    assert.deepEqual(ids,['rdt_cx01','rdt_cx02','rdt_cx05']);
-    const weak=Object.values((await state(p)).weak).find(w=>w.year===2022&&w.id==='6-2');
-    assert.equal(weak.status,'pending');assert.equal(weak.streak,3);
-    assert.ok(weak.reservedConfirm.includes('rdt_cx03'));
-    await snapshot(p,'g2-known-connector-focus-gap');await sentinelCheck(p);
-    checks.push('G2 diagnostic ONLY: connector weakness reaches pending after 3 non-connector drills; gap reproduced, not fixed');await c.close();
+    assert.deepEqual(ids,['lco21','lco23','lco27']);
+    const pending=await state(p);assert.equal(pending.weak['2022:6-2:main'].status,'pending');
+    assert.deepEqual(pending.attempts,sourceScore);
+    await p.clock.fastForward(4000);await p.locator('nav button[data-v="review"]').click();
+    await p.locator('section.wrong').getByRole('button',{name:/定着チェック/}).click();
+    assert.equal((await state(p)).currentDrill.q.id,'lco26');ids.push(await answerChoice(p));
+    await p.locator('.drill-next button.primary').click();
+    assert.equal((await state(p)).currentDrill.q.id,'lco28');
+    await p.reload();await p.getByRole('button',{name:'途中の1問を再開',exact:true}).click();ids.push(await answerChoice(p));
+    const done=await state(p);assert.equal(done.weak['2022:6-2:main'].status,'mastered');
+    assert.equal(new Set(ids).size,5);assert.deepEqual(done.attempts,sourceScore);
+    await snapshot(p,'g2-connector-next-day-confirmed');await sentinelCheck(p);
+    checks.push('2022 connector error -> connector training 3 incl example -> reload -> next-day distinct example/restatement 2; first score preserved');await c.close();
   }
-
+  // Previously started cycles must keep their old question, order and reservations.
+  {
+    const fixture=clone(newCycleStart),wk='2022:6-2:main';
+    const c=await context(),p=await c.newPage();await freeze(p);await p.goto(url);
+    const old=await p.evaluate(()=>window.DRILLS.find(q=>q.id==='rdt_cx01'));
+    await c.close();
+    fixture.weak[wk].reservedConfirm=['rdt_cx03','rdt_cx04'];fixture.weak[wk].seenDrills=['rdt_cx01'];fixture.weak[wk].lastDrillId='rdt_cx01';
+    fixture.currentDrill.q=old;fixture.currentDrill.used=['rdt_cx01'];fixture.currentDrill.choiceOrder=[2,0,1,3];
+    const legacy=await context();await seed(legacy,fixture);const page=await legacy.newPage();await freeze(page);await page.goto(url);
+    const restored=await state(page);assert.deepEqual(restored.currentDrill,fixture.currentDrill);
+    assert.deepEqual(restored.weak[wk].reservedConfirm,fixture.weak[wk].reservedConfirm);
+    await page.getByRole('button',{name:'途中の1問を再開',exact:true}).click();assert.equal(await answerChoice(page),'rdt_cx01');
+    await page.locator('.drill-next button.primary').click();assert.equal((await state(page)).currentDrill.q.id,'rdt_cx02');
+    await page.reload();await page.getByRole('button',{name:'途中の1問を再開',exact:true}).click();await answerChoice(page);
+    await page.locator('.drill-next button.primary').click();assert.equal(await answerChoice(page),'rdt_cx05');
+    assert.deepEqual((await state(page)).weak[wk].reservedConfirm,['rdt_cx03','rdt_cx04']);
+    await page.clock.fastForward(4000);await page.locator('nav button[data-v="review"]').click();
+    await page.locator('section.wrong').getByRole('button',{name:/定着チェック/}).click();
+    assert.equal(await answerChoice(page),'rdt_cx03');await page.locator('.drill-next button.primary').click();assert.equal(await answerChoice(page),'rdt_cx04');
+    assert.deepEqual((await state(page)).attempts,sourceScore);await sentinelCheck(page);
+    checks.push('legacy in-progress connector source keeps old question/order, old training and next-day reservations without rewriting first score');await legacy.close();
+  }
 }

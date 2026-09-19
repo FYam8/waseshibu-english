@@ -3,15 +3,15 @@
     "sourceId": "2022:6-2",
     "focus": "connector-context",
     "training": [
-      "rdt_cx01",
-      "rdt_cx02",
-      "rdt_cx05"
+      "lco21",
+      "lco23",
+      "lco27"
     ],
     "reservedIds": [
-      "rdt_cx03",
-      "rdt_cx04"
+      "lco28",
+      "lco26"
     ],
-    "trainingSameFocus": 0
+    "trainingConnectorCount": 3
   },
   "manualWithoutGuide": [
     "2019:4",
@@ -2385,15 +2385,21 @@
       "focusTag": "connector-context",
       "page": 11,
       "poolIds": [
-        "rdt_cx01",
-        "rdt_cx02",
-        "rdt_cx03",
-        "rdt_cx04",
-        "rdt_cx05"
+        "lco21",
+        "lco23",
+        "lco27",
+        "lco28",
+        "lco26"
       ],
       "families": 5,
-      "sameFocusCount": 1,
-      "otherTargets": [],
+      "sameFocusCount": 0,
+      "otherTargets": [
+        "lco21",
+        "lco23",
+        "lco27",
+        "lco28",
+        "lco26"
+      ],
       "sourceReview": "answer and points verified"
     },
     {
