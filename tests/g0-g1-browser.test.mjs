@@ -200,7 +200,9 @@ try{
     else if(q.type==='selfcheck')await card.locator('textarea').first().fill('A saved artificial writing draft.');
     else assert.equal(q.type,'choice','unhandled active format requires a test');
     const before=await state(fp);
-    const controls=()=>card.locator('input,textarea,button').evaluateAll(es=>es.map(e=>({tag:e.tagName,text:e.textContent,value:e.value,disabled:e.disabled,cls:e.className})));
+    // textarea.textContent is the markup/default value, not the live answer.
+    // Compare input values, and compare textContent only for button labels.
+    const controls=()=>card.locator('input,textarea,button').evaluateAll(es=>es.map(e=>({tag:e.tagName,text:e.tagName==='BUTTON'?e.textContent:null,value:e.value,disabled:e.disabled,cls:e.className})));
     const beforeControls=await controls();
     await fp.reload();await fp.getByRole('button',{name:'途中の1問を再開',exact:true}).click();
     for(const field of ['q','key','selectedMany','choiceOrder','textDraft','textInputs','selfText','selfParts','order','orderIndices'])assert.deepEqual((await state(fp)).currentDrill[field],before.currentDrill[field],q.type+' reload '+field);
