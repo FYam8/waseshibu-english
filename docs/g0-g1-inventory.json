@@ -1,0 +1,5831 @@
+{
+  "collection": "index script order through school/shared layers, before app.js; VM data inspection, not browser",
+  "exams": {
+    "2019": [
+      {
+        "id": "3-1",
+        "type": "choice",
+        "skill": "pronunciation",
+        "points": 3
+      },
+      {
+        "id": "3-2",
+        "type": "choice",
+        "skill": "stress",
+        "points": 3
+      },
+      {
+        "id": "3-3-1",
+        "type": "pair",
+        "skill": "reorder",
+        "points": 3
+      },
+      {
+        "id": "3-3-2",
+        "type": "pair",
+        "skill": "reorder",
+        "points": 3
+      },
+      {
+        "id": "3-4-1",
+        "type": "text",
+        "skill": "vocab_definition",
+        "points": 3
+      },
+      {
+        "id": "3-4-2",
+        "type": "text",
+        "skill": "vocab_definition",
+        "points": 3
+      },
+      {
+        "id": "4",
+        "type": "manual",
+        "skill": "writing_completion",
+        "points": 12
+      },
+      {
+        "id": "5-1",
+        "type": "choice",
+        "skill": "paraphrase",
+        "points": 3
+      },
+      {
+        "id": "5-2",
+        "type": "choice",
+        "skill": "context",
+        "points": 3
+      },
+      {
+        "id": "5-3",
+        "type": "choice",
+        "skill": "context",
+        "points": 3
+      },
+      {
+        "id": "5-4",
+        "type": "choice",
+        "skill": "emotion",
+        "points": 3
+      },
+      {
+        "id": "5-5",
+        "type": "choice",
+        "skill": "reason",
+        "points": 3
+      },
+      {
+        "id": "5-6",
+        "type": "text",
+        "skill": "extract",
+        "points": 3
+      },
+      {
+        "id": "5-7",
+        "type": "multi",
+        "skill": "content_match",
+        "points": 6
+      },
+      {
+        "id": "6-1",
+        "type": "manual",
+        "skill": "sentence_completion",
+        "points": 5
+      },
+      {
+        "id": "6-2",
+        "type": "choice",
+        "skill": "paraphrase",
+        "points": 3
+      },
+      {
+        "id": "6-3",
+        "type": "choice",
+        "skill": "reference",
+        "points": 3
+      },
+      {
+        "id": "6-4",
+        "type": "choice",
+        "skill": "connector",
+        "points": 3
+      },
+      {
+        "id": "6-5",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-6",
+        "type": "text",
+        "skill": "extract",
+        "points": 3
+      },
+      {
+        "id": "6-7",
+        "type": "choice",
+        "skill": "insertion",
+        "points": 3
+      },
+      {
+        "id": "6-8",
+        "type": "choice",
+        "skill": "content_match",
+        "points": 3
+      }
+    ],
+    "2020": [
+      {
+        "id": "3-1",
+        "type": "choice",
+        "skill": "pronunciation",
+        "points": 3
+      },
+      {
+        "id": "3-2",
+        "type": "choice",
+        "skill": "stress",
+        "points": 3
+      },
+      {
+        "id": "3-3-1",
+        "type": "pair",
+        "skill": "reorder",
+        "points": 3
+      },
+      {
+        "id": "3-3-2",
+        "type": "pair",
+        "skill": "reorder",
+        "points": 3
+      },
+      {
+        "id": "3-4-1",
+        "type": "text",
+        "skill": "vocab_definition",
+        "points": 3
+      },
+      {
+        "id": "3-4-2",
+        "type": "text",
+        "skill": "vocab_definition",
+        "points": 3
+      },
+      {
+        "id": "4",
+        "type": "manual",
+        "skill": "writing_completion",
+        "points": 12
+      },
+      {
+        "id": "5-1",
+        "type": "choice",
+        "skill": "paraphrase",
+        "points": 3
+      },
+      {
+        "id": "5-2",
+        "type": "choice",
+        "skill": "context",
+        "points": 3
+      },
+      {
+        "id": "5-3",
+        "type": "choice",
+        "skill": "emotion",
+        "points": 3
+      },
+      {
+        "id": "5-4",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-5",
+        "type": "choice",
+        "skill": "reason",
+        "points": 3
+      },
+      {
+        "id": "5-6",
+        "type": "text",
+        "skill": "extract",
+        "points": 3
+      },
+      {
+        "id": "5-7",
+        "type": "multi",
+        "skill": "content_match",
+        "points": 6
+      },
+      {
+        "id": "6-1",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-2",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-3",
+        "type": "choice",
+        "skill": "reference",
+        "points": 3
+      },
+      {
+        "id": "6-4",
+        "type": "choice",
+        "skill": "connector",
+        "points": 3
+      },
+      {
+        "id": "6-5",
+        "type": "text",
+        "skill": "extract",
+        "points": 3
+      },
+      {
+        "id": "6-6",
+        "type": "manual",
+        "skill": "sentence_completion",
+        "points": 5
+      },
+      {
+        "id": "6-7",
+        "type": "choice",
+        "skill": "insertion",
+        "points": 3
+      },
+      {
+        "id": "6-8",
+        "type": "choice",
+        "skill": "content_match",
+        "points": 3
+      }
+    ],
+    "2021": [
+      {
+        "id": "3-1",
+        "type": "choice",
+        "skill": "pronunciation",
+        "points": 3
+      },
+      {
+        "id": "3-2",
+        "type": "choice",
+        "skill": "stress",
+        "points": 3
+      },
+      {
+        "id": "3-3-1",
+        "type": "pair",
+        "skill": "reorder",
+        "points": 3
+      },
+      {
+        "id": "3-3-2",
+        "type": "pair",
+        "skill": "reorder",
+        "points": 3
+      },
+      {
+        "id": "3-4-1",
+        "type": "text",
+        "skill": "vocab_definition",
+        "points": 3
+      },
+      {
+        "id": "3-4-2",
+        "type": "text",
+        "skill": "vocab_definition",
+        "points": 3
+      },
+      {
+        "id": "4",
+        "type": "manual",
+        "skill": "writing_completion",
+        "points": 12
+      },
+      {
+        "id": "5-1",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-2",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-3",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-4",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-5",
+        "type": "text",
+        "skill": "extract",
+        "points": 3
+      },
+      {
+        "id": "5-6",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-7",
+        "type": "multi",
+        "skill": "content_match",
+        "points": 6
+      },
+      {
+        "id": "6-1",
+        "type": "text",
+        "skill": "extract",
+        "points": 3
+      },
+      {
+        "id": "6-2",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-3",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-4",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-5",
+        "type": "manual",
+        "skill": "sentence_completion",
+        "points": 5
+      },
+      {
+        "id": "6-6",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-7",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-8",
+        "type": "choice",
+        "skill": "content_match",
+        "points": 3
+      }
+    ],
+    "2022": [
+      {
+        "id": "3-1",
+        "type": "choice",
+        "skill": "pronunciation",
+        "points": 3
+      },
+      {
+        "id": "3-2",
+        "type": "choice",
+        "skill": "stress",
+        "points": 3
+      },
+      {
+        "id": "3-3-1",
+        "type": "pair",
+        "skill": "reorder",
+        "points": 3
+      },
+      {
+        "id": "3-3-2",
+        "type": "pair",
+        "skill": "reorder",
+        "points": 3
+      },
+      {
+        "id": "3-4-1",
+        "type": "text",
+        "skill": "vocab_definition",
+        "points": 3
+      },
+      {
+        "id": "3-4-2",
+        "type": "text",
+        "skill": "vocab_definition",
+        "points": 3
+      },
+      {
+        "id": "4",
+        "type": "manual",
+        "skill": "summary",
+        "points": 12
+      },
+      {
+        "id": "5-1",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-2",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-3",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-4",
+        "type": "text",
+        "skill": "extract",
+        "points": 3
+      },
+      {
+        "id": "5-5",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-6",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-7",
+        "type": "multi",
+        "skill": "content_match",
+        "points": 6
+      },
+      {
+        "id": "6-1",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-2",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-3",
+        "type": "text",
+        "skill": "extract",
+        "points": 3
+      },
+      {
+        "id": "6-4",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-5",
+        "type": "manual",
+        "skill": "sentence_completion",
+        "points": 5
+      },
+      {
+        "id": "6-6",
+        "type": "choice",
+        "skill": "paraphrase",
+        "points": 3
+      },
+      {
+        "id": "6-7",
+        "type": "choice",
+        "skill": "insertion",
+        "points": 3
+      },
+      {
+        "id": "6-8",
+        "type": "choice",
+        "skill": "content_match",
+        "points": 3
+      }
+    ],
+    "2023": [
+      {
+        "id": "3-1",
+        "type": "choice",
+        "skill": "pronunciation",
+        "points": 3
+      },
+      {
+        "id": "3-2",
+        "type": "choice",
+        "skill": "stress",
+        "points": 3
+      },
+      {
+        "id": "3-3-1",
+        "type": "pair",
+        "skill": "reorder",
+        "points": 3
+      },
+      {
+        "id": "3-3-2",
+        "type": "pair",
+        "skill": "reorder",
+        "points": 3
+      },
+      {
+        "id": "3-4-1",
+        "type": "text",
+        "skill": "vocab_definition",
+        "points": 3
+      },
+      {
+        "id": "3-4-2",
+        "type": "text",
+        "skill": "vocab_definition",
+        "points": 3
+      },
+      {
+        "id": "4",
+        "type": "manual",
+        "skill": "summary",
+        "points": 12
+      },
+      {
+        "id": "5-1",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-2",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-3",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-4",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-5",
+        "type": "text",
+        "skill": "extract",
+        "points": 3
+      },
+      {
+        "id": "5-6",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-7",
+        "type": "multi",
+        "skill": "content_match",
+        "points": 6
+      },
+      {
+        "id": "6-1",
+        "type": "manual",
+        "skill": "sentence_completion",
+        "points": 5
+      },
+      {
+        "id": "6-2",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-3",
+        "type": "text",
+        "skill": "extract",
+        "points": 3
+      },
+      {
+        "id": "6-4",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-5",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-6",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-7",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-8",
+        "type": "choice",
+        "skill": "content_match",
+        "points": 3
+      }
+    ],
+    "2024": [
+      {
+        "id": "3-1",
+        "type": "choice",
+        "skill": "pronunciation",
+        "points": 3
+      },
+      {
+        "id": "3-2",
+        "type": "choice",
+        "skill": "stress",
+        "points": 3
+      },
+      {
+        "id": "3-3-1",
+        "type": "pair",
+        "skill": "reorder",
+        "points": 3
+      },
+      {
+        "id": "3-3-2",
+        "type": "pair",
+        "skill": "reorder",
+        "points": 3
+      },
+      {
+        "id": "3-4-1",
+        "type": "text",
+        "skill": "vocab_definition",
+        "points": 3
+      },
+      {
+        "id": "3-4-2",
+        "type": "text",
+        "skill": "vocab_definition",
+        "points": 3
+      },
+      {
+        "id": "4",
+        "type": "manual",
+        "skill": "rebuttal",
+        "points": 24
+      },
+      {
+        "id": "5-1",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-2",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-3",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-4",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-5",
+        "type": "text",
+        "skill": "extract",
+        "points": 3
+      },
+      {
+        "id": "5-6",
+        "type": "choice",
+        "skill": "content_match",
+        "points": 3
+      },
+      {
+        "id": "6-1",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-2",
+        "type": "text",
+        "skill": "extract",
+        "points": 3
+      },
+      {
+        "id": "6-3",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-4",
+        "type": "manual",
+        "skill": "sentence_completion",
+        "points": 5
+      },
+      {
+        "id": "6-5",
+        "type": "choice",
+        "skill": "insertion",
+        "points": 3
+      },
+      {
+        "id": "6-6",
+        "type": "choice",
+        "skill": "content_match",
+        "points": 3
+      }
+    ],
+    "2025": [
+      {
+        "id": "3-1",
+        "type": "choice",
+        "skill": "pronunciation",
+        "points": 3
+      },
+      {
+        "id": "3-2",
+        "type": "choice",
+        "skill": "stress",
+        "points": 3
+      },
+      {
+        "id": "3-3-1",
+        "type": "pair",
+        "skill": "reorder",
+        "points": 3
+      },
+      {
+        "id": "3-3-2",
+        "type": "pair",
+        "skill": "reorder",
+        "points": 3
+      },
+      {
+        "id": "3-4-1",
+        "type": "text",
+        "skill": "vocab_definition",
+        "points": 3
+      },
+      {
+        "id": "3-4-2",
+        "type": "text",
+        "skill": "vocab_definition",
+        "points": 3
+      },
+      {
+        "id": "4",
+        "type": "manual",
+        "skill": "rebuttal",
+        "points": 24
+      },
+      {
+        "id": "5-1",
+        "type": "text",
+        "skill": "extract",
+        "points": 3
+      },
+      {
+        "id": "5-2",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-3",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-4",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-5",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "5-6",
+        "type": "choice",
+        "skill": "content_match",
+        "points": 3
+      },
+      {
+        "id": "6-1",
+        "type": "text",
+        "skill": "extract",
+        "points": 3
+      },
+      {
+        "id": "6-2",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "6-3",
+        "type": "manual",
+        "skill": "sentence_completion",
+        "points": 5
+      },
+      {
+        "id": "6-4",
+        "type": "choice",
+        "skill": "example",
+        "points": 3
+      },
+      {
+        "id": "6-5",
+        "type": "choice",
+        "skill": "insertion",
+        "points": 3
+      },
+      {
+        "id": "6-6",
+        "type": "choice",
+        "skill": "content_match",
+        "points": 3
+      }
+    ],
+    "2026": [
+      {
+        "id": "3-1",
+        "type": "choice",
+        "skill": "pronunciation",
+        "points": 3
+      },
+      {
+        "id": "3-2",
+        "type": "choice",
+        "skill": "stress",
+        "points": 3
+      },
+      {
+        "id": "4-1",
+        "type": "pair",
+        "skill": "reorder",
+        "points": 3
+      },
+      {
+        "id": "4-2",
+        "type": "pair",
+        "skill": "reorder",
+        "points": 3
+      },
+      {
+        "id": "5-1",
+        "type": "text",
+        "skill": "vocab_definition",
+        "points": 3
+      },
+      {
+        "id": "5-2",
+        "type": "text",
+        "skill": "vocab_definition",
+        "points": 3
+      },
+      {
+        "id": "6",
+        "type": "manual",
+        "skill": "rebuttal",
+        "points": 24
+      },
+      {
+        "id": "7-1",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "7-2",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "7-3",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "7-4",
+        "type": "text",
+        "skill": "extract",
+        "points": 3
+      },
+      {
+        "id": "7-5",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "7-6",
+        "type": "choice",
+        "skill": "content_match",
+        "points": 3
+      },
+      {
+        "id": "8-1",
+        "type": "manual",
+        "skill": "sentence_completion",
+        "points": 5
+      },
+      {
+        "id": "8-2",
+        "type": "text",
+        "skill": "extract",
+        "points": 3
+      },
+      {
+        "id": "8-3",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "8-4",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "8-5",
+        "type": "choice",
+        "skill": "detail",
+        "points": 3
+      },
+      {
+        "id": "8-6",
+        "type": "choice",
+        "skill": "content_match",
+        "points": 3
+      }
+    ]
+  },
+  "drills": [
+    {
+      "id": "pr01",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "pronunciation-contrast"
+    },
+    {
+      "id": "pr02",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "pronunciation-contrast"
+    },
+    {
+      "id": "pr03",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "pronunciation-contrast"
+    },
+    {
+      "id": "pr04",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "pronunciation-contrast"
+    },
+    {
+      "id": "pr05",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "pronunciation-contrast"
+    },
+    {
+      "id": "pr06",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "pronunciation-contrast"
+    },
+    {
+      "id": "pr07",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "pronunciation-contrast"
+    },
+    {
+      "id": "pr08",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "pronunciation-contrast"
+    },
+    {
+      "id": "st01",
+      "retired": true,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-position"
+    },
+    {
+      "id": "st02",
+      "retired": true,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-position"
+    },
+    {
+      "id": "st03",
+      "retired": true,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-position"
+    },
+    {
+      "id": "st04",
+      "retired": true,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-position"
+    },
+    {
+      "id": "st05",
+      "retired": true,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-position"
+    },
+    {
+      "id": "st06",
+      "retired": true,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-position"
+    },
+    {
+      "id": "ro01",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-indirect-question",
+      "focusTag": "indirect-question"
+    },
+    {
+      "id": "ro02",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-relative-clause",
+      "focusTag": "relative-clause"
+    },
+    {
+      "id": "ro03",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-indirect-question",
+      "focusTag": "indirect-question"
+    },
+    {
+      "id": "ro04",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-indirect-question",
+      "focusTag": "indirect-question"
+    },
+    {
+      "id": "ro05",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-relative-clause",
+      "focusTag": "relative-clause"
+    },
+    {
+      "id": "ro06",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-effort-into-ing",
+      "focusTag": "effort-into-ing"
+    },
+    {
+      "id": "ro07",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-indirect-question",
+      "focusTag": "indirect-question"
+    },
+    {
+      "id": "ro08",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-conjunction-phrasal",
+      "focusTag": "conjunction-phrasal"
+    },
+    {
+      "id": "ro09",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-indirect-question",
+      "focusTag": "indirect-question"
+    },
+    {
+      "id": "ro10",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-comparison",
+      "focusTag": "comparison"
+    },
+    {
+      "id": "co01",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-logic"
+    },
+    {
+      "id": "co02",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-logic"
+    },
+    {
+      "id": "co03",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-logic"
+    },
+    {
+      "id": "pa01",
+      "retired": true,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-context"
+    },
+    {
+      "id": "pa02",
+      "retired": true,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-context"
+    },
+    {
+      "id": "pa03",
+      "retired": true,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-context"
+    },
+    {
+      "id": "re01",
+      "retired": true,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "reference-cohesion"
+    },
+    {
+      "id": "re02",
+      "retired": true,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "reference-cohesion"
+    },
+    {
+      "id": "cx01",
+      "retired": true,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-fit",
+      "focusTag": "context-fit"
+    },
+    {
+      "id": "cx02",
+      "retired": true,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-fit",
+      "focusTag": "context-fit"
+    },
+    {
+      "id": "em01",
+      "retired": true,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-change",
+      "focusTag": "emotion-change"
+    },
+    {
+      "id": "em02",
+      "retired": true,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-change",
+      "focusTag": "emotion-change"
+    },
+    {
+      "id": "rs01",
+      "retired": true,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-evidence"
+    },
+    {
+      "id": "rs02",
+      "retired": true,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-evidence"
+    },
+    {
+      "id": "dt01",
+      "retired": true,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-evidence",
+      "focusTag": "detail-evidence"
+    },
+    {
+      "id": "dt02",
+      "retired": true,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-evidence",
+      "focusTag": "detail-evidence"
+    },
+    {
+      "id": "ex01",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-principle",
+      "focusTag": "example-principle"
+    },
+    {
+      "id": "ex02",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-principle",
+      "focusTag": "example-principle"
+    },
+    {
+      "id": "in01",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-cohesion"
+    },
+    {
+      "id": "in02",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-cohesion"
+    },
+    {
+      "id": "in03",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-cohesion"
+    },
+    {
+      "id": "cm01",
+      "retired": true,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "content-traps"
+    },
+    {
+      "id": "cm02",
+      "retired": true,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "content-traps"
+    },
+    {
+      "id": "cm03",
+      "retired": true,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "content-traps"
+    },
+    {
+      "id": "et01",
+      "retired": true,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-evidence"
+    },
+    {
+      "id": "et02",
+      "retired": true,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-evidence"
+    },
+    {
+      "id": "et03",
+      "retired": true,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-evidence"
+    },
+    {
+      "id": "sc01",
+      "retired": false,
+      "type": "text_multi",
+      "skill": "sentence_completion",
+      "targetId": "sentence-grammar",
+      "focusTag": "sentence-grammar"
+    },
+    {
+      "id": "sc02",
+      "retired": false,
+      "type": "text_multi",
+      "skill": "sentence_completion",
+      "targetId": "sentence-grammar",
+      "focusTag": "sentence-grammar"
+    },
+    {
+      "id": "sc03",
+      "retired": false,
+      "type": "text_multi",
+      "skill": "sentence_completion",
+      "targetId": "sentence-grammar",
+      "focusTag": "sentence-grammar"
+    },
+    {
+      "id": "wr01",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "writing-story-completion"
+    },
+    {
+      "id": "su01",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "su02",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "rb01",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "rb02",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "rb03",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "xpr1",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "pronunciation-contrast"
+    },
+    {
+      "id": "xpr2",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "pronunciation-contrast"
+    },
+    {
+      "id": "xpr3",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "pronunciation-contrast"
+    },
+    {
+      "id": "xpr4",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "pronunciation-contrast"
+    },
+    {
+      "id": "xpr5",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "pronunciation-contrast"
+    },
+    {
+      "id": "xpr6",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "pronunciation-contrast"
+    },
+    {
+      "id": "xpr7",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "pronunciation-contrast"
+    },
+    {
+      "id": "xpr8",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "pronunciation-contrast"
+    },
+    {
+      "id": "xst1",
+      "retired": true,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-position"
+    },
+    {
+      "id": "xst2",
+      "retired": true,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-position"
+    },
+    {
+      "id": "xst3",
+      "retired": true,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-position"
+    },
+    {
+      "id": "xst4",
+      "retired": true,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-position"
+    },
+    {
+      "id": "xst5",
+      "retired": true,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-position"
+    },
+    {
+      "id": "xst6",
+      "retired": true,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-position"
+    },
+    {
+      "id": "xst7",
+      "retired": true,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-position"
+    },
+    {
+      "id": "xst8",
+      "retired": true,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-position"
+    },
+    {
+      "id": "xro1",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-fixed-pattern",
+      "focusTag": "fixed-pattern"
+    },
+    {
+      "id": "xro2",
+      "retired": true,
+      "type": "reorder",
+      "skill": "reorder",
+      "targetId": "reorder-indirect-question",
+      "focusTag": "indirect-question"
+    },
+    {
+      "id": "xro3",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-fixed-pattern",
+      "focusTag": "fixed-pattern"
+    },
+    {
+      "id": "xro4",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-indirect-question",
+      "focusTag": "indirect-question"
+    },
+    {
+      "id": "xro5",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-fixed-pattern",
+      "focusTag": "fixed-pattern"
+    },
+    {
+      "id": "xro6",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-fixed-pattern",
+      "focusTag": "fixed-pattern"
+    },
+    {
+      "id": "xro7",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-effort-into-ing",
+      "focusTag": "effort-into-ing"
+    },
+    {
+      "id": "xro8",
+      "retired": true,
+      "type": "reorder",
+      "skill": "reorder",
+      "targetId": "reorder-fixed-pattern",
+      "focusTag": "fixed-pattern"
+    },
+    {
+      "id": "xvd1",
+      "retired": true,
+      "type": "choice",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "xvd2",
+      "retired": true,
+      "type": "choice",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "xvd3",
+      "retired": true,
+      "type": "choice",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "xvd4",
+      "retired": true,
+      "type": "choice",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "xvd5",
+      "retired": true,
+      "type": "choice",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "xvd6",
+      "retired": true,
+      "type": "choice",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "xvd7",
+      "retired": true,
+      "type": "choice",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "xvd8",
+      "retired": true,
+      "type": "choice",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "xpa1",
+      "retired": true,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-context"
+    },
+    {
+      "id": "xpa2",
+      "retired": true,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-context"
+    },
+    {
+      "id": "xpa3",
+      "retired": true,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-context"
+    },
+    {
+      "id": "xpa4",
+      "retired": true,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-context"
+    },
+    {
+      "id": "xpa5",
+      "retired": true,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-context"
+    },
+    {
+      "id": "xpa6",
+      "retired": true,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-context"
+    },
+    {
+      "id": "xpa7",
+      "retired": true,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-context"
+    },
+    {
+      "id": "xpa8",
+      "retired": true,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-context"
+    },
+    {
+      "id": "xco1",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-logic"
+    },
+    {
+      "id": "xco2",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-logic"
+    },
+    {
+      "id": "xco3",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-logic"
+    },
+    {
+      "id": "xco4",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-logic"
+    },
+    {
+      "id": "xco5",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-logic"
+    },
+    {
+      "id": "xco6",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-logic"
+    },
+    {
+      "id": "xco7",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-logic"
+    },
+    {
+      "id": "xco8",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-logic"
+    },
+    {
+      "id": "xrf1",
+      "retired": true,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "reference-cohesion"
+    },
+    {
+      "id": "xrf2",
+      "retired": true,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "reference-cohesion"
+    },
+    {
+      "id": "xrf3",
+      "retired": true,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "reference-cohesion"
+    },
+    {
+      "id": "xrf4",
+      "retired": true,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "reference-cohesion"
+    },
+    {
+      "id": "xrf5",
+      "retired": true,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "reference-cohesion"
+    },
+    {
+      "id": "xrf6",
+      "retired": true,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "reference-cohesion"
+    },
+    {
+      "id": "xrf7",
+      "retired": true,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "reference-cohesion"
+    },
+    {
+      "id": "xrf8",
+      "retired": true,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "reference-cohesion"
+    },
+    {
+      "id": "xcx1",
+      "retired": true,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-fit",
+      "focusTag": "context-fit"
+    },
+    {
+      "id": "xcx2",
+      "retired": true,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-fit",
+      "focusTag": "context-fit"
+    },
+    {
+      "id": "xcx3",
+      "retired": true,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-fit",
+      "focusTag": "context-fit"
+    },
+    {
+      "id": "xcx4",
+      "retired": true,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-fit",
+      "focusTag": "context-fit"
+    },
+    {
+      "id": "xcx5",
+      "retired": true,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-fit",
+      "focusTag": "context-fit"
+    },
+    {
+      "id": "xcx6",
+      "retired": true,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-fit",
+      "focusTag": "context-fit"
+    },
+    {
+      "id": "xcx7",
+      "retired": true,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-fit",
+      "focusTag": "context-fit"
+    },
+    {
+      "id": "xcx8",
+      "retired": true,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-fit",
+      "focusTag": "context-fit"
+    },
+    {
+      "id": "xem1",
+      "retired": true,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-change",
+      "focusTag": "emotion-change"
+    },
+    {
+      "id": "xem2",
+      "retired": true,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-change",
+      "focusTag": "emotion-change"
+    },
+    {
+      "id": "xem3",
+      "retired": true,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-change",
+      "focusTag": "emotion-change"
+    },
+    {
+      "id": "xem4",
+      "retired": true,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-change",
+      "focusTag": "emotion-change"
+    },
+    {
+      "id": "xem5",
+      "retired": true,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-change",
+      "focusTag": "emotion-change"
+    },
+    {
+      "id": "xem6",
+      "retired": true,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-change",
+      "focusTag": "emotion-change"
+    },
+    {
+      "id": "xem7",
+      "retired": true,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-change",
+      "focusTag": "emotion-change"
+    },
+    {
+      "id": "xem8",
+      "retired": true,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-change",
+      "focusTag": "emotion-change"
+    },
+    {
+      "id": "xrs1",
+      "retired": true,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-evidence"
+    },
+    {
+      "id": "xrs2",
+      "retired": true,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-evidence"
+    },
+    {
+      "id": "xrs3",
+      "retired": true,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-evidence"
+    },
+    {
+      "id": "xrs4",
+      "retired": true,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-evidence"
+    },
+    {
+      "id": "xrs5",
+      "retired": true,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-evidence"
+    },
+    {
+      "id": "xrs6",
+      "retired": true,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-evidence"
+    },
+    {
+      "id": "xrs7",
+      "retired": true,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-evidence"
+    },
+    {
+      "id": "xrs8",
+      "retired": true,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-evidence"
+    },
+    {
+      "id": "xdt1",
+      "retired": true,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-evidence",
+      "focusTag": "detail-evidence"
+    },
+    {
+      "id": "xdt2",
+      "retired": true,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-evidence",
+      "focusTag": "detail-evidence"
+    },
+    {
+      "id": "xdt3",
+      "retired": true,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-evidence",
+      "focusTag": "detail-evidence"
+    },
+    {
+      "id": "xdt4",
+      "retired": true,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-evidence",
+      "focusTag": "detail-evidence"
+    },
+    {
+      "id": "xdt5",
+      "retired": true,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-evidence",
+      "focusTag": "detail-evidence"
+    },
+    {
+      "id": "xdt6",
+      "retired": true,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-evidence",
+      "focusTag": "detail-evidence"
+    },
+    {
+      "id": "xdt7",
+      "retired": true,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-evidence",
+      "focusTag": "detail-evidence"
+    },
+    {
+      "id": "xdt8",
+      "retired": true,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-evidence",
+      "focusTag": "detail-evidence"
+    },
+    {
+      "id": "xex1",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-principle",
+      "focusTag": "example-principle"
+    },
+    {
+      "id": "xex2",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-principle",
+      "focusTag": "example-principle"
+    },
+    {
+      "id": "xex3",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-principle",
+      "focusTag": "example-principle"
+    },
+    {
+      "id": "xex4",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-principle",
+      "focusTag": "example-principle"
+    },
+    {
+      "id": "xex5",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-principle",
+      "focusTag": "example-principle"
+    },
+    {
+      "id": "xex6",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-principle",
+      "focusTag": "example-principle"
+    },
+    {
+      "id": "xex7",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-principle",
+      "focusTag": "example-principle"
+    },
+    {
+      "id": "xex8",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-principle",
+      "focusTag": "example-principle"
+    },
+    {
+      "id": "xcm1",
+      "retired": true,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "content-traps"
+    },
+    {
+      "id": "xcm2",
+      "retired": true,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "content-traps"
+    },
+    {
+      "id": "xcm3",
+      "retired": true,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "content-traps"
+    },
+    {
+      "id": "xcm4",
+      "retired": true,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "content-traps"
+    },
+    {
+      "id": "xcm5",
+      "retired": true,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "content-traps"
+    },
+    {
+      "id": "xcm6",
+      "retired": true,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "content-traps"
+    },
+    {
+      "id": "xcm7",
+      "retired": true,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "content-traps"
+    },
+    {
+      "id": "xcm8",
+      "retired": true,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "content-traps"
+    },
+    {
+      "id": "xin1",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-cohesion"
+    },
+    {
+      "id": "xin2",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-cohesion"
+    },
+    {
+      "id": "xin3",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-cohesion"
+    },
+    {
+      "id": "xin4",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-cohesion"
+    },
+    {
+      "id": "xin5",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-cohesion"
+    },
+    {
+      "id": "xin6",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-cohesion"
+    },
+    {
+      "id": "xin7",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-cohesion"
+    },
+    {
+      "id": "xin8",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-cohesion"
+    },
+    {
+      "id": "xet1",
+      "retired": true,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-evidence"
+    },
+    {
+      "id": "xet2",
+      "retired": true,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-evidence"
+    },
+    {
+      "id": "xet3",
+      "retired": true,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-evidence"
+    },
+    {
+      "id": "xet4",
+      "retired": true,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-evidence"
+    },
+    {
+      "id": "xet5",
+      "retired": true,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-evidence"
+    },
+    {
+      "id": "xet6",
+      "retired": true,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-evidence"
+    },
+    {
+      "id": "xet7",
+      "retired": true,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-evidence"
+    },
+    {
+      "id": "xet8",
+      "retired": true,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-evidence"
+    },
+    {
+      "id": "xsc1",
+      "retired": false,
+      "type": "text_multi",
+      "skill": "sentence_completion",
+      "targetId": "sentence-grammar",
+      "focusTag": "sentence-grammar"
+    },
+    {
+      "id": "xsc2",
+      "retired": false,
+      "type": "text_multi",
+      "skill": "sentence_completion",
+      "targetId": "sentence-grammar",
+      "focusTag": "sentence-grammar"
+    },
+    {
+      "id": "xsc3",
+      "retired": false,
+      "type": "text_multi",
+      "skill": "sentence_completion",
+      "targetId": "sentence-grammar",
+      "focusTag": "sentence-grammar"
+    },
+    {
+      "id": "xsc4",
+      "retired": false,
+      "type": "text_multi",
+      "skill": "sentence_completion",
+      "targetId": "sentence-grammar",
+      "focusTag": "sentence-grammar"
+    },
+    {
+      "id": "xsc5",
+      "retired": false,
+      "type": "text_multi",
+      "skill": "sentence_completion",
+      "targetId": "sentence-grammar",
+      "focusTag": "sentence-grammar"
+    },
+    {
+      "id": "xsc6",
+      "retired": false,
+      "type": "text_multi",
+      "skill": "sentence_completion",
+      "targetId": "sentence-grammar",
+      "focusTag": "sentence-grammar"
+    },
+    {
+      "id": "xsc7",
+      "retired": false,
+      "type": "text_multi",
+      "skill": "sentence_completion",
+      "targetId": "sentence-grammar",
+      "focusTag": "sentence-grammar"
+    },
+    {
+      "id": "xsc8",
+      "retired": false,
+      "type": "text_multi",
+      "skill": "sentence_completion",
+      "targetId": "sentence-grammar",
+      "focusTag": "sentence-grammar"
+    },
+    {
+      "id": "xwc1",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "writing-story-completion"
+    },
+    {
+      "id": "xwc2",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "writing-story-completion"
+    },
+    {
+      "id": "xwc3",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "writing-story-completion"
+    },
+    {
+      "id": "xwc4",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "writing-story-completion"
+    },
+    {
+      "id": "xwc5",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "writing-story-completion"
+    },
+    {
+      "id": "xwc6",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "writing-story-completion"
+    },
+    {
+      "id": "xwc7",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "writing-story-completion"
+    },
+    {
+      "id": "xwc8",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "writing-story-completion"
+    },
+    {
+      "id": "xsu1",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "xsu2",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "xsu3",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "xsu4",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "xsu5",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "xsu6",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "xsu7",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "xsu8",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "xrb1",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "xrb2",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "xrb3",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "xrb4",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "xrb5",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "xrb6",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "xrb7",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "xrb8",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "rdt_cx01",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-context-evidence",
+      "focusTag": "context-dialogue"
+    },
+    {
+      "id": "rdt_cx02",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-context-evidence",
+      "focusTag": "vocab-in-context"
+    },
+    {
+      "id": "rdt_cx03",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-context-evidence",
+      "focusTag": "connector-context"
+    },
+    {
+      "id": "rdt_cx04",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-context-evidence",
+      "focusTag": "context-dialogue"
+    },
+    {
+      "id": "rdt_cx05",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-context-evidence",
+      "focusTag": "vocab-in-context"
+    },
+    {
+      "id": "rdt_ci02",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-causal-inference",
+      "focusTag": "situation-reaction"
+    },
+    {
+      "id": "rdt_ci03",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-causal-inference",
+      "focusTag": "action-intent"
+    },
+    {
+      "id": "rdt_pe03",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-paraphrase-evidence",
+      "focusTag": "example-identification"
+    },
+    {
+      "id": "rdt_in01",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-insertion-cohesion",
+      "focusTag": "insertion-experiment"
+    },
+    {
+      "id": "rdt_in02",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-insertion-cohesion",
+      "focusTag": "insertion-contrast"
+    },
+    {
+      "id": "rdt_in03",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-insertion-cohesion",
+      "focusTag": "insertion-example"
+    },
+    {
+      "id": "rdt_in04",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-insertion-cohesion",
+      "focusTag": "insertion-cause-effect"
+    },
+    {
+      "id": "rdt_in05",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-insertion-cohesion",
+      "focusTag": "insertion-reference"
+    },
+    {
+      "id": "nr_iq1",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-indirect-question",
+      "focusTag": "indirect-question"
+    },
+    {
+      "id": "nr_iq2",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-indirect-question",
+      "focusTag": "indirect-question"
+    },
+    {
+      "id": "nr_iq3",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-indirect-question",
+      "focusTag": "indirect-question"
+    },
+    {
+      "id": "nr_iq4",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-indirect-question",
+      "focusTag": "indirect-question"
+    },
+    {
+      "id": "nr_iq5",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-indirect-question",
+      "focusTag": "indirect-question"
+    },
+    {
+      "id": "nr_rc1",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-relative-clause",
+      "focusTag": "relative-clause"
+    },
+    {
+      "id": "nr_rc2",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-relative-clause",
+      "focusTag": "relative-clause"
+    },
+    {
+      "id": "nr_rc3",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-relative-clause",
+      "focusTag": "relative-clause"
+    },
+    {
+      "id": "nr_rc4",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-relative-clause",
+      "focusTag": "relative-clause"
+    },
+    {
+      "id": "nr_rc5",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-relative-clause",
+      "focusTag": "relative-clause"
+    },
+    {
+      "id": "nr_ef1",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-effort-into-ing",
+      "focusTag": "effort-into-ing"
+    },
+    {
+      "id": "nr_ef2",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-effort-into-ing",
+      "focusTag": "effort-into-ing"
+    },
+    {
+      "id": "nr_ef3",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-effort-into-ing",
+      "focusTag": "effort-into-ing"
+    },
+    {
+      "id": "nr_ef4",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-effort-into-ing",
+      "focusTag": "effort-into-ing"
+    },
+    {
+      "id": "nr_ef5",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-effort-into-ing",
+      "focusTag": "effort-into-ing"
+    },
+    {
+      "id": "nr_cp1",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-conjunction-phrasal",
+      "focusTag": "conjunction-phrasal"
+    },
+    {
+      "id": "nr_cp2",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-conjunction-phrasal",
+      "focusTag": "conjunction-phrasal"
+    },
+    {
+      "id": "nr_cp3",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-conjunction-phrasal",
+      "focusTag": "conjunction-phrasal"
+    },
+    {
+      "id": "nr_cp4",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-conjunction-phrasal",
+      "focusTag": "conjunction-phrasal"
+    },
+    {
+      "id": "nr_cp5",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-conjunction-phrasal",
+      "focusTag": "conjunction-phrasal"
+    },
+    {
+      "id": "nr_cm1",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-comparison",
+      "focusTag": "comparison"
+    },
+    {
+      "id": "nr_cm2",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-comparison",
+      "focusTag": "comparison"
+    },
+    {
+      "id": "nr_cm3",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-comparison",
+      "focusTag": "comparison"
+    },
+    {
+      "id": "nr_cm4",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-comparison",
+      "focusTag": "comparison"
+    },
+    {
+      "id": "nr_cm5",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-comparison",
+      "focusTag": "comparison"
+    },
+    {
+      "id": "nr_fp1",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-fixed-pattern",
+      "focusTag": "fixed-pattern"
+    },
+    {
+      "id": "nr_fp2",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-fixed-pattern",
+      "focusTag": "fixed-pattern"
+    },
+    {
+      "id": "nr_fp3",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-fixed-pattern",
+      "focusTag": "fixed-pattern"
+    },
+    {
+      "id": "nr_fp4",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-fixed-pattern",
+      "focusTag": "fixed-pattern"
+    },
+    {
+      "id": "nr_fp5",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-fixed-pattern",
+      "focusTag": "fixed-pattern"
+    },
+    {
+      "id": "nd01",
+      "retired": true,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-evidence",
+      "focusTag": "state-change"
+    },
+    {
+      "id": "nd02",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-causal-inference",
+      "focusTag": "cause-reason"
+    },
+    {
+      "id": "nd03",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-paraphrase-evidence",
+      "focusTag": "survey-result"
+    },
+    {
+      "id": "nd04",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-causal-inference",
+      "focusTag": "reason-motive"
+    },
+    {
+      "id": "nd05",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-paraphrase-evidence",
+      "focusTag": "paraphrase-scope"
+    },
+    {
+      "id": "nd06",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-causal-inference",
+      "focusTag": "cause-reason"
+    },
+    {
+      "id": "nd07",
+      "retired": true,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-evidence",
+      "focusTag": "state-change"
+    },
+    {
+      "id": "nd08",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-paraphrase-evidence",
+      "focusTag": "study-finding"
+    },
+    {
+      "id": "nd09",
+      "retired": true,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-evidence",
+      "focusTag": "state-change"
+    },
+    {
+      "id": "nd10",
+      "retired": false,
+      "type": "choice",
+      "skill": "detail",
+      "targetId": "detail-paraphrase-evidence",
+      "focusTag": "negative-detail"
+    },
+    {
+      "id": "ncm01",
+      "retired": true,
+      "type": "multi_choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "choose-two"
+    },
+    {
+      "id": "ncm02",
+      "retired": true,
+      "type": "multi_choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "choose-two"
+    },
+    {
+      "id": "ncm03",
+      "retired": true,
+      "type": "multi_choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "choose-two"
+    },
+    {
+      "id": "ncm04",
+      "retired": true,
+      "type": "multi_choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "choose-two"
+    },
+    {
+      "id": "ncm05",
+      "retired": true,
+      "type": "multi_choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "choose-two"
+    },
+    {
+      "id": "nin01",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "contrast-result"
+    },
+    {
+      "id": "nin02",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "example-reference"
+    },
+    {
+      "id": "nin03",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "cause-effect"
+    },
+    {
+      "id": "nin04",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "time-order"
+    },
+    {
+      "id": "nin05",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "reference-cause"
+    },
+    {
+      "id": "nvd01",
+      "retired": true,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "nvd02",
+      "retired": true,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "nvd03",
+      "retired": true,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "nvd04",
+      "retired": true,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "nvd05",
+      "retired": true,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "nsc01",
+      "retired": false,
+      "type": "text_multi",
+      "skill": "sentence_completion",
+      "targetId": "sentence-grammar",
+      "focusTag": "help-object-verb"
+    },
+    {
+      "id": "nsc02",
+      "retired": false,
+      "type": "text_multi",
+      "skill": "sentence_completion",
+      "targetId": "sentence-grammar",
+      "focusTag": "without-it-to"
+    },
+    {
+      "id": "nsc03",
+      "retired": false,
+      "type": "text_multi",
+      "skill": "sentence_completion",
+      "targetId": "sentence-grammar",
+      "focusTag": "multiple-comparison"
+    },
+    {
+      "id": "nsc04",
+      "retired": false,
+      "type": "text_multi",
+      "skill": "sentence_completion",
+      "targetId": "sentence-grammar",
+      "focusTag": "whether-comparison"
+    },
+    {
+      "id": "nsc05",
+      "retired": false,
+      "type": "text_multi",
+      "skill": "sentence_completion",
+      "targetId": "sentence-grammar",
+      "focusTag": "purpose-so-that"
+    },
+    {
+      "id": "nwc01",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-2019"
+    },
+    {
+      "id": "nwc02",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-2020"
+    },
+    {
+      "id": "nwc03",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-2021"
+    },
+    {
+      "id": "nwc04",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-2020"
+    },
+    {
+      "id": "nwc05",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-2021"
+    },
+    {
+      "id": "nsu01",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "nsu02",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "nsu03",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "nsu04",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "nsu05",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "nrb01",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2024"
+    },
+    {
+      "id": "nrb02",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "nrb03",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2026"
+    },
+    {
+      "id": "nrb04",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2024"
+    },
+    {
+      "id": "nrb05",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2026"
+    },
+    {
+      "id": "lsu01",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu02",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu03",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu04",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu05",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu06",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu07",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu08",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu09",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu10",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lrb01",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2024"
+    },
+    {
+      "id": "lrb02",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2024"
+    },
+    {
+      "id": "lrb03",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "lrb04",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "lrb05",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "lrb06",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "lrb07",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "lrb08",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2026"
+    },
+    {
+      "id": "lrb09",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2026"
+    },
+    {
+      "id": "lrb10",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "lrb11",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2026"
+    },
+    {
+      "id": "lrs01",
+      "retired": true,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-action-motive"
+    },
+    {
+      "id": "lrs02",
+      "retired": true,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-obstacle"
+    },
+    {
+      "id": "lrs03",
+      "retired": false,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-experiment"
+    },
+    {
+      "id": "lrs04",
+      "retired": true,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-delay"
+    },
+    {
+      "id": "lrs05",
+      "retired": true,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-honesty"
+    },
+    {
+      "id": "lrs06",
+      "retired": true,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-purpose"
+    },
+    {
+      "id": "lrs07",
+      "retired": false,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-empathy"
+    },
+    {
+      "id": "lrs08",
+      "retired": true,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-sign"
+    },
+    {
+      "id": "lrs09",
+      "retired": false,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-plan-change"
+    },
+    {
+      "id": "lrs10",
+      "retired": false,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-reaction"
+    },
+    {
+      "id": "lvd01",
+      "retired": true,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd02",
+      "retired": true,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd03",
+      "retired": true,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd04",
+      "retired": true,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd05",
+      "retired": true,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd06",
+      "retired": true,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd07",
+      "retired": true,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd08",
+      "retired": true,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lcm01",
+      "retired": false,
+      "type": "multi_choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "choose-two-timeline"
+    },
+    {
+      "id": "lcm02",
+      "retired": false,
+      "type": "multi_choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "choose-two-experiment"
+    },
+    {
+      "id": "lcm03",
+      "retired": false,
+      "type": "multi_choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "choose-two-plan-change"
+    },
+    {
+      "id": "lcm04",
+      "retired": false,
+      "type": "multi_choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "choose-two-research"
+    },
+    {
+      "id": "lcm05",
+      "retired": false,
+      "type": "multi_choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "choose-two-result"
+    },
+    {
+      "id": "lcm06",
+      "retired": false,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "single-not-true"
+    },
+    {
+      "id": "lcm07",
+      "retired": false,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "single-match"
+    },
+    {
+      "id": "lcm08",
+      "retired": false,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "single-timeline"
+    },
+    {
+      "id": "lcm09",
+      "retired": false,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "single-research-limit"
+    },
+    {
+      "id": "lcm10",
+      "retired": false,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "single-cause-result"
+    },
+    {
+      "id": "lcm11",
+      "retired": false,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "single-character"
+    },
+    {
+      "id": "lcm12",
+      "retired": false,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "single-contrast"
+    },
+    {
+      "id": "lcm13",
+      "retired": false,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "single-not-true"
+    },
+    {
+      "id": "lcm14",
+      "retired": false,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "single-purpose"
+    },
+    {
+      "id": "lcm15",
+      "retired": false,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "single-final-decision"
+    },
+    {
+      "id": "lcm16",
+      "retired": false,
+      "type": "choice",
+      "skill": "content_match",
+      "targetId": "content-traps",
+      "focusTag": "single-research-quote"
+    },
+    {
+      "id": "lin01",
+      "retired": false,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lin02",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lin03",
+      "retired": false,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lin04",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lin05",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lin06",
+      "retired": false,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lin07",
+      "retired": false,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lin08",
+      "retired": false,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lin09",
+      "retired": false,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lin10",
+      "retired": false,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lin11",
+      "retired": false,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lin12",
+      "retired": true,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lin13",
+      "retired": false,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lin14",
+      "retired": false,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lrf01",
+      "retired": false,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "event-reference"
+    },
+    {
+      "id": "lrf02",
+      "retired": false,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "action-reference"
+    },
+    {
+      "id": "lrf03",
+      "retired": false,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "event-reference"
+    },
+    {
+      "id": "lrf04",
+      "retired": false,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "plan-reference"
+    },
+    {
+      "id": "lrf05",
+      "retired": false,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "behavior-reference"
+    },
+    {
+      "id": "lrf06",
+      "retired": false,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "clause-reference"
+    },
+    {
+      "id": "lrf07",
+      "retired": false,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "cause-reference"
+    },
+    {
+      "id": "lrf08",
+      "retired": false,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "multi-action-reference"
+    },
+    {
+      "id": "lrf09",
+      "retired": false,
+      "type": "choice",
+      "skill": "reference",
+      "targetId": "reference-cohesion",
+      "focusTag": "event-cause-reference"
+    },
+    {
+      "id": "lrb12",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2024"
+    },
+    {
+      "id": "lrb13",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "lrb14",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2025"
+    },
+    {
+      "id": "lrb15",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2026"
+    },
+    {
+      "id": "lrb16",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "rebuttal",
+      "targetId": "rebuttal-dialogue",
+      "focusTag": "rebuttal-2026"
+    },
+    {
+      "id": "lsu11",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu12",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu13",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu14",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu15",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu16",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu17",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu18",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu19",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu20",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu21",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu22",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu23",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu24",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu25",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu26",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu27",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu28",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu29",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu30",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu31",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu32",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu33",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu34",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu35",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu36",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu37",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu38",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lsu39",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2023"
+    },
+    {
+      "id": "lsu40",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "summary",
+      "targetId": "summary-main-points",
+      "focusTag": "summary-2022"
+    },
+    {
+      "id": "lrs11",
+      "retired": false,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-action-motive"
+    },
+    {
+      "id": "lrs12",
+      "retired": false,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-judgment"
+    },
+    {
+      "id": "lrs13",
+      "retired": false,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-behavior"
+    },
+    {
+      "id": "lrs14",
+      "retired": false,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-purpose"
+    },
+    {
+      "id": "lrs15",
+      "retired": false,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-obstacle"
+    },
+    {
+      "id": "lrs16",
+      "retired": false,
+      "type": "choice",
+      "skill": "reason",
+      "targetId": "reason-evidence",
+      "focusTag": "reason-delay"
+    },
+    {
+      "id": "lem01",
+      "retired": false,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-inference",
+      "focusTag": "emotion-reaction-context"
+    },
+    {
+      "id": "lem02",
+      "retired": false,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-inference",
+      "focusTag": "emotion-change"
+    },
+    {
+      "id": "lem03",
+      "retired": false,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-inference",
+      "focusTag": "emotion-inference-action"
+    },
+    {
+      "id": "lem04",
+      "retired": false,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-inference",
+      "focusTag": "emotion-reaction-context"
+    },
+    {
+      "id": "lem05",
+      "retired": false,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-inference",
+      "focusTag": "emotion-change"
+    },
+    {
+      "id": "lem06",
+      "retired": false,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-inference",
+      "focusTag": "emotion-inference-action"
+    },
+    {
+      "id": "lem07",
+      "retired": true,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-inference",
+      "focusTag": "emotion-social-context"
+    },
+    {
+      "id": "lem11",
+      "retired": false,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-inference",
+      "focusTag": "emotion-change-context"
+    },
+    {
+      "id": "lem08",
+      "retired": false,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-inference",
+      "focusTag": "emotion-inference-action"
+    },
+    {
+      "id": "lem09",
+      "retired": false,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-inference",
+      "focusTag": "emotion-change"
+    },
+    {
+      "id": "lem10",
+      "retired": false,
+      "type": "choice",
+      "skill": "emotion",
+      "targetId": "emotion-inference",
+      "focusTag": "emotion-reaction-context"
+    },
+    {
+      "id": "lcx01",
+      "retired": false,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-dialogue-fit",
+      "focusTag": "context-dialogue-next-action"
+    },
+    {
+      "id": "lcx02",
+      "retired": false,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-dialogue-fit",
+      "focusTag": "context-dialogue-correction"
+    },
+    {
+      "id": "lcx03",
+      "retired": false,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-lexical-fit",
+      "focusTag": "context-lexical-cause-result"
+    },
+    {
+      "id": "lcx04",
+      "retired": false,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-sentence-fit",
+      "focusTag": "context-sentence-generalization"
+    },
+    {
+      "id": "lcx05",
+      "retired": false,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-sentence-fit",
+      "focusTag": "context-sentence-experiment-control"
+    },
+    {
+      "id": "lcx06",
+      "retired": false,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-dialogue-fit",
+      "focusTag": "context-dialogue-offer"
+    },
+    {
+      "id": "lcx07",
+      "retired": false,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-lexical-fit",
+      "focusTag": "context-lexical-precise-word"
+    },
+    {
+      "id": "lcx08",
+      "retired": false,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-sentence-fit",
+      "focusTag": "context-sentence-contrast"
+    },
+    {
+      "id": "lcx09",
+      "retired": false,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-dialogue-fit",
+      "focusTag": "context-dialogue-advice"
+    },
+    {
+      "id": "lcx10",
+      "retired": false,
+      "type": "choice",
+      "skill": "context",
+      "targetId": "context-lexical-fit",
+      "focusTag": "context-lexical-result-state"
+    },
+    {
+      "id": "lco01",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-example"
+    },
+    {
+      "id": "lco02",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-contrast"
+    },
+    {
+      "id": "lco03",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-contrast-limit"
+    },
+    {
+      "id": "lco04",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-restatement"
+    },
+    {
+      "id": "lco05",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-result"
+    },
+    {
+      "id": "lco06",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-addition"
+    },
+    {
+      "id": "lco07",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-concession"
+    },
+    {
+      "id": "lco08",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-conclusion"
+    },
+    {
+      "id": "lco09",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-alternative"
+    },
+    {
+      "id": "lco10",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-condition"
+    },
+    {
+      "id": "lco11",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-sequence-logic"
+    },
+    {
+      "id": "lco12",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-example"
+    },
+    {
+      "id": "lco13",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-contrast"
+    },
+    {
+      "id": "lco14",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-contrast-limit"
+    },
+    {
+      "id": "lco15",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-restatement"
+    },
+    {
+      "id": "lco16",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-result"
+    },
+    {
+      "id": "lco17",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-example"
+    },
+    {
+      "id": "lco18",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-contrast"
+    },
+    {
+      "id": "lco19",
+      "retired": true,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-result"
+    },
+    {
+      "id": "lco20",
+      "retired": false,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-example"
+    },
+    {
+      "id": "lco21",
+      "retired": false,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-contrast"
+    },
+    {
+      "id": "lco22",
+      "retired": false,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-contrast-limit"
+    },
+    {
+      "id": "lco23",
+      "retired": false,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-example"
+    },
+    {
+      "id": "lco24",
+      "retired": false,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-contrast"
+    },
+    {
+      "id": "lco25",
+      "retired": false,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-contrast-limit"
+    },
+    {
+      "id": "lco26",
+      "retired": false,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-restatement"
+    },
+    {
+      "id": "lco27",
+      "retired": false,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-result"
+    },
+    {
+      "id": "lco28",
+      "retired": false,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-example"
+    },
+    {
+      "id": "lco29",
+      "retired": false,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-contrast"
+    },
+    {
+      "id": "lco30",
+      "retired": false,
+      "type": "choice",
+      "skill": "connector",
+      "targetId": "connector-logic",
+      "focusTag": "connector-result"
+    },
+    {
+      "id": "lin15",
+      "retired": false,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lin16",
+      "retired": false,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lin17",
+      "retired": false,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lin18",
+      "retired": false,
+      "type": "choice",
+      "skill": "insertion",
+      "targetId": "insertion-cohesion",
+      "focusTag": "insertion-two-clues"
+    },
+    {
+      "id": "lvd09",
+      "retired": false,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd10",
+      "retired": false,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd11",
+      "retired": false,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd12",
+      "retired": false,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd13",
+      "retired": false,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd14",
+      "retired": false,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd15",
+      "retired": false,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd16",
+      "retired": false,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd17",
+      "retired": false,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd18",
+      "retired": false,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd19",
+      "retired": false,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd20",
+      "retired": false,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "lvd21",
+      "retired": false,
+      "type": "text",
+      "skill": "vocab_definition",
+      "targetId": "definition-initial",
+      "focusTag": "definition-initial"
+    },
+    {
+      "id": "let01",
+      "retired": false,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-contextual"
+    },
+    {
+      "id": "let02",
+      "retired": false,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-contextual"
+    },
+    {
+      "id": "let03",
+      "retired": false,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-contextual"
+    },
+    {
+      "id": "let04",
+      "retired": false,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-contextual"
+    },
+    {
+      "id": "let05",
+      "retired": false,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-contextual"
+    },
+    {
+      "id": "let06",
+      "retired": false,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-contextual"
+    },
+    {
+      "id": "let07",
+      "retired": false,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-contextual"
+    },
+    {
+      "id": "let08",
+      "retired": false,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-contextual"
+    },
+    {
+      "id": "let09",
+      "retired": false,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-contextual"
+    },
+    {
+      "id": "let10",
+      "retired": false,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-contextual"
+    },
+    {
+      "id": "let11",
+      "retired": false,
+      "type": "text",
+      "skill": "extract",
+      "targetId": "extract-evidence",
+      "focusTag": "extract-contextual"
+    },
+    {
+      "id": "lpa01",
+      "retired": false,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-contextual"
+    },
+    {
+      "id": "lpa02",
+      "retired": false,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-contextual"
+    },
+    {
+      "id": "lpa03",
+      "retired": false,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-contextual"
+    },
+    {
+      "id": "lpa04",
+      "retired": false,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-contextual"
+    },
+    {
+      "id": "lpa05",
+      "retired": false,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-contextual"
+    },
+    {
+      "id": "lpa06",
+      "retired": false,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-contextual"
+    },
+    {
+      "id": "lpa07",
+      "retired": false,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-contextual"
+    },
+    {
+      "id": "lpa08",
+      "retired": false,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-contextual"
+    },
+    {
+      "id": "lpa09",
+      "retired": false,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-contextual"
+    },
+    {
+      "id": "lpa10",
+      "retired": false,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-contextual"
+    },
+    {
+      "id": "lpa11",
+      "retired": false,
+      "type": "choice",
+      "skill": "paraphrase",
+      "targetId": "paraphrase-context",
+      "focusTag": "paraphrase-contextual"
+    },
+    {
+      "id": "lex01",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex02",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex03",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex04",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex05",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex06",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex07",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex08",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex09",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex10",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex11",
+      "retired": true,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex12",
+      "retired": false,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex13",
+      "retired": false,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex14",
+      "retired": false,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex15",
+      "retired": false,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex16",
+      "retired": false,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex17",
+      "retired": false,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex18",
+      "retired": false,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex19",
+      "retired": false,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex20",
+      "retired": false,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lex21",
+      "retired": false,
+      "type": "choice",
+      "skill": "example",
+      "targetId": "example-contextual",
+      "focusTag": "example-contextual"
+    },
+    {
+      "id": "lro48",
+      "retired": false,
+      "type": "pair",
+      "skill": "reorder",
+      "targetId": "reorder-indirect-question",
+      "focusTag": "indirect-question"
+    },
+    {
+      "id": "lwc01",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-completion"
+    },
+    {
+      "id": "lwc02",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-completion"
+    },
+    {
+      "id": "lwc03",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-completion"
+    },
+    {
+      "id": "lwc04",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-completion"
+    },
+    {
+      "id": "lwc05",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-completion"
+    },
+    {
+      "id": "lwc06",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-completion"
+    },
+    {
+      "id": "lwc07",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-completion"
+    },
+    {
+      "id": "lwc08",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-completion"
+    },
+    {
+      "id": "lwc09",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-completion"
+    },
+    {
+      "id": "lwc10",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-completion"
+    },
+    {
+      "id": "lwc11",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-completion"
+    },
+    {
+      "id": "lwc12",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-completion"
+    },
+    {
+      "id": "lwc13",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-completion"
+    },
+    {
+      "id": "lwc14",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-story-completion",
+      "focusTag": "story-completion"
+    },
+    {
+      "id": "lwc29",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc30",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc31",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc32",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc33",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc34",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc35",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc36",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc37",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc38",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc39",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc40",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc41",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc42",
+      "retired": true,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc43",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc44",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc45",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc46",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc47",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc48",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc49",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc50",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc51",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc52",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc53",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lwc54",
+      "retired": false,
+      "type": "selfcheck",
+      "skill": "writing_completion",
+      "targetId": "writing-completion"
+    },
+    {
+      "id": "lpr01",
+      "retired": false,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound-ea"
+    },
+    {
+      "id": "lpr02",
+      "retired": false,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound-ou"
+    },
+    {
+      "id": "lpr03",
+      "retired": true,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound-g"
+    },
+    {
+      "id": "lpr04",
+      "retired": false,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound-th"
+    },
+    {
+      "id": "lpr05",
+      "retired": false,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound-oo"
+    },
+    {
+      "id": "lpr06",
+      "retired": false,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound-a"
+    },
+    {
+      "id": "lpr07",
+      "retired": false,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound-ch"
+    },
+    {
+      "id": "lpr08",
+      "retired": false,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound-o"
+    },
+    {
+      "id": "lpr09",
+      "retired": false,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound-u"
+    },
+    {
+      "id": "lpr10",
+      "retired": false,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound-i"
+    },
+    {
+      "id": "lpr11",
+      "retired": false,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound-ea"
+    },
+    {
+      "id": "lpr12",
+      "retired": false,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound--ed"
+    },
+    {
+      "id": "lpr13",
+      "retired": false,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound-ow"
+    },
+    {
+      "id": "lpr14",
+      "retired": false,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound-s"
+    },
+    {
+      "id": "lpr15",
+      "retired": false,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound-c"
+    },
+    {
+      "id": "lpr16",
+      "retired": false,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound-ow"
+    },
+    {
+      "id": "lst01",
+      "retired": true,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-contrast"
+    },
+    {
+      "id": "lst02",
+      "retired": false,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-contrast"
+    },
+    {
+      "id": "lst03",
+      "retired": false,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-contrast"
+    },
+    {
+      "id": "lst04",
+      "retired": false,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-contrast"
+    },
+    {
+      "id": "lst05",
+      "retired": false,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-contrast"
+    },
+    {
+      "id": "lst06",
+      "retired": false,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-contrast"
+    },
+    {
+      "id": "lst07",
+      "retired": false,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-contrast"
+    },
+    {
+      "id": "lst08",
+      "retired": false,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-contrast"
+    },
+    {
+      "id": "lst09",
+      "retired": false,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-contrast"
+    },
+    {
+      "id": "lst10",
+      "retired": false,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-contrast"
+    },
+    {
+      "id": "lst11",
+      "retired": false,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-contrast"
+    },
+    {
+      "id": "lst12",
+      "retired": false,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-contrast"
+    },
+    {
+      "id": "lst13",
+      "retired": false,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-contrast"
+    },
+    {
+      "id": "lst14",
+      "retired": true,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-contrast"
+    },
+    {
+      "id": "lpr17",
+      "retired": false,
+      "type": "choice",
+      "skill": "pronunciation",
+      "targetId": "pronunciation-contrast",
+      "focusTag": "sound-g-hard-soft"
+    },
+    {
+      "id": "lst15",
+      "retired": false,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-first-vs-second"
+    },
+    {
+      "id": "lst16",
+      "retired": false,
+      "type": "choice",
+      "skill": "stress",
+      "targetId": "stress-position",
+      "focusTag": "stress-first-vs-second"
+    }
+  ]
+}

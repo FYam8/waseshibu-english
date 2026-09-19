@@ -12,7 +12,14 @@ cleanup(){
 }
 trap cleanup EXIT
 
-cd "$ROOT"
+# Stage the legacy characterization only inside a disposable loopback site.
+# It is not the production-index G1 test; see g0-g1-browser.test.mjs.
+SITE="$TMP/site"
+mkdir -p "$SITE/tests"
+cp "$ROOT"/*.js "$ROOT"/*.css "$SITE/"
+cp -R "$ROOT/engine" "$ROOT/schools" "$ROOT/ui" "$SITE/"
+cp "$ROOT/tests/waseda-browser-smoke.fixture.txt" "$SITE/tests/waseda-browser-smoke.html"
+cd "$SITE"
 python3 -m http.server "$PORT" --bind 127.0.0.1 >"$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
 

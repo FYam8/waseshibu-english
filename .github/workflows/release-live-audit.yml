@@ -1,0 +1,39 @@
+name: Release live verification
+on:
+  workflow_run:
+    workflows: ['pages build and deployment']
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  live:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        width: [390, 1280]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Compare actual served files with deployed commit
+        run: node tests/release-fetch-live.mjs
+      - name: Install isolated test dependency
+        run: npm install --prefix "$RUNNER_TEMP/g1-deps" --no-package-lock --ignore-scripts playwright@1.62.1
+      - name: Install Chromium
+        run: node "$RUNNER_TEMP/g1-deps/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Exercise live URL in fresh contexts with all external APIs blocked
+        env:
+          G1_PLAYWRIGHT_MODULE: ${{ runner.temp }}/g1-deps/node_modules/playwright
+          G1_LIVE_URL: https://fyam8.github.io/waseshibu-english/
+        run: node tests/g0-g1-browser.test.mjs _live ${{ matrix.width }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-${{ matrix.width }}
+          path: g0-g1-results/
