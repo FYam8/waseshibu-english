@@ -47,7 +47,12 @@ async function context(){
     if(new URL(u).origin===origin)return route.continue();
     blocked.push({url:u,method:route.request().method()});return route.abort('blockedbyclient');
   });
-  await c.addInitScript(({sentinels})=>{for(const [k,v] of Object.entries(sentinels))if(localStorage.getItem(k)===null)localStorage.setItem(k,v);},{sentinels});
+  await c.addInitScript(({sentinels,origin})=>{
+    // addInitScript also runs in the initial opaque about:blank document.
+    // Seed only our test origin; do not catch or hide production-page errors.
+    if(location.origin!==origin)return;
+    for(const [k,v] of Object.entries(sentinels))if(localStorage.getItem(k)===null)localStorage.setItem(k,v);
+  },{sentinels,origin});
   c.on('page',p=>{
     p.on('pageerror',e=>errors.push(e.message));
     p.on('console',m=>{if(m.type()==='error')consoleErrors.push({text:m.text(),url:m.location().url});});
