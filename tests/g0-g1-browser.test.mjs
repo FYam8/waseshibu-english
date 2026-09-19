@@ -104,6 +104,11 @@ try{
   assert.equal(await written.inputValue(),'This is an artificial draft for the isolated test.');
   assert.equal((await state(p)).currentAttempt.id,draftState.currentAttempt.id);
   checks.push('exam answer and writing draft survive reload');
+  const aiBox=written.locator('..');
+  await aiBox.getByRole('button',{name:'AIで学習用採点',exact:true}).click();
+  await p.waitForFunction(()=>[...document.querySelectorAll('.ai-status')].some(e=>e.textContent.includes('自己採点はそのまま利用できます')));
+  assert.deepEqual((await state(p)).manual,draftState.manual,'blocked AI must not assign zero or lose draft');
+  checks.push('blocked AI preserves draft and unconfirmed self-score');
   // Every manually scored task must be explicitly supplied for a full exam grade.
   // Artificial self-scores are fixture inputs, not evidence of correct essays.
   for(const input of await p.locator('input[id^="m-"]').all())await input.fill(await input.getAttribute('max'));
@@ -169,7 +174,42 @@ try{
   await sentinelCheck(p2);checks.push('export/import semantics, duplicate import, invalid JSON, unrelated keys');
   finalState=await state(p2);
   await c2.close();await c.close();
+  // Broaden to one saved draft per currently active drill format.
+  // Fixture setup is synthetic; subsequent answers and navigation are UI actions.
+  const probeContext=await context(),probe=await probeContext.newPage();await probe.goto(url);
+  const representatives=await probe.evaluate(()=>{
+    const active=window.DRILLS.filter(q=>!q.retired);
+    return [...new Set(active.map(q=>q.type))].map(type=>active.find(q=>q.type===type));
+  });
+  await probeContext.close();
+  for(const q of representatives){
+    const fc=await context();
+    const weakKey=`2024:fixture-${q.type}:main`;
+    const fixture={schemaVersion:8,goal:60,year:2024,weak:{[weakKey]:{year:2024,id:`fixture-${q.type}`,label:`人工 ${q.type}`,status:'active',priority:'A',skill:q.skill,targetId:q.targetId,focusTag:q.focusTag,streak:0,confirmStreak:0}},currentSkill:weakKey,currentDrill:{key:weakKey,skill:q.skill,targetId:q.targetId,focusTag:q.focusTag,mode:'train',q:{id:q.id},answered:false,selected:null,selectedMany:[],order:[],orderIndices:[],textInputs:[],selfText:'',selfParts:[],selfChecks:[],used:[q.id]}};
+    await fc.addInitScript(({origin,key,fixture})=>{if(location.origin===origin&&!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify(fixture));},{origin,key,fixture});
+    const fp=await fc.newPage();await fp.goto(url);await fp.getByRole('button',{name:'途中の1問を再開',exact:true}).click();
+    const card=fp.locator('.drill-card');
+    if(q.type==='pair'){
+      const buttons=card.locator('.answer-kana');await buttons.nth(0).click();await buttons.nth(1).click();await buttons.nth(1).click();
+      assert.equal((await state(fp)).currentDrill.selectedMany.length,1,'pair toggle cancels');
+    }else if(q.type==='multi_choice'){
+      const buttons=card.locator('.choice');await buttons.nth(0).click();await buttons.nth(1).click();await buttons.nth(1).click();
+      assert.equal((await state(fp)).currentDrill.selectedMany.length,1,'multi-choice toggle cancels');
+    }else if(q.type==='text')await card.locator('input').fill('draft');
+    else if(q.type==='text_multi')await card.locator('input').first().fill('draft');
+    else if(q.type==='selfcheck')await card.locator('textarea').first().fill('A saved artificial writing draft.');
+    else assert.equal(q.type,'choice','unhandled active format requires a test');
+    const before=await state(fp);
+    const controls=()=>card.locator('input,textarea,button').evaluateAll(es=>es.map(e=>({tag:e.tagName,text:e.textContent,value:e.value,disabled:e.disabled,cls:e.className})));
+    const beforeControls=await controls();
+    await fp.reload();await fp.getByRole('button',{name:'途中の1問を再開',exact:true}).click();
+    for(const field of ['q','key','selectedMany','choiceOrder','textDraft','textInputs','selfText','selfParts','order','orderIndices'])assert.deepEqual((await state(fp)).currentDrill[field],before.currentDrill[field],q.type+' reload '+field);
+    assert.deepEqual(await controls(),beforeControls,q.type+' rendered controls after reload');
+    await sentinelCheck(fp);await snapshot(fp,'format-'+q.type);
+    await fc.close();checks.push(q.type+' artificial draft toggle/input and reload');
+  }
   assert.ok(blocked.some(x=>x.url.includes('/v1/register-anonymous')),'prove production registration was intercepted');
+  assert.ok(blocked.some(x=>x.url.includes('writing-grader')),'prove AI API was intercepted');
   assert.deepEqual(errors,[],'uncaught page errors');
   const unexpectedConsole=consoleErrors.filter(x=>!((x.text.includes('ERR_BLOCKED_BY_CLIENT')&&blocked.some(b=>b.url===x.url))||(x.url===origin+'/favicon.ico'&&x.text.includes('404'))));
   assert.deepEqual(unexpectedConsole,[],'unexpected console errors');
