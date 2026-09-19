@@ -174,4 +174,26 @@ export async function runBoundaryChecks(h){
     assert.equal(await row.locator('.answer-kana').first().isEnabled(),false);
     await sentinelCheck(p);checks.push('live timed expiry locks objective input; self-marking stays available; reload retains lock');await c.close();
   }
+  // G2 diagnostic: passing this characterization means the known focus gap is reproduced.
+  // It is not a content-quality acceptance test.
+  {
+    const c=await context(),p=await c.newPage();await p.goto(url);await start(p,2022);await fillCorrect(p,2022);
+    await p.locator('[id="answer-2022-6-2"] .answer-kana').filter({hasText:/^ア$/}).click();
+    await p.getByRole('button',{name:'採点して弱点分析',exact:true}).click();
+    assert.equal((await state(p)).attempts.at(-1).writtenScore,77);
+    await p.locator('nav button[data-v="review"]').click();
+    await p.locator('section.wrong').getByRole('button',{name:/克服ドリル|追加練習/}).click();
+    const ids=[];
+    for(let n=0;n<3;n++){
+      const d=(await state(p)).currentDrill;assert.notEqual(d.q.focusTag,'connector-context');
+      ids.push(await answerChoice(p));if(n<2)await p.locator('.drill-next button.primary').click();
+    }
+    assert.deepEqual(ids,['rdt_cx01','rdt_cx02','rdt_cx05']);
+    const weak=Object.values((await state(p)).weak).find(w=>w.year===2022&&w.id==='6-2');
+    assert.equal(weak.status,'pending');assert.equal(weak.streak,3);
+    assert.ok(weak.reservedConfirm.includes('rdt_cx03'));
+    await snapshot(p,'g2-known-connector-focus-gap');await sentinelCheck(p);
+    checks.push('G2 diagnostic ONLY: connector weakness reaches pending after 3 non-connector drills; gap reproduced, not fixed');await c.close();
+  }
+
 }
