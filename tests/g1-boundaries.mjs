@@ -265,6 +265,7 @@ export async function runBoundaryChecks(h){
     request=intercepted();await button.click();await request;
     await pendingRoute.fulfill({status:200,contentType:'application/json',body:JSON.stringify({...good,localAdjustments:[{index:2,from:0,to:1}]})});
     await p.getByText('AI評価は要確認です。',{exact:true}).waitFor();
+    assert.equal(await p.getByText('AI評価は要確認です。',{exact:true}).evaluate(el=>{const a=el.getBoundingClientRect(),b=el.closest('.answer-sheet-body').getBoundingClientRect();return a.top>=b.top&&a.bottom<=b.bottom}),true,'AI review notice is scrolled into the answer panel');
     assert.equal(await p.getByRole('button',{name:'この点数を自己採点欄に反映',exact:true}).count(),0);
     assert.equal((await state(p)).manual['2024:4'].score,11);
     await snapshot(p,'release-ai-review-required');checks.push('mock heuristic-promoted AI result withheld from numeric display/application');
