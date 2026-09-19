@@ -1,14 +1,11 @@
-name: Release live verification
+name: Verify published English release
 on:
-  workflow_run:
-    workflows: ['pages build and deployment']
-    types: [completed]
-    branches: [main]
+  push:
+    branches: ['verify/english-release-ce29faf']
 permissions:
   contents: read
 jobs:
   live:
-    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -17,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ce29faf3767c3df22a191dc138a9d516518cc9af
       - uses: actions/setup-node@v4
         with:
           node-version: 20
