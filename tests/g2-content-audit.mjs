@@ -57,13 +57,15 @@ for(const [year,rows] of Object.entries(data.exams)){
   mapping.push({id,label:q.label,type:q.type,points:q.points,answer:q.answer,skill:q.skill,targetId:q.targetId,focusTag:q.focusTag,page:q.page,poolIds:pool.map(d=>d.id),families,sameFocusCount:pool.filter(d=>d.focusTag===q.focusTag).length,otherTargets:pool.filter(d=>d.targetId!==q.targetId).map(d=>d.id),sourceReview:'not reviewed'});
  }
 }
-const fixture=JSON.parse(fs.readFileSync(path.join(root,'tests/g2-2022-source-key.json'),'utf8'));
+const fixture=JSON.parse(fs.readFileSync(path.join(root,'tests/release-source-keys.json'),'utf8'));
 for(const row of fixture.rows){
- const q=data.exams['2022'].find(q=>q.id===row.id);
- check(q?.points===row.points,'2022:'+row.id,'source points');
- if(row.answer!==null)check(q?.answer===row.answer,'2022:'+row.id,'source answer');
- const entry=mapping.find(q=>q.id==='2022:'+row.id);entry.sourceReview=row.answer===null?'points verified; manual answer not embedded':'answer and points verified';
+ const [year,...parts]=row.id.split(':');const q=data.exams[year].find(q=>q.id===parts.join(':'));
+ check(q?.points===row.points,row.id,'source points');
+ if(row.answer!==null)check(q?.answer===row.answer,row.id,'source answer');
+ const entry=mapping.find(q=>q.id===row.id);entry.sourceReview=row.answer===null?'points and official manual guide verified':'answer and points verified';
+ check(row.answer!==null||!!data.guides[row.id],row.id,'missing source guide');
 }
+assert.equal(fixture.rows.length,mapping.length);
 const core=context.ENGLISH_ENGINE_CORE,weak={...data.exams['2022'].find(q=>q.id==='6-2'),year:2022,reservedConfirm:[],streak:0,status:'active'},pool=data.pools['2022:6-2'].map(id=>data.drills.find(q=>q.id===id));
 const rank=(items,confirm=false)=>core.rankPracticeQuestions(items,{weak,confirm,lastUse:()=>-1});
 context.auditWeak=weak;context.auditPool=pool;
@@ -96,3 +98,5 @@ if(process.argv.includes('--write'))fs.writeFileSync(path.join(root,'docs/g2-con
 if(process.argv.includes('--dump'))fs.writeFileSync('/tmp/g2-runtime.json',JSON.stringify(data,null,2));
 console.log(JSON.stringify({examCount:report.examCount,activeCount:active.length,issues,focusCase,manualWithoutGuide,broadPools:mapping.filter(q=>q.otherTargets.length).map(q=>({id:q.id,skill:q.skill,target:q.targetId,pool:q.poolIds.length,families:q.families}))},null,2));
 assert.equal(issues.length,0,'structural issues require review');
+
+export {context,data};

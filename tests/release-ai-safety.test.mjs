@@ -1,0 +1,41 @@
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {context as ctx} from './g2-content-audit.mjs';
+ctx.AbortController=AbortController;
+vm.runInContext('render=()=>{};globalThis.releaseState=()=>S;globalThis.releaseDrill=()=>drillState',ctx);
+const originalRequest=ctx.requestWritingFeedback;
+const good={score:24,maxScore:24,semantic:[1,1,1,1,0,0],breakdown:[],issues:[],reasons:[],strengths:[]};
+let release;
+ctx.requestWritingFeedback=()=>new Promise(r=>{release=r});
+ctx.rememberAIAnswer(2024,'4','Original submitted answer.');
+const pending=ctx.gradeWritingWithAI(2024,'4');
+ctx.rememberAIAnswer(2024,'4','Edited while waiting.');
+release(good);await pending;
+assert.equal(ctx.releaseState().manual['2024:4'].answerText,'Edited while waiting.','late AI response must not overwrite a newer draft');
+assert.equal(ctx.releaseState().manual['2024:4'].aiFeedbackStale,true);
+const before=ctx.releaseState().manual['2024:4'].score;
+ctx.applyAIGrade(2024,'4');assert.equal(ctx.releaseState().manual['2024:4'].score,before);
+vm.runInContext(`drillState={key:'synthetic',q:BANK.find(q=>q.id==='lsu26'),selfText:'First draft.'}`,ctx);
+const drillPending=ctx.gradeDrillWithAI();
+vm.runInContext(`drillState={key:'other',q:BANK.find(q=>q.id==='lsu27'),selfText:'Other question.'}`,ctx);
+release({...good,maxScore:12,score:12});await drillPending;
+assert.equal(ctx.releaseDrill().aiFeedback,undefined,'late feedback must not attach to another drill');
+ctx.requestWritingFeedback=originalRequest;
+for(const bad of [{...good,semantic:[99,1,1,1,0,0]},{...good,reasons:{}},{...good,breakdown:[null]},{...good,issues:[null]}])assert.equal(ctx.validateAIFeedback(bad,24),false);
+ctx.fetch=async()=>({ok:true,text:async()=>'{invalid'});
+await assert.rejects(ctx.requestWritingFeedback({maxScore:24},'draft'),/安全に確認/);
+ctx.setTimeout=fn=>setTimeout(fn,1);ctx.clearTimeout=clearTimeout;
+ctx.fetch=(_url,{signal})=>new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(new Error('aborted'))));
+await assert.rejects(ctx.requestWritingFeedback({maxScore:24},'draft'),/時間/);
+console.log('Release AI safety: pending edits, switched drill, invalid response, timeout PASS; synthetic transport only');
+
+const guarded={...good,localAdjustments:[{index:2,from:0,to:1}],answerFingerprint:ctx.aiAnswerFingerprint('Edited while waiting.')};
+ctx.releaseState().manual['2024:4']={answerText:'Edited while waiting.',score:11,aiFeedback:guarded,aiFeedbackStale:false};
+ctx.applyAIGrade(2024,'4');assert.equal(ctx.releaseState().manual['2024:4'].score,11);
+assert.match(ctx.aiFeedbackMarkup(guarded,'Edited while waiting.'),/要確認/);
+assert.doesNotMatch(ctx.aiFeedbackMarkup(guarded,'Edited while waiting.'),/24<|24\//);
+
+const approximate=ctx.DRILLS.filter(q=>!q.retired&&q.skill==='rebuttal'&&q.prompt.includes('約50語'));
+assert.equal(approximate.length,13);
+for(const q of approximate){assert.equal(q.maxWords,undefined);assert.equal(q.approxWords,50);assert.equal(ctx.drillWritingTask(q).maxWords,undefined);}
+assert.equal(ctx.EXAM_DATA[2023].find(q=>q.id==='5-5').extractWords,2);

@@ -37,15 +37,15 @@ const server=http.createServer((req,res)=>{
   res.end(fs.readFileSync(file));
 });
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
-const origin=`http://127.0.0.1:${server.address().port}`;
-const url=origin+'/waseshibu-english/';
+const origin=process.env.G1_LIVE_URL?new URL(process.env.G1_LIVE_URL).origin:`http://127.0.0.1:${server.address().port}`;
+const url=process.env.G1_LIVE_URL||origin+'/waseshibu-english/';
 const browser=await chromium.launch({headless:true});
 async function context({acceptConfirm=true}={}){
   const c=await browser.newContext({viewport:{width,height:900},timezoneId:'UTC',serviceWorkers:'block',acceptDownloads:true});
   // No production request is ever continued, including anonymous registration.
   await c.route('**/*',route=>{
     const u=route.request().url();
-    if(new URL(u).origin===origin)return route.continue();
+    if(new URL(u).origin===origin&&['GET','HEAD'].includes(route.request().method())&&(new URL(u).pathname.startsWith('/waseshibu-english/')||new URL(u).pathname==='/favicon.ico'))return route.continue();
     blocked.push({url:u,method:route.request().method()});return route.abort('blockedbyclient');
   });
   await c.addInitScript(({sentinels,origin})=>{
@@ -211,7 +211,7 @@ try{
     await sentinelCheck(fp);await snapshot(fp,'format-'+q.type);
     await fc.close();checks.push(q.type+' artificial draft toggle/input and reload');
   }
-  await runBoundaryChecks({context,origin,url,key,state,sentinelCheck,snapshot,checks,dialogs,baseline:finalState});
+  await runBoundaryChecks({context,origin,url,key,state,sentinelCheck,snapshot,checks,dialogs,blocked,baseline:finalState});
   assert.ok(blocked.some(x=>x.url.includes('/v1/register-anonymous')),'prove production registration was intercepted');
   assert.ok(blocked.some(x=>x.url.includes('writing-grader')),'prove AI API was intercepted');
   assert.deepEqual(errors,[],'uncaught page errors');

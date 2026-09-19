@@ -13,7 +13,7 @@ function skillName(skill){return skillNames[skill]||skill}
 // A school-specific remediation route; shared mastery/scoring rules remain unchanged.
 const connectorIds=Object.freeze(['lco21','lco23','lco27','lco28','lco26']);
 function practicePlan(bank,weak,currentDrill=null){
- if(Number(weak?.year)!==2022||weak?.id!=='6-2')return null;
+ if(!new Set(['2021:6-4','2022:6-2','2023:6-2']).has(Number(weak?.year)+':'+weak?.id))return null;
  const pool=connectorIds.map(id=>bank.find(q=>q.id===id&&!q.retired));
  if(pool.some(q=>!q)||new Set(pool.map(q=>q.familyId)).size!==5)return null;
  const reserved=Array.isArray(weak.reservedConfirm)?weak.reservedConfirm:[];

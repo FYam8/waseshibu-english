@@ -1,0 +1,889 @@
+{
+  "sources": [
+    {
+      "year": 2019,
+      "file": "2019_英語_解答.pdf",
+      "sha256": "4dac3978edad6e5d65b8fe4212a7e524e1ea2d339be58cf1ae1a7405a00287de",
+      "review": "rendered PDF; independent answer/point transcription"
+    },
+    {
+      "year": 2020,
+      "file": "2020_英語_解答.pdf",
+      "sha256": "f0f4fa7cb0085df3ebf512e8c96cd76c31151902a8f5a653249cf5b0e6da8512",
+      "review": "rendered PDF; independent answer/point transcription"
+    },
+    {
+      "year": 2021,
+      "file": "2021_英語_解答.pdf",
+      "sha256": "0e129a17b47f82765f65878b0acc4aa976248fba1d2deb8360d552a92466d6a5",
+      "review": "rendered PDF; independent answer/point transcription"
+    },
+    {
+      "year": 2022,
+      "file": "2022_英語_解答.pdf",
+      "sha256": "cf3a357a263a276b65b55dd0a35c5b8ef91c434deeb50dadbda84804613673bb",
+      "review": "rendered PDF; independent answer/point transcription"
+    },
+    {
+      "year": 2023,
+      "file": "2023_英語_解答.pdf",
+      "sha256": "67374af1cf492d9442998b4071a229d6c44bfcadd8e9ac4e7ec0ca0dc986c211",
+      "review": "rendered PDF; independent answer/point transcription"
+    },
+    {
+      "year": 2024,
+      "file": "2024_英語_解答.pdf",
+      "sha256": "bdab9033eff40289be726f4a360328095805af7503792136b430b80d42a9ee7d",
+      "review": "rendered PDF; independent answer/point transcription"
+    },
+    {
+      "year": 2025,
+      "file": "2025_英語_解答.pdf",
+      "sha256": "c9b982d069989ec85965797017858ab054e9e29f91c38acc936a2b97ca61bced",
+      "review": "rendered PDF; independent answer/point transcription"
+    },
+    {
+      "year": 2026,
+      "file": "2026_英語_解答.pdf",
+      "sha256": "260ac3397a377d03d4645063df6a2e608dabd89beb2470a5ada9d651ae3b804b",
+      "review": "rendered PDF; independent answer/point transcription"
+    }
+  ],
+  "rows": [
+    {
+      "id": "2019:3-1",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2019:3-2",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2019:3-3-1",
+      "answer": "エ,オ",
+      "points": 3
+    },
+    {
+      "id": "2019:3-3-2",
+      "answer": "オ,エ",
+      "points": 3
+    },
+    {
+      "id": "2019:3-4-1",
+      "answer": "hungry",
+      "points": 3
+    },
+    {
+      "id": "2019:3-4-2",
+      "answer": "bridge",
+      "points": 3
+    },
+    {
+      "id": "2019:4",
+      "answer": null,
+      "points": 12
+    },
+    {
+      "id": "2019:5-1",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2019:5-2",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2019:5-3",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2019:5-4",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2019:5-5",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2019:5-6",
+      "answer": "wish",
+      "points": 3
+    },
+    {
+      "id": "2019:5-7",
+      "answer": "イ,ウ",
+      "points": 6
+    },
+    {
+      "id": "2019:6-1",
+      "answer": null,
+      "points": 5
+    },
+    {
+      "id": "2019:6-2",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2019:6-3",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2019:6-4",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2019:6-5",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2019:6-6",
+      "answer": "find",
+      "points": 3
+    },
+    {
+      "id": "2019:6-7",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2019:6-8",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2020:3-1",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2020:3-2",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2020:3-3-1",
+      "answer": "ア,オ",
+      "points": 3
+    },
+    {
+      "id": "2020:3-3-2",
+      "answer": "キ,カ",
+      "points": 3
+    },
+    {
+      "id": "2020:3-4-1",
+      "answer": "useful",
+      "points": 3
+    },
+    {
+      "id": "2020:3-4-2",
+      "answer": "weather",
+      "points": 3
+    },
+    {
+      "id": "2020:4",
+      "answer": null,
+      "points": 12
+    },
+    {
+      "id": "2020:5-1",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2020:5-2",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2020:5-3",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2020:5-4",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2020:5-5",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2020:5-6",
+      "answer": "bass",
+      "points": 3
+    },
+    {
+      "id": "2020:5-7",
+      "answer": "ウ,カ",
+      "points": 6
+    },
+    {
+      "id": "2020:6-1",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2020:6-2",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2020:6-3",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2020:6-4",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2020:6-5",
+      "answer": "peanut(s)",
+      "points": 3
+    },
+    {
+      "id": "2020:6-6",
+      "answer": null,
+      "points": 5
+    },
+    {
+      "id": "2020:6-7",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2020:6-8",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2021:3-1",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2021:3-2",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2021:3-3-1",
+      "answer": "ア,イ",
+      "points": 3
+    },
+    {
+      "id": "2021:3-3-2",
+      "answer": "オ,イ",
+      "points": 3
+    },
+    {
+      "id": "2021:3-4-1",
+      "answer": "vacation",
+      "points": 3
+    },
+    {
+      "id": "2021:3-4-2",
+      "answer": "prepare",
+      "points": 3
+    },
+    {
+      "id": "2021:4",
+      "answer": null,
+      "points": 12
+    },
+    {
+      "id": "2021:5-1",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2021:5-2",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2021:5-3",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2021:5-4",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2021:5-5",
+      "answer": "God",
+      "points": 3
+    },
+    {
+      "id": "2021:5-6",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2021:5-7",
+      "answer": "エ,カ",
+      "points": 6
+    },
+    {
+      "id": "2021:6-1",
+      "answer": "loudspeakers",
+      "points": 3
+    },
+    {
+      "id": "2021:6-2",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2021:6-3",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2021:6-4",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2021:6-5",
+      "answer": null,
+      "points": 5
+    },
+    {
+      "id": "2021:6-6",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2021:6-7",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2021:6-8",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2022:3-1",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2022:3-2",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2022:3-3-1",
+      "answer": "キ,ウ",
+      "points": 3
+    },
+    {
+      "id": "2022:3-3-2",
+      "answer": "キ,ア",
+      "points": 3
+    },
+    {
+      "id": "2022:3-4-1",
+      "answer": "gym",
+      "points": 3
+    },
+    {
+      "id": "2022:3-4-2",
+      "answer": "improve",
+      "points": 3
+    },
+    {
+      "id": "2022:4",
+      "answer": null,
+      "points": 12
+    },
+    {
+      "id": "2022:5-1",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2022:5-2",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2022:5-3",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2022:5-4",
+      "answer": "tiger",
+      "points": 3
+    },
+    {
+      "id": "2022:5-5",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2022:5-6",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2022:5-7",
+      "answer": "ア,カ",
+      "points": 6
+    },
+    {
+      "id": "2022:6-1",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2022:6-2",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2022:6-3",
+      "answer": "memory",
+      "points": 3
+    },
+    {
+      "id": "2022:6-4",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2022:6-5",
+      "answer": null,
+      "points": 5
+    },
+    {
+      "id": "2022:6-6",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2022:6-7",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2022:6-8",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2023:3-1",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2023:3-2",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2023:3-3-1",
+      "answer": "カ,ク",
+      "points": 3
+    },
+    {
+      "id": "2023:3-3-2",
+      "answer": "オ,カ",
+      "points": 3
+    },
+    {
+      "id": "2023:3-4-1",
+      "answer": "ceremony",
+      "points": 3
+    },
+    {
+      "id": "2023:3-4-2",
+      "answer": "promise",
+      "points": 3
+    },
+    {
+      "id": "2023:4",
+      "answer": null,
+      "points": 12
+    },
+    {
+      "id": "2023:5-1",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2023:5-2",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2023:5-3",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2023:5-4",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2023:5-5",
+      "answer": "homeless man",
+      "points": 3
+    },
+    {
+      "id": "2023:5-6",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2023:5-7",
+      "answer": "オ,キ",
+      "points": 6
+    },
+    {
+      "id": "2023:6-1",
+      "answer": null,
+      "points": 5
+    },
+    {
+      "id": "2023:6-2",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2023:6-3",
+      "answer": "helping",
+      "points": 3
+    },
+    {
+      "id": "2023:6-4",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2023:6-5",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2023:6-6",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2023:6-7",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2023:6-8",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2024:3-1",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2024:3-2",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2024:3-3-1",
+      "answer": "ウ,オ",
+      "points": 3
+    },
+    {
+      "id": "2024:3-3-2",
+      "answer": "オ,キ",
+      "points": 3
+    },
+    {
+      "id": "2024:3-4-1",
+      "answer": "waste",
+      "points": 3
+    },
+    {
+      "id": "2024:3-4-2",
+      "answer": "Medicine",
+      "points": 3
+    },
+    {
+      "id": "2024:4",
+      "answer": null,
+      "points": 24
+    },
+    {
+      "id": "2024:5-1",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2024:5-2",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2024:5-3",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2024:5-4",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2024:5-5",
+      "answer": "rain",
+      "points": 3
+    },
+    {
+      "id": "2024:5-6",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2024:6-1",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2024:6-2",
+      "answer": "balls",
+      "points": 3
+    },
+    {
+      "id": "2024:6-3",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2024:6-4",
+      "answer": null,
+      "points": 5
+    },
+    {
+      "id": "2024:6-5",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2024:6-6",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2025:3-1",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2025:3-2",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2025:3-3-1",
+      "answer": "エ,カ",
+      "points": 3
+    },
+    {
+      "id": "2025:3-3-2",
+      "answer": "オ,キ",
+      "points": 3
+    },
+    {
+      "id": "2025:3-4-1",
+      "answer": "popular",
+      "points": 3
+    },
+    {
+      "id": "2025:3-4-2",
+      "answer": "solve",
+      "points": 3
+    },
+    {
+      "id": "2025:4",
+      "answer": null,
+      "points": 24
+    },
+    {
+      "id": "2025:5-1",
+      "answer": "fun",
+      "points": 3
+    },
+    {
+      "id": "2025:5-2",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2025:5-3",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2025:5-4",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2025:5-5",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2025:5-6",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2025:6-1",
+      "answer": "active",
+      "points": 3
+    },
+    {
+      "id": "2025:6-2",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2025:6-3",
+      "answer": null,
+      "points": 5
+    },
+    {
+      "id": "2025:6-4",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2025:6-5",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2025:6-6",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2026:3-1",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2026:3-2",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2026:4-1",
+      "answer": "ア,イ",
+      "points": 3
+    },
+    {
+      "id": "2026:4-2",
+      "answer": "エ,キ",
+      "points": 3
+    },
+    {
+      "id": "2026:5-1",
+      "answer": "crowded",
+      "points": 3
+    },
+    {
+      "id": "2026:5-2",
+      "answer": "Garbage",
+      "points": 3
+    },
+    {
+      "id": "2026:6",
+      "answer": null,
+      "points": 24
+    },
+    {
+      "id": "2026:7-1",
+      "answer": "ウ",
+      "points": 3
+    },
+    {
+      "id": "2026:7-2",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2026:7-3",
+      "answer": "イ",
+      "points": 3
+    },
+    {
+      "id": "2026:7-4",
+      "answer": "die",
+      "points": 3
+    },
+    {
+      "id": "2026:7-5",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2026:7-6",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2026:8-1",
+      "answer": null,
+      "points": 5
+    },
+    {
+      "id": "2026:8-2",
+      "answer": "decisions",
+      "points": 3
+    },
+    {
+      "id": "2026:8-3",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2026:8-4",
+      "answer": "ア",
+      "points": 3
+    },
+    {
+      "id": "2026:8-5",
+      "answer": "エ",
+      "points": 3
+    },
+    {
+      "id": "2026:8-6",
+      "answer": "エ",
+      "points": 3
+    }
+  ]
+}

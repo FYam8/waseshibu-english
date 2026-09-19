@@ -233,4 +233,76 @@ export async function runBoundaryChecks(h){
     assert.deepEqual((await state(page)).attempts,sourceScore);await sentinelCheck(page);
     checks.push('legacy in-progress connector source keeps old question/order, old training and next-day reservations without rewriting first score');await legacy.close();
   }
+  // Release gate: new official guides are visible through the real exam controls.
+  {
+    const c=await context(),p=await c.newPage();await p.goto(url);
+    for(const y of [2019,2020,2021,2022,2023,2024,2025,2026]){
+      await start(p,y);const guides=p.locator('.official-guide');assert.equal(await guides.count(),2);
+      for(let i=0;i<2;i++){await guides.nth(i).locator('summary').click();assert.ok((await guides.nth(i).locator('.official-answer').innerText()).length>20);}
+      if(y===2023)assert.match(await p.locator('[id="a-5-5"]').getAttribute('placeholder'),/2語/);
+      if(y===2021)assert.match(await guides.nth(1).innerText(),/\(1\)\(4\)で3点/);
+      if(y===2025)await snapshot(p,'release-official-guides-2025');
+    }
+    await sentinelCheck(p);checks.push('all 16 manual guides visible in eight yearly exams; 2021 nonadjacent partial-credit grouping');await c.close();
+  }
+  {
+    const c=await context(),p=await c.newPage();await p.goto(url);await start(p);
+    const good={score:24,maxScore:24,semantic:[1,1,1,1,0,0],breakdown:[],issues:[],strengths:[],reasons:[]};
+    let pendingRoute,seen;
+    const intercepted=()=>new Promise(resolve=>{seen=resolve});
+    await p.route('**/v1/grade-writing',route=>{h.blocked.push({url:route.request().url(),method:'POST',mocked:true});pendingRoute=route;seen();});
+    const input=p.locator('[id="ai-answer-2024-4"]'),button=p.locator('[id="ai-grade-2024-4"]');
+    await input.fill('Original submitted answer.');await p.locator('[id="m-4"]').fill('11');
+    let request=intercepted();await button.click();await request;
+    await input.fill('Edited while waiting.');
+    await pendingRoute.fulfill({status:200,contentType:'application/json',body:JSON.stringify(good)});
+    await p.locator('.ai-stale').waitFor();
+    assert.equal(await input.inputValue(),'Edited while waiting.');assert.equal(await p.getByRole('button',{name:'この点数を自己採点欄に反映',exact:true}).isEnabled(),false);
+    await p.reload();await p.getByRole('button',{name:'2024年度の続きへ',exact:true}).click();
+    assert.equal(await input.inputValue(),'Edited while waiting.');assert.equal((await state(p)).manual['2024:4'].score,11);
+    await snapshot(p,'release-ai-late-edited-draft');checks.push('delayed mock AI response retains edited answer and score across reload; stale grade cannot apply');
+    // A heuristic promotion must never be displayed or applied as a reliable grade.
+    request=intercepted();await button.click();await request;
+    await pendingRoute.fulfill({status:200,contentType:'application/json',body:JSON.stringify({...good,localAdjustments:[{index:2,from:0,to:1}]})});
+    await p.getByText('AI評価は要確認です。',{exact:true}).waitFor();
+    assert.equal(await p.getByRole('button',{name:'この点数を自己採点欄に反映',exact:true}).count(),0);
+    assert.equal((await state(p)).manual['2024:4'].score,11);
+    await snapshot(p,'release-ai-review-required');checks.push('mock heuristic-promoted AI result withheld from numeric display/application');
+    // Invalid payload and local timeout protect the same draft and manual score.
+    request=intercepted();await button.click();await request;
+    await pendingRoute.fulfill({status:200,contentType:'application/json',body:'{"invalid":true}'});
+    await p.locator('[id="ai-status-2024-4"]').filter({hasText:'安全に確認'}).waitFor();
+    await p.clock.install();await p.clock.pauseAt(new Date());
+    request=intercepted();await button.click();await request;
+    await p.clock.fastForward(30001);
+    await p.locator('[id="ai-status-2024-4"]').filter({hasText:'時間内'}).waitFor();
+    assert.equal(await button.isEnabled(),true);assert.equal(await input.inputValue(),'Edited while waiting.');
+    assert.equal((await state(p)).manual['2024:4'].score,11);
+    await snapshot(p,'release-ai-timeout');await sentinelCheck(p);
+    checks.push('malformed mock response and 30-second timeout retain draft/self-score and allow retry');await c.close();
+  }
+  for(const [year,id] of [[2021,'6-4'],[2023,'6-2']]){
+    const c=await context(),p=await c.newPage();await p.goto(url);await start(p,year);await fillCorrect(p,year);
+    const q=await p.evaluate(({year,id})=>window.EXAM_DATA[year].find(q=>q.id===id),{year,id});
+    const wrong=['ア','イ','ウ','エ'].find(a=>a!==q.answer);
+    await p.locator(`[id="answer-${year}-${id}"]`).getByRole('button',{name:wrong,exact:true}).click();
+    await p.getByRole('button',{name:'採点して弱点分析',exact:true}).click();
+    await p.locator('nav button[data-v="review"]').click();
+    await p.locator('section.wrong').getByRole('button',{name:/克服ドリル|追加練習/}).click();
+    assert.equal((await state(p)).currentDrill.q.skill,'connector');await sentinelCheck(p);
+    checks.push(`${year}:${id} connector source error opens connector remediation`);await c.close();
+  }
+
+  {
+    const c=await context(),wk='2025:4:main';
+    const fixture={schemaVersion:8,goal:60,year:2025,weak:{[wk]:{year:2025,id:'4',label:'人工',status:'active',priority:'A',skill:'rebuttal',streak:0}},currentSkill:wk,currentDrill:{key:wk,skill:'rebuttal',mode:'train',q:{id:'lrb13'},answered:false,selfText:'',selfParts:[],selfChecks:[],used:['lrb13']}};
+    await seed(c,fixture);const p=await c.newPage();await p.goto(url);await p.getByRole('button',{name:'途中の1問を再開',exact:true}).click();
+    await p.locator('#selfText').fill(Array(51).fill('word').join(' '));
+    assert.match(await p.locator('#wordCount').innerText(),/約50語/);
+    await p.getByRole('button',{name:'セルフチェックへ',exact:true}).click();
+    assert.equal((await state(p)).currentDrill.selfcheck,true,'about 50 does not reject 51 as a hard limit');
+    await snapshot(p,'release-approximate-word-rule');await sentinelCheck(p);
+    checks.push('approximate writing instruction displays about 50 and allows 51-word draft into self-check');await c.close();
+  }
+
 }
