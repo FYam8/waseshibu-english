@@ -65,6 +65,28 @@ export async function runBoundaryChecks(h){
     checks.push('unscored/manual cause gates; answer-key regression 79/80; listening 0/20/unknown');
     await c.close();
   }
+  // Mixed cases: multi has one correct/one wrong, pair is reversed, and text is empty.
+  {
+    const c=await context(),p=await c.newPage();await p.goto(url);await start(p,2023);
+    const qs=await fillCorrect(p,2023),multi=qs.find(q=>q.type==='multi'),pair=qs.find(q=>q.type==='pair'),text=qs.find(q=>q.type==='text');
+    assert.equal(multi.points,6);assert.equal(pair.points,3);assert.equal(text.points,3);
+    const mr=p.locator(`[id="answer-2023-${multi.id}"]`),pr=p.locator(`[id="answer-2023-${pair.id}"]`);
+    const correct=multi.answer.split(',');await mr.getByRole('button',{name:correct[1],exact:true}).click();
+    const wrong=(await mr.locator('.answer-kana').allTextContents()).find(t=>!correct.includes(t.trim())).trim();
+    await mr.getByRole('button',{name:wrong,exact:true}).click();
+    await pr.getByRole('button',{name:'選択をやり直す',exact:true}).click();
+    for(const token of pair.answer.split(',').reverse())await pr.getByRole('button',{name:token,exact:true}).click();
+    await p.locator(`[id="a-${text.id}"]`).fill('');
+    await p.getByRole('button',{name:'採点して弱点分析',exact:true}).click();
+    const first=(await state(p)).attempts[0];assert.equal(first.writtenScore,71,'6-point multi earns 3; reversed pair and blank text earn 0');
+    assert.equal((await state(p)).weak[`2023:${text.id}:main`].last,'wrong');
+    await start(p,2023);await fillCorrect(p,2023);
+    await p.getByRole('button',{name:'採点して弱点分析',exact:true}).dblclick();
+    const after=await state(p);assert.equal(after.attempts.length,2,'double click must not duplicate the second result');
+    assert.deepEqual(after.attempts[0],first,'retake must not recompute the first score');assert.equal(after.attempts[1].writtenScore,80);
+    await snapshot(p,'boundary-retake-80');await sentinelCheck(p);
+    checks.push('multi partial / reversed pair / blank text -> 71; perfect retake -> 80; double click and first score preserved');await c.close();
+  }
   // Dismissing incomplete-answer confirmation must not create a score.
   {
     const c=await context({acceptConfirm:false}),p=await c.newPage();await p.goto(url);await start(p);
@@ -133,7 +155,10 @@ export async function runBoundaryChecks(h){
     const c=await context(),p=await c.newPage();await p.clock.install({time:new Date('2026-10-03T12:00:00Z')});
     await p.clock.pauseAt(new Date('2026-10-03T12:00:01Z'));await p.goto(url);await start(p,2024,true);
     const row=p.locator('[id="answer-2024-3-1"]');const buttons=row.locator('.answer-kana');
-    await buttons.first().click();const before=await state(p);
+    await buttons.first().click();
+    await p.locator('[id="a-3-4-1"]').fill('before-deadline');
+    await p.locator('input[id^="m-"]').first().fill('1');
+    const before=await state(p);
     await p.clock.fastForward(600001);
     const expired=await state(p);assert.equal(expired.currentAttempt.overtime,true);
     const remainedEnabled=await buttons.nth(1).isEnabled();
@@ -142,6 +167,8 @@ export async function runBoundaryChecks(h){
     await snapshot(p,'boundary-live-expiry');
     assert.deepEqual((await state(p)).answers,before.answers,'live deadline must prevent later answers from replacing saved answers');
     assert.equal(remainedEnabled,false,'objective controls must disable at live expiry');
+    assert.equal(await p.locator('[id="a-3-4-1"]').isEnabled(),false,'text input also locks');
+    assert.deepEqual((await state(p)).manual,before.manual,'redraw must preserve self-marking draft');
     assert.equal(await p.locator('input[id^="m-"]').first().isEnabled(),true,'manual marking remains available');
     await p.reload();await p.getByRole('button',{name:'2024年度の続きへ',exact:true}).click();
     assert.equal(await row.locator('.answer-kana').first().isEnabled(),false);
