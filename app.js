@@ -845,6 +845,7 @@ function applyLearningPointRelease2DataCorrections(){
    extract.prompt=extract.prompt.replaceAll("混雑しすぎている","混雑している");
    for(const label of ["設問和訳","根拠英文和訳","なぜ正解か"])replaceExplanationPart(extract,label,(explanationParts(extract.explanation).find(part=>part.label===label)?.text||"").replaceAll("混雑しすぎている","混雑している"));
  }
+ replaceExplanationPart(q("lco21"),"他選択肢","For exampleは具体例の導入だが、『理科だけ』の具体例として他教科での利用は挙げられない。As a resultは結果だが、その思い込みが他教科での利用を生じさせたわけではない。In other wordsは言い換えだが、『理科だけ』と『他教科も』は同じ内容ではない。");
  const connectorTranslations={
    lco23:"学校でごみを減らすために小さな行動をしている生徒たちがいます。自分の水筒を持参し、紙の両面を使い、新しいファイルを買う代わりに古いものを修理します。例えば、あるクラスは、まだ白紙のページがたくさん残っているノートを集め、年下の生徒のための練習帳に作り替えました。",
    lco26:"その新しいアプリは、長い講義をして生徒に教えるものではありません。各生徒がどの単語をよく忘れるかを調べ、その単語だけを追加で練習させます。言い換えると、そのアプリは、それぞれの学習者の弱点に合わせて学習内容を変えるのです。",

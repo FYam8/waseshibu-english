@@ -79,6 +79,9 @@ for(const id of ['lco23','lco26','lco27','lco28','lco30']){
  const q=data.drills.find(q=>q.id===id),parts=q.explanation.split('【根拠英文和訳】');
  assert.equal(parts.length,2);assert.ok(parts[1].length>60);assert.ok(q.explanation.includes('【論理関係の確認】'));
 }
+const contrast=data.drills.find(q=>q.id==='lco21');
+assert.ok(contrast.explanation.includes('As a result'));assert.ok(contrast.explanation.includes('In other words'));
+assert.ok(!contrast.explanation.includes('Therefore'));assert.ok(!contrast.explanation.includes('In addition'));
 const policy=context.ENGLISH_SCHOOL_POLICY;
 for(const fields of [{reservedConfirm:['rdt_cx03','rdt_cx04']},{status:'pending',reservedConfirm:[]},{streak:1,lastDrillId:'rdt_cx01',reservedConfirm:[]}])assert.equal(policy.practicePlan(data.drills,{...weak,...fields}),null);
 assert.equal(policy.practicePlan(data.drills,{...weak,reservedConfirm:[]},{q:{id:'rdt_cx01'}}),null);
