@@ -59,6 +59,7 @@
 <script src="../schools/waseshibu/policy.js"></script>
 <script src="../engine/bootstrap.js"></script>
 <script src="../engine/core.js"></script>
+<script src="../ui/exam-session.js"></script>
 <script src="../app.js"></script>
 <script src="../schools/waseshibu/compat.js"></script>
 <script>

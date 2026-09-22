@@ -51,7 +51,7 @@ function loadState(){
  return next;
 }
 let S=loadState();
-let view="home", drillState=normalizeDrillState(S.currentDrill), timerHandle=null, dayRefreshHandle=null, renderedDate=today(), dayChangePending=false, dayChangeNotice=false, dayChangeAnswerMoved=false;
+let view="home", drillState=normalizeDrillState(S.currentDrill), dayRefreshHandle=null, renderedDate=today(), dayChangePending=false, dayChangeNotice=false, dayChangeAnswerMoved=false;
 if(drillState){const current=BANK.find(q=>q.id===drillState.q?.id&&!q.retired);if(!current||!S.weak[drillState.key]||S.weak[drillState.key].status==="mastered"){drillState=null;S.currentDrill=null;S.currentSkill=null}else{drillState=normalizeDrillState({...drillState,q:current});S.currentDrill=drillState}}
 let storageWarningShown=false;
 const app=document.getElementById("app"), kana=["ア","イ","ウ","エ","オ","カ","キ","ク"];
@@ -345,9 +345,13 @@ function resumeLegacy(y){
 }
 function interruptAttempt(){if(!S.currentAttempt)return;const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.interruptExamAttempt;if(shared)shared(S.currentAttempt);else{S.currentAttempt.interrupted=true;S.currentAttempt.mode="untimed"}save();alert("中断を記録しました。この受験は保存されますが、本番比較・安定判定には使いません。");render()}
 function attemptComparable(a){const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.isExamAttemptComparable;return shared?shared(a):!!(a?.exposure==="first"&&a?.mode==="timed"&&!a?.interrupted&&!a?.overtime)}
-function elapsedSeconds(a){return Math.max(0,Math.floor((Date.now()-new Date(a.startedAt).getTime())/1000))}
-function timerMarkup(a){if(a.mode!=="timed")return `<span class="timer practice">時間無制限</span>`;const total=a.limitMinutes*60,remain=total-elapsedSeconds(a);if(remain<=0){a.overtime=true;save()}const abs=Math.abs(remain),mm=String(Math.floor(abs/60)).padStart(2,"0"),ss=String(abs%60).padStart(2,"0");return `<span id=examTimer class="timer ${remain<=0?"over":""}">${remain<=0?"時間超過 ":"残り "}${mm}:${ss}</span>`}
-function updateTimer(){const a=S.currentAttempt,el=document.getElementById("examTimer");if(!el||!a||a.mode!=="timed")return;const total=a.limitMinutes*60,remain=total-elapsedSeconds(a);if(remain<=0&&!a.overtime){a.overtime=true;save();render();return}const abs=Math.abs(remain),mm=String(Math.floor(abs/60)).padStart(2,"0"),ss=String(abs%60).padStart(2,"0");el.textContent=`${remain<=0?"時間超過 ":"残り "}${mm}:${ss}`;el.classList.toggle("over",remain<=0)}
+const examSession=window.ENGLISH_UI_EXAM_SESSION.create({
+ getState:()=>S,save,render,onTimeout:()=>render(),
+ problemElementIds:({year,id})=>{const parts=String(id).split("-"),ids=[];while(parts.length){ids.push(`problem-${year}-${parts.join("-")}`);parts.pop()}return ids},
+ onMissingProblem:()=>alert("問題の位置を特定できませんでした。")
+});
+function timerMarkup(a){return examSession.timerMarkup(a)}
+function updateTimer(){return examSession.updateTimer()}
 function examGate(y){
  const protectedYear=y>=2025&&!S.exposure[y]&&!S.attempts.some(a=>a.year===y),saved=hasSavedAnswers(y);
  return `<section class="card hero exam-gate ${protectedYear?"protected":""}"><div class=eyebrow>${routeRole(y)}</div><h2>${y}年度を始める前に</h2>${protectedYear?`<div class=warnbox><b>初見温存中</b><p>${y===2026?"最終判定用の年度です。補強と2025年度の確認後に解くことを推奨します。":"直近型の実戦確認用です。2019～2023の補強後を推奨します。"}</p></div>`:""}
@@ -521,22 +525,11 @@ function answerRow(y,q){
  const priority=strategyPriority(q);
  return `<div id="answer-${y}-${q.id}" data-major="${(q.label.match(/大問(\d+)/)||[])[1]||""}" class="q ${cls}"><div class="row space"><b>${h(q.label)}</b><span>${q.points}点 ${badge(priority)}</span></div><div class=q-meta><span class="tiny muted">${h(q.category)} ／ 学習上の${priority}分類</span><button type=button onclick="jumpToProblem(${y},'${q.id}')">問題へ ↑</button></div>${locked?"<p class=timeout-note>制限時間終了のため、客観問題の解答をロックしました。記述の自己採点は続けられます。</p>":""}${input}${wr?.last==="wrong"?`<div class="tiny previous-answer">前回：${h(wr.user||"未入力")} → 正解 ${h(q.answer||"記述自己採点")}</div>`:""}</div>`;
 }
-function toggleAnswerSheet(){
- S.answerSheetOpen=!S.answerSheetOpen;save();render();
-}
-function toggleAnswerSize(){S.answerSheetExpanded=!S.answerSheetExpanded;save();render()}
-function toggleExamInfo(){S.examInfoCompact=!S.examInfoCompact;save();render()}
-function jumpAnswerMajor(y,major){
- const panel=document.querySelector(".answer-sheet-body");
- const actual=[...document.querySelectorAll(`#answerPanel .q[data-major="${major}"]`)][0];if(!panel||!actual)return;
- panel.scrollTo({top:Math.max(0,actual.offsetTop-95),behavior:"smooth"});actual.classList.add("focus-flash");setTimeout(()=>actual.classList.remove("focus-flash"),1200);
-}
-function jumpToProblem(y,id){
- const parts=String(id).split("-");let target=null;
- while(parts.length&&!target){target=document.getElementById(`problem-${y}-${parts.join("-")}`);if(!target)parts.pop()}
- if(!target)return alert("問題の位置を特定できませんでした。");
- target.scrollIntoView({behavior:"smooth",block:"start"});target.classList.add("focus-flash");setTimeout(()=>target.classList.remove("focus-flash"),1400);
-}
+function toggleAnswerSheet(){return examSession.toggleAnswerSheet()}
+function toggleAnswerSize(){return examSession.toggleAnswerSize()}
+function toggleExamInfo(){return examSession.toggleExamInfo()}
+function jumpAnswerMajor(y,major){return examSession.jumpAnswerMajor(major)}
+function jumpToProblem(y,id){return examSession.jumpToProblem({year:y,id})}
 function selectionText(arr,type,max){
  if(!arr.length)return `未選択（${max}つ選んでください）`;
  const joined=arr.join(type==="pair"?" → ":"・");
@@ -1147,5 +1140,5 @@ function scheduleDayRefresh(){if(dayRefreshHandle)clearTimeout(dayRefreshHandle)
 function applyDayChange(){const current=today();renderedDate=current;dayChangePending=false;const shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.applyDailyRolloverState;if(shared)shared(S,current);else{if(S.dailyPlan?.date!==current)S.dailyPlan=null;if(S.dailyProgress?.date!==current)S.dailyProgress=null}save()}
 function checkDayChange(){const current=today(),shared=typeof window!=="undefined"&&window.ENGLISH_ENGINE_CORE?.decideDayRollover;if(shared){const decision=shared({renderedDate,currentDate:current,isDrillView:view==="drill",hasDrill:!!drillState,drillAnswered:!!drillState?.answered});if(decision.kind==="same")return;if(decision.kind==="defer"){dayChangePending=true;return}dayChangeNotice=!!decision.notice;dayChangeAnswerMoved=false;applyDayChange();render();return}if(renderedDate===current)return;if(view==="drill"&&drillState&&!drillState.answered){dayChangePending=true;return}dayChangeNotice=view==="drill"&&!!drillState;dayChangeAnswerMoved=false;applyDayChange();render()}
 window.addEventListener("focus",checkDayChange);document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkDayChange()});
-function render(){if(timerHandle){clearInterval(timerHandle);timerHandle=null}app.innerHTML=({home,route,exam,result,review,drill,stats,guide})[view]();if(view==="exam"&&S.currentAttempt?.status==="active"&&S.currentAttempt.mode==="timed")timerHandle=setInterval(updateTimer,1000);scheduleDayRefresh()}
+function render(){examSession.stop();app.innerHTML=({home,route,exam,result,review,drill,stats,guide})[view]();examSession.start(view);scheduleDayRefresh()}
 render();
