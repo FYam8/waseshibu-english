@@ -9,15 +9,15 @@ const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const manifest=JSON.parse(read('ui/manifest.json'));
 
 assert.equal(manifest.name,'shared-english-ui');
-assert.equal(manifest.uiVersion,'1.2.0');
+assert.equal(manifest.uiVersion,'1.3.0');
 assert.equal(manifest.contractVersion,1);
 assert.equal(manifest.runtimeWiring,true);
 assert.equal(manifest.consumerPolicy,'pinned-vendor-pr-only');
 assert.equal(manifest.releaseGate,'waseda-ui-parity-before-consumer-sync');
 
 const uiFiles=fs.readdirSync(path.join(root,'ui')).sort();
-assert.deepEqual(uiFiles,['answer-widgets.js','base.css','components.js','contract.js','exam-session.js','manifest.json','shell.js']);
-for(const file of ['ui/answer-widgets.js','ui/base.css','ui/components.js','ui/contract.js','ui/shell.js','ui/exam-session.js']){
+assert.deepEqual(uiFiles,['answer-widgets.js','base.css','components.js','contract.js','exam-session.js','manifest.json','shell.js','today-presenter.js']);
+for(const file of ['ui/answer-widgets.js','ui/base.css','ui/components.js','ui/contract.js','ui/shell.js','ui/exam-session.js','ui/today-presenter.js']){
   assert.doesNotMatch(read(file),/waseshibu|rikkyo|早稲|立教|fyam8|workers\.dev/i,file+' leaks school/provider identity');
 }
 assert.doesNotMatch(read('ui/base.css'),/\.A\{|\.B\{|\.C\{/,'Waseda strategy CSS leaked into shared UI');

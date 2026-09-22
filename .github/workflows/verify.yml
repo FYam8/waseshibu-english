@@ -17,6 +17,7 @@ jobs:
       - run: node tests/shared-ui-baseline.test.mjs
       - run: node tests/shared-exam-session.test.mjs
       - run: node tests/shared-answer-widgets.test.mjs
+      - run: node tests/shared-today-presenter.test.mjs
       - run: node tests/shared-ui-components.test.mjs
       - run: node tests/shared-ui-component-delegation.test.mjs
       - run: node tests/shared-ui-final-readiness.test.mjs
