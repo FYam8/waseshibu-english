@@ -1,3 +1,4 @@
+const TODAY_PRESENTER=window.ENGLISH_UI_TODAY;
 const ANSWER_WIDGETS=window.ENGLISH_UI_ANSWER_WIDGETS;
 
 const D=window.EXAM_DATA, P=window.PAPERS, BANK=window.DRILLS, FALLBACK=window.FALLBACK;
@@ -294,24 +295,18 @@ function optionalNextAction(){
 }
 function goalEstimate(goal){const rows=activeWeak().filter(([_,w])=>gradeInGoal(w.priority,goal)),count=rows.length,years=ROUTE.filter(y=>!S.attempts.some(a=>a.year===y&&a.status==="graded")).length,questions=rows.reduce((sum,[_,w])=>sum+(w.status==="pending"?Math.max(0,2-(w.confirmStreak||0)):Math.max(0,3-(w.streak||0))+2),0),days=Math.ceil(questions/DAILY_TASK_TARGET)+years;return {count,days}}
 function futureConfirmationMarkup(){
- const rows=futureConfirmations();if(!rows.length)return "";const shown=rows.slice(0,3),extra=rows.length-shown.length,label=rows.every(([_,w])=>w.next===plusDays(1))?"明日の定着確認予定（現時点）":"今後の定着確認予定（現時点）";
- return `<div class=future-confirmations><b>${label}</b>${shown.map(([_,w])=>`<div><span>${h(w.next)}</span><span>${h(w.year+" "+w.label)}</span></div>`).join("")}${extra?`<small>ほか${extra}件。予定日になったものから優先し、目安${DAILY_TASK_TARGET}問の後も続けられます。</small>`:""}</div>`;
+ return TODAY_PRESENTER.futureConfirmations({rows:futureConfirmations().map(([_,w])=>({date:w.next,label:w.year+" "+w.label})),tomorrow:plusDays(1),target:DAILY_TASK_TARGET});
 }
 function learningActionsMarkup(action){
- const hasDrill=action.kind==="resume",available=availableLearningActions();
- if(hasDrill)return `<div class=resume-action><button class=primary onclick="${action.action}">${h(action.label)}</button><span>${h(action.note)}</span></div>${available.length?`<div class=queued-actions><b>この1問の完了後</b>${available.slice(0,3).map(x=>`<span>${h(x.label)}：${h(x.note)}</span>`).join("")}</div>`:""}`;
- if(action.complete)return `<div class=row>${uiCompletionMark(`✓ ${h(action.label)}`)}<button onclick="goto('route')">学習ルートを見る</button></div>`;
- return `<div class=learning-actions><div class=resume-action><button class=primary onclick="${action.action}">${h(action.label)}</button><span>${h(action.note)}</span></div>${available.slice(1,4).length?`<div class=alternative-actions><b>ほかにできること</b>${available.slice(1,4).map(x=>`<button onclick="${actionCommand(x)}">${h(x.label)}</button>`).join("")}</div>`:""}<button onclick="goto('route')">学習ルートを見る</button></div>`;
+ return TODAY_PRESENTER.learningActions({action:{...action,command:action.action},available:availableLearningActions().map(x=>({...x,command:actionCommand(x)})),routeCommand:"goto('route')"});
 }
 function home(){
  const active=activeWeak();
  const last=S.history.at(-1);
- const action=todayAction(),plan=ensureDailyPlan(),answered=dailyAnswered(plan),targetReached=dailyTargetReached(plan),extra=Math.max(0,answered-DAILY_TASK_TARGET),etas=GOAL_TIERS.map(t=>[t,goalEstimate(t)]);
- const todayContent=`<div class=today-head><div><div class=eyebrow>${action.complete?"AVAILABLE WORK COMPLETE":targetReached?"TARGET ACHIEVED · KEEP GOING":"TODAY · STANDARD 10 QUESTIONS"}</div><h2>今日やること</h2><p>${h(action.note)}</p></div><div class=goal-block><span>学習目標</span><strong>${goalLabel()}</strong><small>得点・履歴とは別に管理</small></div></div>
- <div class="target-row goal-selector"><span>目標を変更</span>${GOAL_TIERS.map((t,i)=>`<button class="target-chip ${S.goal===t?"selected":""}" onclick="setGoal(${t})">${String.fromCharCode(65+i)} ${t}点</button>`).join("")}</div>
- <div class=daily-summary><article><b>${answered}問</b><small>今日の克服ドリル</small></article><article><b>${DAILY_TASK_TARGET}問</b><small>標準目安</small></article><article><b>${targetReached?`${extra}問`:`あと${dailyTargetRemaining(plan)}問`}</b><small>${targetReached?"目安達成後":"目安まで"}</small></article></div>
- <div class=goal-eta>${etas.map(([t,e])=>`<article class="${S.goal===t?"selected":""}"><div><b>${goalLabel(t)}</b><small>${e.count}弱点を対象</small></div><strong>${e.days?`約${e.days}日`:"達成"}</strong></article>`).join("")}</div><p class=goal-eta-note>1日${DAILY_TASK_TARGET}問のペースで進めた場合の目安です。追加学習で短くなることがあります。得点到達を保証する日数ではありません。</p>
- ${learningActionsMarkup(action)}${futureConfirmationMarkup()}`;
+ const action=todayAction(),plan=ensureDailyPlan(),answered=dailyAnswered(plan),targetReached=dailyTargetReached(plan),etas=GOAL_TIERS.map(t=>[t,goalEstimate(t)]);
+ const goalControlsHtml=`<div class="target-row goal-selector"><span>目標を変更</span>${GOAL_TIERS.map((t,i)=>`<button class="target-chip ${S.goal===t?"selected":""}" onclick="setGoal(${t})">${String.fromCharCode(65+i)} ${t}点</button>`).join("")}</div>`;
+ const goalEstimateHtml=`<div class=goal-eta>${etas.map(([t,e])=>`<article class="${S.goal===t?"selected":""}"><div><b>${goalLabel(t)}</b><small>${e.count}弱点を対象</small></div><strong>${e.days?`約${e.days}日`:"達成"}</strong></article>`).join("")}</div><p class=goal-eta-note>1日${DAILY_TASK_TARGET}問のペースで進めた場合の目安です。追加学習で短くなることがあります。得点到達を保証する日数ではありません。</p>`;
+ const todayContent=TODAY_PRESENTER.content({action,summary:{answered,target:DAILY_TASK_TARGET,targetReached,remaining:dailyTargetRemaining(plan)},goal:{label:"学習目標",value:goalLabel(),note:"得点・履歴とは別に管理"},goalControlsHtml,goalEstimateHtml,actionsHtml:learningActionsMarkup(action),futureHtml:futureConfirmationMarkup()});
  return `${S.recoveryNotice?`<section class="card okbox recovery-notice"><b>学習履歴を自動復元しました</b><p>${h(S.recoveryNotice)}</p><button onclick="dismissRecoveryNotice()">確認</button></section>`:""}${uiTodayCard({complete:action.complete,contentHtml:todayContent})}
  <section class="grid three">${uiMetricCard(last?`${last.score}/${WRITTEN_MAX_SCORE}`:"--",last?`${last.year}年度の筆記得点`:"過去問未実施")}${uiMetricCard(goalLabel(),"現在の学習目標")}${uiMetricCard(active.filter(([_,w])=>w.priority==="A").length,"A問題の未克服")}</section>
  <section class=card><div class="row space"><div><div class=eyebrow>CURRENT STATUS</div><h3>現在の到達状況</h3></div><b>未克服 ${active.length} ／ 克服済み ${mastered()}</b></div><p>${goalAdvice()}</p><p class=muted>A＝60点、B＝70点、C＝75点。目標を変えても、これまでの得点・正誤・類題履歴は消しません。</p></section>

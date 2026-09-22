@@ -26,7 +26,8 @@ assert.match(app,/function uiProgressBar[\s\S]*?<div class=progress><span style=
 assert.ok(app.includes('uiMetricCard(last?'),'home metric cards not delegated');
 assert.ok(app.includes('uiMetricCard(a.length,"A未克服")'),'stats metric cards not delegated');
 assert.ok(app.includes('uiProgressBar(streak,target)'),'drill progress bar not delegated');
-assert.ok(app.includes('uiCompletionMark(`✓ ${h(action.label)}`)'),'Today completion marker not delegated');
+assert.ok(app.includes('TODAY_PRESENTER.learningActions('),'Today actions not delegated');
+assert.ok(read('ui/today-presenter.js').includes('components.completionMark('),'Today completion marker not delegated');
 assert.ok(app.includes('uiCompletionMark(`✓ 今日の目安${DAILY_TASK_TARGET}問を達成`)'),'review completion marker not delegated');
 assert.ok(app.includes('uiRouteStepCard({index:i+1'),'route cards not delegated');
 assert.ok(app.includes('uiTodayCard({complete:action.complete,contentHtml:todayContent})'),'Today frame not delegated');
