@@ -41,7 +41,7 @@ export async function runTodayPresenterChecks(browser,url,isRikkyo){
   const before=await state();await home();assert.deepEqual(await state(),before,'Today rerender changed stored learning state');
   await card.locator('.primary').click();assert.equal((await state()).currentDrill.mode,'confirm');
   await home();assert.equal(await card.locator('.primary').innerText(),'途中の1問を再開');assert.equal(await card.locator('.queued-actions button').count(),0);assert.equal(await card.locator('.alternative-actions').count(),0);
-  const draft=await p.evaluate(r=>r?__RIKKYO_APP__.getState().currentDrill:JSON.parse(JSON.stringify(normalizeDrillState(S.currentDrill))),isRikkyo);await p.reload();if(isRikkyo)await p.waitForFunction(()=>window.__RIKKYO_APP_READY__);await home();
+  const draft=await p.evaluate(r=>r?ENGLISH_ENGINE_CORE.normalizeDrillState(__RIKKYO_APP__.getState().currentDrill):JSON.parse(JSON.stringify(normalizeDrillState(S.currentDrill))),isRikkyo);await p.reload();if(isRikkyo)await p.waitForFunction(()=>window.__RIKKYO_APP_READY__);await home();
   await card.locator('.primary').click();assert.deepEqual((await state()).currentDrill,draft,'Today Resume changed the reserved question/draft');
   for(const n of [0,9,10,12]){
    await seed('active',n);assert.equal(await card.locator('.primary').innerText(),'この弱点を続ける');

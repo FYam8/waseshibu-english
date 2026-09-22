@@ -20,6 +20,6 @@ No schema, namespace, backup/import, currentAttempt/currentDrill or dailyPlan/da
 
 Unit tests cover immutability, Resume queue, completion, alternatives, date labels, count boundaries (0/9/10/12), safe text/attribute escaping and real app delegation. Both apps run the same browser harness at 390px and 1280px through their production index. It checks fresh diagnostic navigation, school goal policy, due confirmation, alternatives, Resume/reload with the existing normalizer, target continuation, future overflow and all-work completion. Existing P0/P1 and school browser/regression suites continue to run.
 
-Development test adjustments: the previous static assertion expected completion rendering directly in app.js; it now asserts delegation via this presenter to the shared completion component. Waseda's existing Resume normalizer adds a missing empty textDraft; the new browser test compares normalized drafts so that its expectation matches existing persistence behavior.
+Development test adjustments: the previous static assertion expected completion rendering directly in app.js; it now asserts delegation via this presenter to the shared completion component. The existing shared Resume normalizer adds a missing empty textDraft; the new browser test compares normalized drafts so that its expectation matches existing persistence behavior.
 
 P3 source grouping and P4 backup/day-change presentation are outside this release.
