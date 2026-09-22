@@ -15,6 +15,7 @@ jobs:
           node-version: 20
       - run: node tests/shared-engine-contract.test.mjs
       - run: node tests/shared-ui-baseline.test.mjs
+      - run: node tests/shared-exam-session.test.mjs
       - run: node tests/shared-ui-components.test.mjs
       - run: node tests/shared-ui-component-delegation.test.mjs
       - run: node tests/shared-ui-final-readiness.test.mjs
@@ -81,3 +82,11 @@ jobs:
       - run: node --check tests/ai-grading-goldset-v1/compare-evals.mjs
       - run: node tests/ai-grading-goldset-v1/compare-smoke.mjs tests/ai-grading-goldset-v1
       - run: node tests/ai-grading-goldset-v1/generate-adjudication-packet.mjs tests/ai-grading-goldset-v1 > /tmp/adjudication.json
+      - name: Install browser parity dependency
+        run: npm install --prefix "$RUNNER_TEMP/exam-session-deps" --no-package-lock --ignore-scripts playwright@1.62.1
+      - name: Install browser for shared interaction checks
+        run: node "$RUNNER_TEMP/exam-session-deps/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Verify shared exam interaction at 390px and 1280px
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/exam-session-deps/node_modules/playwright
+        run: node tests/shared-exam-session-browser.test.mjs .
