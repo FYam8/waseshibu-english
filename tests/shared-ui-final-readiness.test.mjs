@@ -9,7 +9,7 @@ const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const manifest=JSON.parse(read('ui/manifest.json'));
 
 assert.equal(manifest.name,'shared-english-ui');
-assert.equal(manifest.uiVersion,'1.3.0');
+assert.equal(manifest.uiVersion,'1.3.1');
 assert.equal(manifest.contractVersion,1);
 assert.equal(manifest.runtimeWiring,true);
 assert.equal(manifest.consumerPolicy,'pinned-vendor-pr-only');

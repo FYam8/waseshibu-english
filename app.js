@@ -762,7 +762,7 @@ function drillInput(q){
  return "";
 }
 function shuffleTokens(tokens){if(drillState.shuffled)return drillState.shuffled;drillState.shuffled=[...tokens].sort(()=>Math.random()-.5);return drillState.shuffled}
-function changeDrillOrder(action){const tokens=shuffleTokens(drillState.q.tokens),result=ANSWER_WIDGETS.reorderChange({order:drillState.orderIndices},tokens,action,{disabled:drillState.answered});if(!result.changed)return;drillState.orderIndices=result.state.order;drillState.order=result.state.order.map(i=>tokens[i]);persistDrill();render()}
+function changeDrillOrder(action){const tokens=shuffleTokens(drillState.q.tokens),result=ANSWER_WIDGETS.reorderChange({order:drillState.orderIndices},tokens,action,{disabled:drillState.answered});if(!result.changed)return;drillState.orderIndices=result.state.order;drillState.order=result.state.order.map(i=>tokens[i]);persistDrill();ANSWER_WIDGETS.refreshReorder(document.querySelector(".drill-card"),result.state,tokens,{disabled:drillState.answered})}
 function addTokenAt(i){changeDrillOrder({type:"add",index:i})}
 function undoToken(){changeDrillOrder({type:"undo"})}
 function clearOrder(){changeDrillOrder({type:"clear"})}
