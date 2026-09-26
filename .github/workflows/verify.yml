@@ -37,6 +37,7 @@ jobs:
       - run: node tests/waseda-practice-selection-characterization.test.mjs
       - run: node tests/shared-engine-practice-selection-parity.test.mjs
       - run: node tests/waseda-practice-selection-delegation.test.mjs
+      - run: node tests/learning-route-exhaustion.test.mjs
       - run: node tests/waseda-practice-ranking-session-characterization.test.mjs
       - run: node tests/shared-engine-practice-ranking-session-parity.test.mjs
       - run: node tests/waseda-practice-ranking-session-delegation.test.mjs

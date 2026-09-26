@@ -70,7 +70,7 @@ function legacyNext({pool,reservedIds,usedIds,mode,streak,rankChoices}){
     ?pool.filter(x=>reserved.includes(x.id)&&!used.includes(x.id))
     :pool.filter(x=>!reservedFamilies.has(x.familyId)&&!used.includes(x.id));
   let resetUsed=false;
-  if(!candidates.length){resetUsed=true;used=[];candidates=mode==='confirm'?pool.filter(x=>reserved.includes(x.id)):pool.filter(x=>!reserved.includes(x.id))}
+  if(!candidates.length){resetUsed=true;used=[];candidates=mode==='confirm'?pool.filter(x=>reserved.includes(x.id)):pool.filter(x=>!reservedFamilies.has(x.familyId))}
   if(mode==='train'){
     const max=(streak||0)>=2?3:2,leveled=candidates.filter(x=>x.level<=max);if(leveled.length)candidates=leveled;
   }

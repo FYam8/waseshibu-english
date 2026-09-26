@@ -192,7 +192,7 @@ function selectNextPracticeQuestion({pool,reservedIds,usedIds,mode,streak,rankCh
   let resetUsed=false;
   if(!candidates.length){
     resetUsed=true;nextUsed=[];
-    candidates=mode==='confirm'?pool.filter(x=>reserved.includes(x.id)):pool.filter(x=>!reserved.includes(x.id));
+    candidates=mode==='confirm'?pool.filter(x=>reserved.includes(x.id)):pool.filter(x=>!reservedFamilies.has(x.familyId));
   }
   if(mode==='train'){
     const max=(Number(streak)||0)>=2?3:2;
