@@ -142,8 +142,8 @@ function runNext({pool,weak,drillState}){
     {id:'train',familyId:'ft',level:2}
   ];
   const r=runNext({pool,weak:{reservedConfirm:['r1'],streak:0,seenDrills:['train']},drillState:{key:'k',mode:'train',used:['train']}});
-  assert.equal(r.state.q.id,'same-family','after exhaustion current fallback resets used and excludes reserved IDs, not entire reserved families');
-  assert.deepEqual(r.state.used,['same-family']);
+  assert.equal(r.state.q.id,'train','after exhaustion training must still exclude entire reserved families');
+  assert.deepEqual(r.state.used,['train']);
 }
 {
   const pool=[{id:'high',familyId:'fh',level:3}];

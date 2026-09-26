@@ -308,7 +308,7 @@ const replacements = [
       "調整案",
       "約50語"
     ],
-    "model": "You think clubs should be removed because they take study time and make students tired. However, clubs help students learn teamwork and continue healthy habits. Schools can limit practice days during exam periods instead of removing activities that support students’ growth.",
+    "model": "You think clubs should be optional or removed because they take study time and tire students. However, removing them would lose opportunities to learn teamwork and stay healthy. Schools can keep clubs, make participation optional, and limit practice before exams to protect study time.",
     "explanation": "【型】問題を認め、全面廃止ではなく制限で解決する。 【戦略】B。",
     "maxWords": 60
   },
