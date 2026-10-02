@@ -73,6 +73,9 @@ jobs:
       - run: node tests/waseda-behavior-characterization.test.mjs
       - run: node tests/waseda-learning-flow-characterization.test.mjs
       - run: bash tests/waseda-browser-smoke.sh
+      - run: node --check shared-progress-transport.js
+      - run: node tests/verify-shared-progress.mjs --upstream
+      - run: node tests/shared-progress-provenance.test.mjs
       - run: node --check progress-sync.js
       - run: node tests/progress-cloud-sync.test.mjs
       - run: node tests/ai-writing-grader.test.mjs

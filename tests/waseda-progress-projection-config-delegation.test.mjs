@@ -17,7 +17,7 @@ assert.match(source,/for\(const year of SYNC_YEARS\)/);
 assert.match(source,/progressLabel:`\$\{APP_ID\} target \$\{syncGoal\(s\)\}`/);
 
 const start=source.indexOf('function validIso(v)');
-const end=source.indexOf('async function queueRecord',start);
+const end=source.indexOf('function buildBaseline(',start);
 assert.ok(start>=0&&end>start,'projection block missing');
 const block=source.slice(start,end);
 const RealDate=Date,fixedNow=new RealDate('2032-05-01T12:00:00.000Z');

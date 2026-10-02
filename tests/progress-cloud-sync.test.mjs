@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
-const sync=fs.readFileSync(new URL('../progress-sync.js',import.meta.url),'utf8');
+const sync=fs.readFileSync(new URL('../progress-sync.js',import.meta.url),'utf8')+'\n'+fs.readFileSync(new URL('../shared-progress-transport.js',import.meta.url),'utf8');
 const index=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const app=fs.readFileSync(new URL('../app.js',import.meta.url),'utf8');
 
