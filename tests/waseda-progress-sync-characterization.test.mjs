@@ -6,7 +6,7 @@ function read(path){return fs.readFileSync(new URL(`../${path}`,import.meta.url)
 function plain(value){return JSON.parse(JSON.stringify(value))}
 function capture(text,re,label){const m=text.match(re);assert.ok(m,`missing ${label}`);return m[1]}
 
-const source=read('progress-sync.js');
+const source=read('progress-sync.js')+'\n'+read('shared-progress-transport.js');
 const configCtx={};configCtx.window=configCtx;configCtx.globalThis=configCtx;vm.createContext(configCtx);vm.runInContext(read('schools/waseshibu/config.js'),configCtx,{filename:'schools/waseshibu/config.js'});
 const config=plain(configCtx.ENGLISH_SCHOOL_CONFIG);
 
@@ -71,7 +71,7 @@ assert.doesNotMatch(source,/\bmanual\s*:/,'raw manual-score map must never be up
 
 // Execute the pure state/occurrence projection with a fixed clock so record semantics are frozen.
 const start=source.indexOf('function validIso(v)');
-const end=source.indexOf('async function queueRecord',start);
+const end=source.indexOf('function buildBaseline(',start);
 assert.ok(start>=0&&end>start,'pure progress projection boundary missing');
 const pureBlock=source.slice(start,end);
 const RealDate=Date,fixedNow=new RealDate('2026-09-17T12:00:00.000Z');
