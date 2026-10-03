@@ -12,7 +12,27 @@ function goalAdvice(goal){return Number(goal)===60?'A問題を最優先にして
 function skillName(skill){return skillNames[skill]||skill}
 // A school-specific remediation route; shared mastery/scoring rules remain unchanged.
 const connectorIds=Object.freeze(['lco21','lco23','lco27','lco28','lco26']);
+// Source-reviewed context gaps: preserve old cycles; new reservations include a
+// drill outside the legacy context pool, so an old reservation cannot look new.
+const contextRoutes=Object.freeze({
+ '2019:5-2':{ids:['lcx01','lcx02','lcx06','lcx09','rdt_cx01','rdt_cx04'],confirmationIds:['rdt_cx04','lcx09']},
+ '2020:5-2':{ids:['lcx01','lcx02','lcx06','lcx09','rdt_cx01','rdt_cx04'],confirmationIds:['rdt_cx04','lcx09']},
+ '2019:5-3':{ids:['lcx03','lcx07','lcx10','rdt_cx02','rdt_cx05'],confirmationIds:['rdt_cx05','lcx10']}
+});
+function contextPracticePlan(bank,weak,currentDrill){
+ const route=contextRoutes[Number(weak?.year)+':'+weak?.id];if(!route)return null;
+ const pool=route.ids.map(id=>bank.find(q=>q.id===id&&!q.retired));
+ if(pool.some(q=>!q)||new Set(pool.map(q=>q.familyId)).size<5)return null;
+ const reserved=Array.isArray(weak.reservedConfirm)?weak.reservedConfirm:[];
+ const isNewReservation=reserved.length===2&&route.confirmationIds.every(id=>reserved.includes(id));
+ if(reserved.length&&!isNewReservation)return null;
+ const restarting=currentDrill?.failedConfirmation&&currentDrill.mode==='train'&&!reserved.length&&weak.status==='active'&&!Number(weak.streak);
+ if(!isNewReservation&&!restarting&&(currentDrill?.q||weak.status==='pending'||Number(weak.streak)>0))return null;
+ if(currentDrill?.q&&!route.ids.includes(currentDrill.q.id)&&!restarting&&!(isNewReservation&&currentDrill.failedConfirmation))return null;
+ return {pool,confirmationIds:[...route.confirmationIds]};
+}
 function practicePlan(bank,weak,currentDrill=null){
+ const contextPlan=contextPracticePlan(bank,weak,currentDrill);if(contextPlan)return contextPlan;
  if(!new Set(['2021:6-4','2022:6-2','2023:6-2']).has(Number(weak?.year)+':'+weak?.id))return null;
  const pool=connectorIds.map(id=>bank.find(q=>q.id===id&&!q.retired));
  if(pool.some(q=>!q)||new Set(pool.map(q=>q.familyId)).size!==5)return null;
@@ -24,6 +44,7 @@ function practicePlan(bank,weak,currentDrill=null){
  return {pool,confirmationIds:['lco28','lco26']};
 }
 function additionalReservedIds(bank,targetId){
+ if(targetId==='context-fit')return bank.filter(q=>!q.retired&&(q.skill==='context'||['rdt_cx01','rdt_cx02','rdt_cx04','rdt_cx05'].includes(q.id))).map(q=>q.id);
  return targetId==='detail-context-evidence'?bank.filter(q=>!q.retired&&connectorIds.includes(q.id)).map(q=>q.id):[];
 }
 root.ENGLISH_SCHOOL_POLICY=Object.freeze({practicePlan,additionalReservedIds,resolveQuestionPriority,isPriorityInGoal,priorityOrder,routeRole,goalLabel,goalAdvice,skillName});
