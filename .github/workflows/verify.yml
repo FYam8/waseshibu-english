@@ -38,6 +38,7 @@ jobs:
       - run: node tests/shared-engine-practice-selection-parity.test.mjs
       - run: node tests/waseda-practice-selection-delegation.test.mjs
       - run: node tests/learning-route-exhaustion.test.mjs
+      - run: node tests/context-route.test.mjs
       - run: node tests/waseda-practice-ranking-session-characterization.test.mjs
       - run: node tests/shared-engine-practice-ranking-session-parity.test.mjs
       - run: node tests/waseda-practice-ranking-session-delegation.test.mjs
@@ -95,4 +96,6 @@ jobs:
       - name: Verify shared exam interaction at 390px and 1280px
         env:
           PLAYWRIGHT_MODULE: ${{ runner.temp }}/exam-session-deps/node_modules/playwright
-        run: node tests/shared-exam-session-browser.test.mjs .
+        run: |
+          node tests/shared-exam-session-browser.test.mjs .
+          node tests/context-route-browser.test.mjs
