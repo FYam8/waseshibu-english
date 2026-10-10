@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import worker,{resolveTask}from '../workers/writing-grader/src/index.mjs';
+import {tasks,parseReading,readingPrompt}from '../workers/writing-grader/src/adapters/rikkyo-reading.mjs';
+const input=id=>({schoolId:'rikkyo',taskId:id,skill:'reading_short_answer',scope:'exam'});
+const raw=(task,correct=true)=>({ratings:correct?[4,4,4]:[0,4,4],contentCorrect:correct,learningCorrect:correct,evidence:task.evidence,explanationJa:'本文が根拠です。',suggestedAnswer:task.language==='ja'?'リンゴの木を見るのが好きだったから。':'Science.',issues:[],strengths:[],nextPractice:[]});
+for(const [id,t]of Object.entries(tasks)){const task=resolveTask({...input(id),prompt:'OVERRIDE',passage:'fake',maxWords:100});assert.ok(task);assert.equal(task.passage,t.passage);assert.equal(task.evidence,t.evidence);assert.notEqual(task.prompt,'OVERRIDE');assert.equal(task.maxWords,undefined);const answer=t.language==='ja'?'リンゴの木を見るのが好きだったから。':'Science.';const d=parseReading(JSON.stringify(raw(task)),task,answer);assert.equal(d.learningCorrect,true);assert.equal(d.maxScore,12);assert.equal(d.official,false);assert.equal(d.feedbackSchema,'reading-v1');assert.ok(task.passage.includes(d.evidence));assert.match(readingPrompt(task,answer),/NO minimum word count/);}
+for(const x of [{...input('R26-ENG-A-Q7-1'),schoolId:'other'},{...input('R26-ENG-A-Q7-1'),skill:'story_writing'},{...input('R26-ENG-A-Q7-1'),scope:'drill'},input('__proto__'),input('R26-ENG-B-Q7-1')])assert.equal(resolveTask(x),null);
+const t=resolveTask(input('R26-ENG-A-Q7-1')),valid=raw(t),answer='Science.';
+for(const changed of[{evidence:'invented source'},{learningCorrect:false},{ratings:[5,4,4]},{issues:[{severity:'must_fix',category:'文法',original:'not in answer',correction:'x',explanationJa:'x'}]},{ratings:[4,3,4]}])assert.throws(()=>parseReading(JSON.stringify({...valid,...changed}),t,answer));
+assert.throws(()=>parseReading(JSON.stringify(valid),resolveTask(input('R25-ENG-A-Q6-4')),answer));
+const wrong=parseReading(JSON.stringify(raw(t,false)),t,'Math.');assert.equal(wrong.learningCorrect,false);assert.equal(wrong.breakdown[1].earned,4);
+const post=(task=input('R26-ENG-A-Q7-1'),a=answer)=>new Request('https://test/v1/grade-writing',{method:'POST',headers:{origin:'https://fyam8.github.io','content-type':'application/json'},body:JSON.stringify({task,answer:a})});let runs=0;
+const env={STORY_RATE_LIMIT:{limit:async()=>({success:true})},AI:{run:async()=>{runs++;return{response:JSON.stringify(valid)}}}};
+assert.equal((await worker.fetch(post(),env)).status,200);assert.equal(runs,1);
+assert.equal((await worker.fetch(post(input('missing')),env)).status,400);assert.equal(runs,1);
+assert.equal((await worker.fetch(post(),{AI:env.AI})).status,503);
+assert.equal((await worker.fetch(post(),{...env,STORY_RATE_LIMIT:{limit:async()=>({success:false})}})).status,429);
+let repairs=0;const repaired=await worker.fetch(post(),{...env,AI:{run:async()=>({response:++repairs===1?'broken':JSON.stringify(valid)})}});assert.equal(repaired.status,200);assert.equal(repairs,2);
+const invalid=await worker.fetch(post(),{...env,AI:{run:async()=>({response:'{"ratings":[4,4,4]}'})}});assert.equal(invalid.status,502);
+console.log('PASS reading: 5 canonical tasks, language-specific/source-grounded response, paraphrase contract, short fragments, allowlist, forged context/invalid evidence, unavailable/rate/repair safety');
