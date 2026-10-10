@@ -64,8 +64,8 @@ async function handle(request,env){
    if(!env.STORY_RATE_LIMIT)return json({error:'rate_limit_unavailable',message:'AI添削の安全設定を確認中です。答案は保存されています。'},503,cors);
    const limited=await env.STORY_RATE_LIMIT.limit({key:request.headers.get('cf-connecting-ip')||'unknown'});
    if(!limited.success)return json({error:'rate_limited',message:'送信が続いています。少し待ってから再提出してください。'},429,cors);
-   let timer;const deadline=Date.now()+50000;try{
-    const run=async(messages)=>{try{return await Promise.race([env.AI.run(MODEL,{messages,response_format:{type:'json_object'},max_tokens:1800,temperature:0,seed:7,reasoning_effort:'low'}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('AI timeout')),Math.max(1,Math.min(25000,deadline-Date.now())))})])}finally{clearTimeout(timer)}};
+   let timer;const deadline=Date.now()+90000;try{
+    const run=async(messages)=>{try{return await Promise.race([env.AI.run(MODEL,{messages,response_format:{type:'json_object'},max_tokens:1800,temperature:0,seed:7,reasoning_effort:'low'}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('AI timeout')),Math.max(1,Math.min(45000,deadline-Date.now())))})])}finally{clearTimeout(timer)}};
     const messages=[{role:'system',content:'Follow the assessment specification. Return one strict JSON object only. English revisedExample, Japanese feedback, exact allowed categories. Never invent grammar errors.'},{role:'user',content:storyPrompt(task,answer)}];
     let result=await run(messages),assessment,raw;
     for(let attempt=0;attempt<3;attempt++){

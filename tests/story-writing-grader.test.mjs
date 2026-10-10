@@ -28,3 +28,6 @@ const noErrors=parseStory(JSON.stringify({...raw,ratings:[0,0,0,0,0,0]}),task,an
 console.log('Language deductions require grounded errors PASS');
 
 const unsupportedIssue=parseStory(JSON.stringify({...raw,ratings:[0,0,0,0,0,0],issues:[{severity:'must_fix',category:'文法',original:answer.slice(0,20),correction:'',explanationJa:'文法は正しいが内容が短い'}]}),task,answer);assert.equal(unsupportedIssue.breakdown[3].earned,4);assert.equal(unsupportedIssue.issues.length,0);console.log('Empty language corrections cannot penalize correct language PASS');
+
+const originalTimeout=globalThis.setTimeout;try{globalThis.setTimeout=(cb)=>{queueMicrotask(cb);return 0};const timed=await worker.fetch(post({task,answer}),{...env,AI:{run:()=>new Promise(()=>{})}});assert.equal(timed.status,502);assert.equal((await timed.json()).error,'grading_unavailable');}finally{globalThis.setTimeout=originalTimeout}
+console.log('AI timeout returns a safe retriable error PASS');
