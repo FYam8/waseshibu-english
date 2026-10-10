@@ -75,5 +75,11 @@
       "path": "ui/today-presenter.js",
       "contractVersion": 1
     }
+  },
+  "writingFeedback": {
+    "version": "1.0.0",
+    "entry": "ui/writing-feedback.js",
+    "schoolPolicy": "adapter-owned",
+    "legacyContractPreserved": true
   }
 }
