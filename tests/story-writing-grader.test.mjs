@@ -26,3 +26,5 @@ console.log('Bounded example repair preserves original assessment PASS');
 
 const noErrors=parseStory(JSON.stringify({...raw,ratings:[0,0,0,0,0,0]}),task,answer);assert.equal(noErrors.breakdown[3].earned,4);assert.equal(noErrors.breakdown[4].earned,4);
 console.log('Language deductions require grounded errors PASS');
+
+const unsupportedIssue=parseStory(JSON.stringify({...raw,ratings:[0,0,0,0,0,0],issues:[{severity:'must_fix',category:'文法',original:answer.slice(0,20),correction:'',explanationJa:'文法は正しいが内容が短い'}]}),task,answer);assert.equal(unsupportedIssue.breakdown[3].earned,4);assert.equal(unsupportedIssue.issues.length,0);console.log('Empty language corrections cannot penalize correct language PASS');
