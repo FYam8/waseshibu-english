@@ -55,8 +55,10 @@ async function handle(request,env){
  if(request.method==="GET"&&url.pathname==="/health")return json({ok:true,model:MODEL,promptVersion:PROMPT_VERSION,scorePolicyVersion:SCORE_POLICY_VERSION,supportedExamTasks:Object.keys(EXAM_TASKS).length,supportedDrillTasks:DRILL_TASKS.size});
  if(request.method!=="POST"||url.pathname!=="/v1/grade-writing")return json({error:"not_found"},404);
  if(!ALLOWED_ORIGINS.has(origin))return json({error:"origin_not_allowed"},403);
+ let readingRequest=false;
  try{
   const body=await readBody(request),task=resolveTask(body?.task),answer=typeof body?.answer==="string"?body.answer.trim():"";
+  readingRequest=task?.feedbackSchema==='reading-v1';
   if(!task)return json({error:"unsupported_task"},400,cors);
   if(!task.prompt)return json({error:"task_context_required"},400,cors);
   if(!answer)return json({error:"answer_required"},400,cors);
@@ -102,6 +104,7 @@ async function handle(request,env){
   return json({...scoring,semantic:assessment.semantic,modelSemantic,localAdjustments,organization:assessment.organization,issues:assessment.issues,strengths:assessment.strengths,revisedExample:assessment.revisedExample,usage,model:MODEL,promptVersion:PROMPT_VERSION,scorePolicyVersion:SCORE_POLICY_VERSION,generatedAt:new Date().toISOString()},200,{...cors,"cache-control":"no-store"});
  }catch(error){
   const publicError=publicAIError(error);
+  if(readingRequest&&publicError.status>=500)publicError.message='AI添削を完了できませんでした。答案は保存されています。時間をおいて再提出してください。';
   console.error(JSON.stringify({event:"writing_grade_error",status:publicError.status,cloudflareCode:publicError.cloudflareCode||null,message:String(error?.message||"unknown").slice(0,180)}));
   const{status,...payload}=publicError;
   return json(payload,status,cors);
