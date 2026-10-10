@@ -17,3 +17,9 @@ assert.equal((await worker.fetch(post({task,answer}),{...env,STORY_RATE_LIMIT:{l
 assert.equal((await worker.fetch(post({task,answer}),{AI:env.AI})).status,503);
 assert.equal((await worker.fetch(post({task,answer}),env)).status,200);
 console.log('Story grader: 4-task allowlist, canonical authority, boundaries, JSON/evidence, origin, rate limiting, preserved unofficial scores PASS');
+
+// A malformed/too-short improvement must never be mistaken for the submitted answer.
+const low={...raw,ratings:[0,0,0,4,4,4],revisedExample:'short'};let runs=0;
+const repairEnv={...env,AI:{run:async(model,input)=>{runs++;if(runs===1)return{response:JSON.stringify(low)};assert.ok(input.messages.some(m=>m.content.includes('STUDENT:')));return{response:JSON.stringify({revisedExample:answer})}}}};
+const repaired=await(await worker.fetch(post({task,answer}),repairEnv)).json();assert.equal(repaired.score,16);assert.equal(repaired.breakdown[0].earned,0);assert.equal(runs,2);
+console.log('Bounded example repair preserves original assessment PASS');
