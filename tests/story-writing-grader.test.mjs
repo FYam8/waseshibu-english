@@ -23,3 +23,6 @@ const low={...raw,ratings:[0,0,0,4,4,4],revisedExample:'short'};let runs=0;
 const repairEnv={...env,AI:{run:async(model,input)=>{runs++;if(runs===1)return{response:JSON.stringify(low)};assert.ok(input.messages.some(m=>m.content.includes('STUDENT:')));return{response:JSON.stringify({revisedExample:answer})}}}};
 const repaired=await(await worker.fetch(post({task,answer}),repairEnv)).json();assert.equal(repaired.score,16);assert.equal(repaired.breakdown[0].earned,0);assert.equal(runs,2);
 console.log('Bounded example repair preserves original assessment PASS');
+
+assert.throws(()=>parseStory(JSON.stringify({...raw,ratings:[0,0,0,0,0,0]}),task,answer),/unsupported language rating/);
+console.log('Language deductions require grounded errors PASS');
