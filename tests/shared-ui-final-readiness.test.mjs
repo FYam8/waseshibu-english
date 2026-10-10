@@ -16,7 +16,7 @@ assert.equal(manifest.consumerPolicy,'pinned-vendor-pr-only');
 assert.equal(manifest.releaseGate,'waseda-ui-parity-before-consumer-sync');
 
 const uiFiles=fs.readdirSync(path.join(root,'ui')).sort();
-assert.deepEqual(uiFiles,['answer-widgets.js','base.css','components.js','contract.js','exam-session.js','manifest.json','shell.js','today-presenter.js']);
+assert.deepEqual(uiFiles,['answer-widgets.js','base.css','components.js','contract.js','exam-session.js','manifest.json','shell.js','today-presenter.js','writing-feedback.js']);
 for(const file of ['ui/answer-widgets.js','ui/base.css','ui/components.js','ui/contract.js','ui/shell.js','ui/exam-session.js','ui/today-presenter.js']){
   assert.doesNotMatch(read(file),/waseshibu|rikkyo|早稲|立教|fyam8|workers\.dev/i,file+' leaks school/provider identity');
 }
