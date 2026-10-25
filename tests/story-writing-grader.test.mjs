@@ -41,15 +41,18 @@ assert.throws(()=>parseStory(JSON.stringify(badAssessment),task,student),/ungrou
 let repairCalls=0;const anchoredEnv={...env,AI:{run:async(_model,input)=>{
  repairCalls++;
  if(repairCalls===1)return{response:JSON.stringify(badAssessment)};
- assert.ok(input.messages.at(-1).content.includes('ZERO-BASED INCLUSIVE'));
- assert.ok(input.messages.at(-1).content.includes('ORIGINAL WORDS:'));
- return{response:JSON.stringify({...badAssessment,issues:[{severity:'must_fix',category:'文法',startWord:0,endWord:1,correction:'I rode',explanationJa:'ride の過去形は rode です。'}]})};
+ assert.ok(input.messages.at(-1).content.includes('ENTIRE selected sentence'));
+ assert.ok(input.messages.at(-1).content.includes('ORIGINAL SPANS:'));
+ return{response:JSON.stringify({...badAssessment,issues:[{severity:'must_fix',category:'文法',spanId:0,correction:'I rode my bicycle to the nearby shop.',explanationJa:'ride の過去形は rode です。'}]})};
 }}};
 const anchoredResponse=await worker.fetch(post({task,answer:student}),anchoredEnv);assert.equal(anchoredResponse.status,200);
-const anchored=await anchoredResponse.json();assert.equal(anchored.issues[0].original,'I rid');assert.equal(anchored.issues[0].correction,'I rode');assert.equal(anchored.score,22);assert.equal(repairCalls,2);assert.equal(anchored.issues[0].startWord,undefined);
-for(const [startWord,endWord]of [[-1,1],[1,0],[0,999],[0.5,1]])assert.throws(()=>parseStory(JSON.stringify({...raw,issues:[{...badIssue,original:undefined,startWord,endWord}]}),task,student),/anchor/);
-assert.throws(()=>parseStory(JSON.stringify({...raw,issues:[{...badIssue,startWord:0,endWord:1}]}),task,student),/inconsistent/);
-const whitespace=student.replace('I rid','I  rid');const exact=parseStory(JSON.stringify({...raw,issues:[{...badIssue,original:undefined,startWord:0,endWord:1}]}),task,whitespace);assert.equal(exact.issues[0].original,'I  rid');
+const anchored=await anchoredResponse.json();assert.equal(anchored.issues[0].original,'I rid my bicycle to the nearby shop.');assert.equal(anchored.issues[0].correction,'I rode my bicycle to the nearby shop.');assert.equal(anchored.score,22);assert.equal(repairCalls,2);assert.equal(anchored.issues[0].startWord,undefined);
+for(const spanId of [-1,999,0.5,'0'])assert.throws(()=>parseStory(JSON.stringify({...raw,issues:[{...badIssue,original:undefined,spanId}]}),task,student),/anchor/);
+assert.throws(()=>parseStory(JSON.stringify({...raw,issues:[{...badIssue,spanId:0}]}),task,student),/inconsistent/);
+assert.throws(()=>parseStory(JSON.stringify({...raw,issues:[{...badIssue,original:undefined,startWord:0,endWord:1}]}),task,student),/complete story span/);
+const whitespace=student.replace('I rid','I  rid');const exact=parseStory(JSON.stringify({...raw,issues:[{...badIssue,original:undefined,spanId:0,correction:'I rode my bicycle to the nearby shop.'}]}),task,whitespace);assert.equal(exact.issues[0].original,'I  rid my bicycle to the nearby shop.');
 const rejected=await worker.fetch(post({task,answer:student}),{...env,AI:{run:async()=>({response:JSON.stringify(badAssessment)})}});assert.equal(rejected.status,502);assert.ok(!(await rejected.json()).message.includes('自己採点'));
-console.log('Ungrounded quote repair: exact word anchors, unchanged ratings, whitespace, invalid ranges and safe rejection PASS');
+console.log('Ungrounded quote repair: exact sentence anchors, unchanged ratings, whitespace, invalid ranges and safe rejection PASS');
 
+
+assert.throws(()=>parseStory(JSON.stringify({...raw,issues:[{...badIssue,original:undefined,spanId:0,correction:'I rode'}]}),task,student),/incomplete story sentence/);
