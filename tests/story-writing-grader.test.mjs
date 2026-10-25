@@ -31,3 +31,25 @@ const unsupportedIssue=parseStory(JSON.stringify({...raw,ratings:[0,0,0,0,0,0],i
 
 const originalTimeout=globalThis.setTimeout;try{globalThis.setTimeout=(cb)=>{queueMicrotask(cb);return 0};const timed=await worker.fetch(post({task,answer}),{...env,AI:{run:()=>new Promise(()=>{})}});assert.equal(timed.status,502);assert.equal((await timed.json()).error,'grading_unavailable');}finally{globalThis.setTimeout=originalTimeout}
 console.log('AI timeout returns a safe retriable error PASS');
+
+// Reproduce a typo-heavy answer where the model "quotes" its correction instead
+// of the student's original words. Never drop the grounding check to show a score.
+const student='I rid my bicycle to the nearby shop. '+answer;
+const badIssue={severity:'must_fix',category:'文法',original:'I rode my bicycle',correction:'I rode my bicycle',explanationJa:'ride の過去形は rode です。'};
+const badAssessment={...raw,ratings:[3,3,3,2,4,3],issues:[badIssue]};
+assert.throws(()=>parseStory(JSON.stringify(badAssessment),task,student),/ungrounded/);
+let repairCalls=0;const anchoredEnv={...env,AI:{run:async(_model,input)=>{
+ repairCalls++;
+ if(repairCalls===1)return{response:JSON.stringify(badAssessment)};
+ assert.ok(input.messages.at(-1).content.includes('ZERO-BASED INCLUSIVE'));
+ assert.ok(input.messages.at(-1).content.includes('ORIGINAL WORDS:'));
+ return{response:JSON.stringify({...badAssessment,issues:[{severity:'must_fix',category:'文法',startWord:0,endWord:1,correction:'I rode',explanationJa:'ride の過去形は rode です。'}]})};
+}}};
+const anchoredResponse=await worker.fetch(post({task,answer:student}),anchoredEnv);assert.equal(anchoredResponse.status,200);
+const anchored=await anchoredResponse.json();assert.equal(anchored.issues[0].original,'I rid');assert.equal(anchored.issues[0].correction,'I rode');assert.equal(anchored.score,22);assert.equal(repairCalls,2);assert.equal(anchored.issues[0].startWord,undefined);
+for(const [startWord,endWord]of [[-1,1],[1,0],[0,999],[0.5,1]])assert.throws(()=>parseStory(JSON.stringify({...raw,issues:[{...badIssue,original:undefined,startWord,endWord}]}),task,student),/anchor/);
+assert.throws(()=>parseStory(JSON.stringify({...raw,issues:[{...badIssue,startWord:0,endWord:1}]}),task,student),/inconsistent/);
+const whitespace=student.replace('I rid','I  rid');const exact=parseStory(JSON.stringify({...raw,issues:[{...badIssue,original:undefined,startWord:0,endWord:1}]}),task,whitespace);assert.equal(exact.issues[0].original,'I  rid');
+const rejected=await worker.fetch(post({task,answer:student}),{...env,AI:{run:async()=>({response:JSON.stringify(badAssessment)})}});assert.equal(rejected.status,502);assert.ok(!(await rejected.json()).message.includes('自己採点'));
+console.log('Ungrounded quote repair: exact word anchors, unchanged ratings, whitespace, invalid ranges and safe rejection PASS');
+
